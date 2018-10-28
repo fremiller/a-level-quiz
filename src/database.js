@@ -1,54 +1,47 @@
-let sql = require("mysql");
+var mongoose = exports.mongoose = require("mongoose");
+var models = exports.models = require("./models")
 
-/**
- * Database
- * Database is a class which handles queries to the MySQL database
- */
-class Database{
-    /**
-     * 
-     * @param {String} _databaseURL The URL of the database to connect to
-     * @param {String} _databaseUsername The username to use in the database
-     * @param {String} _databasePassword The password to use in the database
-     * @param {String} _table The table in the database with the required data structures
-     * @param {function?} callback The function which calls when the database is ready 
-     */
-    constructor(_databaseURL, _databaseUsername, _databasePassword, _table, callback){
-        this.databaseURL = _databaseURL;
-        this.table = _table;
-        // Create a DB connection object
-        this.connection = Database.ConnectToDatabase(this.databaseURL, _databaseUsername, _databasePassword);
-        // Connect to the database
-        this.connection.connect(function(err){
-            if(err){
-                return;
-            }
-            console.log(`Connected to database ${_databaseURL}`);
-            if(callback){
-                callback();
-            }
-        });
+exports.init = function (callback) {
+    console.log("\tConnecting")
+    mongoose.connect("mongodb://localhost:27017/quiztest", {
+        useNewUrlParser: true
+    }); 
+    var db = mongoose.connection;
+    db.on('error', function () {
+        console.error.bind(console, 'connection error:');
+        return;
+    });
+    db.once('open', function () {
+        console.log("\r\tConnected");
+        callback();
+    });
+}
+
+exports.getUserFromGoogleID = async function (id) {
+    let model = await models.User.find().where("googleid").equals(id).exec();
+    if (model.length == 0) {
+        return undefined;
     }
+    return model[0];
+}
 
-    /**
-     * Returns a database connection
-     * @param {String} url The URL of the database server
-     * @param {String} username The username to authenticate with
-     * @param {String} password The password to authenticate with
-     */
-    static ConnectToDatabase(url, username, password){
-        return sql.createConnection({
-            host: url,
-            user: username,
-            password: password,
-            database: "testdb"
-        });
-    }
+exports.CreateUser = async function (userObj) {
+    let usr = new models.User(userObj);
+    usr = await usr.save();
+    return usr;
+}
 
-    QueryAll(query, callback){
-        this.connection.query(query, function(err, result){
-            if(err) throw err;
-            callback(result);
-        })
+exports.GetRandomQuestion = async function (){
+    return {
+        question: "Test question one",
+        description: "1) a\n2) b\n3) c",
+        answers: [
+            "1 is correct",
+            "1 and 2 are correct",
+            "1 2 and 3 are correct",
+            "None are correct"
+        ],
+        correctAnswer: 3,
+        timeLimit: 60,
     }
 }
