@@ -11,33 +11,36 @@ exports.start = function () {
 }
 
 async function onConnection(socket) {
+    console.log("[GAME] New socket connection")
     let code = socket.request._query.code;
     let token = socket.request._query.token;
     if (!code || !token) {
-        console.error("Invalid parameters")
+        console.log("[ERROR][GAME] Invalid Join Parameters")
         socket.emit("displayError", { "text": "Invalid Parameters" });
         return;
     }
+    console.log("[INFO][GAME] Getting user")
     let user = await auth.GetUserFromToken(token);
+    console.log("[INFO][GAME] Getting game")
     let game = getGameByCode(code);
     if (!game) {
-        console.error("Invalid game code");
+        console.log("[ERROR][GAME] Invalid Game Code")
         socket.emit("displayError", { "text": "Invalid game code" });
         return;
     }
+    console.log("[INFO][GAME] Joining game by code")
     socket.join(code);
-    
-    if(game.players.length == 0){
+
+    if (game.players.length == 0) {
+        console.log("[INFO][GAME] First Game User")
         // We are the first player (the owner of the game)
-        socket.on("startgame", function(){
-            console.log("Starting game")
+        socket.on("startgame", function () {
+            console.log("[INFO][GAME] Starting game "+game.code)
             game.startGame();
         })
     }
-    
-        game.join(user.toJSON());
+    game.join(user.toJSON());
     game.broadcastLobbyStatus();
-    
 }
 
 class Game {
@@ -45,9 +48,10 @@ class Game {
         this.code = generateGameCode();
         this.players = [];
         this.topics = [];
+        console.log("[INFO][GAME] New game "+ this.code)
     }
 
-    startGame(){
+    startGame() {
         this.sendQuestion();
     }
 
@@ -58,15 +62,18 @@ class Game {
         }
     }
 
-    join(playerid){
+    join(playerid) {
+        console.log(`[INFO][GAME][${this.code}] New player joined`)
         this.players.push(playerid)
     }
 
-    broadcastLobbyStatus(){
-        this.broadcast("updateLobbyStatus", {game: this.toJSON()});
+    broadcastLobbyStatus() {
+        console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
+        this.broadcast("updateLobbyStatus", { game: this.toJSON() });
     }
 
     async sendQuestion() {
+        console.log(`[INFO][GAME][${this.code}] Sending question`)
         this.broadcast("showQuestion", await database.GetRandomQuestion())
     }
 

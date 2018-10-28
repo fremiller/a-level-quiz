@@ -1,4 +1,5 @@
-var app = require("express")();
+var express = require("express");
+var app = express();
 var webpageurl = __dirname + "/webpage/";
 var database = require("./database");
 let auth = require("./auth");
@@ -7,16 +8,15 @@ let game = require("./game");
 let http = require("http").Server(app);
 let io = exports.io = require("socket.io")(http);
 
+app.use(express.static('public'))
+
 app.get("/", function (req, res) {
+    console.log("[REQUEST] index.html")
     res.sendFile(webpageurl + "index.html");
 });
 
-app.get("/signin", function (req, res) {
-    res.sendFile(webpageurl + "signin.html");
-})
-
 app.get("/users/register", async function (req, res) {
-    console.log(req.query)
+    console.log("[REQUEST] /users/register")
     if (!VerifyParams(req, ["name"])) {
         res.status(402).send("Failed to add user. Invalid parameters");
         return;
@@ -26,6 +26,7 @@ app.get("/users/register", async function (req, res) {
 });
 
 app.post("/users/login", async function (req, res) {
+    console.log("[REQUEST] /users/login")
     if (!VerifyParams(req, ["token"])) {
         res.status(402).send("Failed to sign in. Invalid parameters")
     }
@@ -39,6 +40,7 @@ app.post("/users/login", async function (req, res) {
 });
 
 app.post("/games/create", async function(req, res){
+    console.log("[REQUEST] /games/create")
     res.json(game.createGame());
 })
 
