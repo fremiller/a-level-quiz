@@ -1,20 +1,41 @@
 var mongoose = exports.mongoose = require("mongoose");
-var models = exports.models = require("./models")
+var models = exports.models = require("./models");
+const {
+    exec
+} = require('child_process');
+var initTried = false;
 
-exports.init = function (callback) {
+exports.init = init = function (callback) {
     console.log("\tConnecting")
     mongoose.connect("mongodb://localhost:27017/quiztest", {
         useNewUrlParser: true
-    }); 
+    });
     var db = mongoose.connection;
+    if (!initTried) {
+        db.once('open', function () {
+            console.log("\r\tConnected");
+            callback();
+        });
+    }
     db.on('error', function () {
-        console.error.bind(console, 'connection error:');
-        return;
+        if (initTried) {
+            throw "Failed to connect to database"
+        } else {
+            console.log("Unable to connect to database. Attempting to start");
+            initTried = true;
+            exec("service mongod start", (err, stdout, stderr) => {
+                if (err) {
+                    if (err.message.includes("Access denied")) {
+                        throw "Unable to start service. Run this server as root or start mongo service manually"
+                    } else {
+                        throw "Unable to start service:\n" + err.message
+                    }
+                }
+                setTimeout(init, 1000, callback);
+            })
+        }
     });
-    db.once('open', function () {
-        console.log("\r\tConnected");
-        callback();
-    });
+
 }
 
 exports.getUserFromGoogleID = async function (id) {
@@ -31,7 +52,7 @@ exports.CreateUser = async function (userObj) {
     return usr;
 }
 
-exports.GetRandomQuestion = async function (){
+exports.GetRandomQuestion = async function () {
     return {
         question: "Test question one",
         description: "1) a\n2) b\n3) c",

@@ -15,6 +15,8 @@ let currentGame = undefined;
 //  The Google access token of the current user
 let GOOGLE_TOKEN = undefined;
 
+let classroom_data = {};
+
 /**
  * Runs when the User successfully signs in with google.
  * @param {*} googleUser 

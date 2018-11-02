@@ -1,5 +1,5 @@
 let scenes = {
-  signin: function(data) {
+  signin: function (data) {
     return /*html*/ `<div class="row">
     <div class="center-box center-block "><h1>Quiz</h1>
             <p>orleanspark.school emails only</p>
@@ -8,14 +8,14 @@ let scenes = {
             </div></div>
 </div>`;
   },
-  error: function(data) {
+  error: function (data) {
     return /*html*/ `<div class="row">
     <div class="center-box center-block "><h1>Error ${data.status}</h1>
         <p>${data.text}</p>
         <p>Reload the page to try again</p></div>
     </div>`;
   },
-  loading: function(data) {
+  loading: function (data) {
     return /*html*/ `<div class="row">
             <div class="center-box center-block "><h1>Loading</h1><p>${
               data.text ? data.text : ""
@@ -24,7 +24,24 @@ let scenes = {
             </div>
             </div>`;
   },
-  studentdashboard: function(data) {
+  createGame: function(data){
+    return /*html*/`<div class="row"><div class="center-box center-block"><h1>Create a game</h1><form><div class="form-group">
+    <label for="topic">Topic</label>
+    <select class="form-control" id="topic">
+      <option>Electric Fields</option>
+      <option>Magnetic Fields</option>
+      <option>All</option>
+      <option>Auto</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="classs">Class</label>
+    <select class="form-control" id="class">
+      
+    </select>
+  </div></form></div></div>`
+  },
+  studentdashboard: function (data) {
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
     }"><div><h5>${currentUser.name}</h5><h6>${
@@ -36,35 +53,37 @@ let scenes = {
         </div>
       </div></div>`;
   },
-  teacherdashboard: function(data) {
+  teacherdashboard: function (data) {
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
     }"><div><h5>${currentUser.name}</h5><h6>${
       currentUser.domain
     }</h6></div></div></div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
   },
-  teacherlobby: function(data) {
+  teacherlobby: function (data) {
     let playerlist = "";
     for (let i = 0; i < currentGame.players.length; i++) {
       playerlist += `<p>${currentGame.players[i].name}</p>`;
     }
     return /*html*/ `<div class="header"><h1 class="code">${
       currentGame.code
-    }</h1><button class="lobbystartbutton" onclick="startgame()">Start Game</button><div class="headerplayercount"><h1>${
+    }</h1><button class="lobbystartbutton" onclick="startgame()">Start Game</button>${currentGame?`<div id="classroom-share" class="g-sharetoclassroom" data-size="32" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>`:""}<div class="headerplayercount"><h1>${
       currentGame.players.length
     }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
   },
-  studentlobby: function(data) {
+  studentlobby: function (data) {
     return /*html*/ `<h1>Waiting for game to start</h1>`;
   },
-  studentquestion: function(question) {
+  studentquestion: function (question) {
     let answerBoxes = "";
+    let i = 0;
     question.answers.forEach(answer => {
-      answerBoxes += `<div class="answer">${answer}</div>`;
+      answerBoxes += `<div id="answer-${i}" class="answer">${answer}</div>`;
+      i++;
     });
     return /*html*/ `<div class="answers">${answerBoxes}</div>`;
   },
-  teacherquestion: function(question) {
+  teacherquestion: function (question) {
     console.log(question);
     let answerBoxes = "";
     question.answers.forEach(answer => {
@@ -86,14 +105,19 @@ function loadScene(tag, data) {
   $("#scene").html(scenes[tag](data));
   if (tag == "signin") {
     gapi.signin2.render("g-signin", {
-      scope:
-        "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
+      scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
       onsuccess: onSignIn
     });
     let playerlist = document.getElementById("players");
     for (let i = 0; i < currentGame.players.length; i++) {
       playerlist.innerHTML += `<p>${currentGame.players[i].name}</p>`;
     }
+  }
+  if (tag == "teacherlobby") {
+    gapi.sharetoclassroom.render("classroom-share", {
+      theme: "light",
+      size: 70
+    })
   }
 }
 
@@ -102,12 +126,15 @@ function loadScene(tag, data) {
  * @param {{"err": String, "text": String}} err
  */
 function showError(err) {
-  loadScene("error", { status: err.statusCode, text: err.responseText });
+  loadScene("error", {
+    status: err.statusCode,
+    text: err.responseText
+  });
 }
 
-$(function() {
+$(function () {
   loadScene("signin");
-  $(function() {
+  $(function () {
     $('[data-toggle="tooltip"]').tooltip();
   });
 });

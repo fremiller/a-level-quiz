@@ -5,6 +5,7 @@ var database = require("./database");
 let auth = require("./auth");
 let model = require("./models");
 let game = require("./game");
+let classroom = require("./classroom")
 let http = require("http").Server(app);
 let io = exports.io = require("socket.io")(http);
 
@@ -39,10 +40,16 @@ app.post("/users/login", async function (req, res) {
     }
 });
 
+app.get("/classes/list", async function(req, res){
+    classroom.getClasses(req.query.token, function(data){
+        res.json(data);
+    })
+})
+
 app.post("/games/create", async function(req, res){
     console.log("[REQUEST] /games/create")
     res.json(game.createGame());
-})
+});
 
 /**
  * This makes sure that a request contains the required query parameters
@@ -59,6 +66,9 @@ function VerifyParams(req, params) {
 }
 
 exports.start = function (callback) {
-    http.listen("8000");
-    callback();
+    http.listen("8000", function(){
+        console.log("Server listening on port 8000")
+        callback();
+    });
+    
 }
