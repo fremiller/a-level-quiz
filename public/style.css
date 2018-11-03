@@ -161,40 +161,70 @@ html {
     user-select: none;
 }
 
-#answer-0 {
+.answer#answer-0 {
     color: rgb(83, 83, 207);
     border: rgb(83, 83, 207) 4px solid;
 }
 
-#answer-0:hover {
+.answer#answer-0:hover {
     background-color: rgb(83, 83, 207);
     color: coral;
 }
 
-#answer-1 {
+.answer#answer-1 {
     color: rgb(20, 160, 20);
     border: rgb(20, 160, 20) 4px solid;
 }
 
-#answer-1:hover {
+.answer#answer-1:hover {
     background-color: rgb(20, 160, 20);
     color: coral;
 }
-#answer-2 {
+.answer#answer-2 {
     color: rgb(253, 253, 59);
     border: rgb(253, 253, 59) 4px solid;
 }
 
-#answer-2:hover {
+.answer#answer-2:hover {
     background-color: rgb(253, 253, 59);
     color: coral;
 }
-#answer-3 {
+.answer#answer-3 {
     color: rgb(255, 0, 43);
     border: rgb(255, 0, 43) 4px solid;
 }
 
-#answer-3:hover {
+.answer#answer-3:hover {
     background-color: rgb(255, 0, 43);
     color: coral;
+}
+
+.correctAnswer{
+    width: 48%;
+    margin: 1%;
+    display: inline-block;
+    height: 150px;
+    padding-top: 50px;
+    color: rgb(46, 197, 0);
+    border: rgb(46, 197, 0) 4px solid;
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+
+    user-select: none;
+}
+
+.incorrectAnswer{
+    width: 48%;
+    margin: 1%;
+    display: inline-block;
+    height: 150px;
+    padding-top: 50px;
+
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: rgb(165, 165, 165);
+    border: rgb(165, 165, 165) 4px solid;
+    user-select: none;
 }

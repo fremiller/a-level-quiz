@@ -92,7 +92,20 @@ let scenes = {
     }</h1><p class="questiondescription">${
       question.description
     }</p><div class="answers">${answerBoxes}</div>`;
-  }
+  },
+  scoreboard: function(question){
+    let leaderboard = "";
+    question.leaderboard.forEach(function(player){
+      leaderboard += `<h5>${player.name}<span>${player.score}</span></h5>`
+    })
+    return /*html*/`<h1>Scoreboard</h1><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
+  },
+  correctanswer: function(score){
+    return /*html*/`<h1>Correct</h1><p>You now have ${score} points</p>`
+  },
+  incorrectanswer: function(score){
+    return /*html*/`<h1>Incorrect</h1><p>You still have ${score} points</p>`
+  },
 };
 /**
  * Displays a "scene" on the client
@@ -128,6 +141,11 @@ function showError(err) {
     status: err.statusCode,
     text: err.responseText
   });
+}
+
+function showCorrectAnswer(answerid){
+  $(".answer").removeClass("answer").addClass("incorrectAnswer")
+  $("#answer-"+answerid).removeClass("incorrectAnswer").addClass("correctAnswer")
 }
 
 $(function () {

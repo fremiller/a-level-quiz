@@ -38,35 +38,44 @@ async function onConnection(socket) {
             console.log("[INFO][GAME] Starting game "+game.code)
             game.startGame();
         })
+        game.setHost(user.toJSON(), socket)
     }
     else{
         socket.on("submitAnswer", function(id){
             game.submitAnswer(user.googleid, id)
         })
     }
-    game.join(user.toJSON());
+    game.join(user.toJSON(), socket);
     game.broadcastLobbyStatus();
 }
 
-class Game {
+exports.Game = class Game {
     constructor(creator) {
         this.code = generateGameCode();
         this.players = [];
+        this.host = undefined;
         this.topics = [];
         this.pastQuestions = [];
         this.currentQuestion = undefined;
         console.log("[INFO][GAME] New game "+ this.code)
     }
 
+    setHost(host, socket){
+        host.socket = socket
+        this.host = host;
+    }
+
     startGame() {
+        this.players.forEach((player)=>{
+            player.score = 0;
+        });
         this.sendQuestion();
     }
 
-    getCurrentQuestion(){
-        return this.pastQuestions[this.pastQuestions.length - 1]
-    }
-
     getCurrentAnswerByUser(user){
+        if(typeof(user) != "string"){
+            throw "User must be string";
+        }
         for(let i = 0; i < this.currentQuestion.userAnswers.length; i++){
             if(this.currentQuestion.userAnswers[i].userid == user){
                 return this.currentQuestion.userAnswers[i];
@@ -85,28 +94,71 @@ class Game {
             "answer": answer,
             "time": 0
         });
-        console.log(this.currentQuestion)
-        if(this.currentQuestion.userAnswers.length == this.players.length - 1){
+        if(this.currentQuestion.userAnswers.length >= this.players.length - 1){
             this.showScoreboard()
         }
     }
 
+    sortScoreboard(){
+        this.players.sort((a, b)=>{
+            return b.score - a.score;
+        })
+    }
+
+    getPlayerByGoogleId(id){
+        let p = undefined;
+        this.players.forEach((pl) => {
+            if(pl.googleid == id){
+                p = pl;
+            }
+        })
+        return p
+    }
+
     showScoreboard(){
         console.log("revealAnswer")
-        this.broadcast("revealAnswer", this.currentQuestion)
-        setTimeout(() => this.broadcast("scoreboard"), 5000)
+        this.sortScoreboard()
+        let scoresToAdd = {};
+        let game = this;
+        this.currentQuestion.userAnswers.forEach(function(player, i){
+            if(player.answer == game.currentQuestion.correctAnswer){
+                scoresToAdd[player.userid] = game.players.length - i + 5;
+            }
+        })
+        this.players.forEach((player)=>{
+            if(scoresToAdd[player.googleid]){
+                player.score += scoresToAdd[player.googleid];
+                player.socket.emit("correctAnswer", player.score)
+            }
+            else{
+                player.socket.emit("incorrectAnswer", player.score)
+            }
+        })
+        this.currentQuestion.leaderboard = this.playerJSON()
+        game = this;
+        this.sendToHost("revealAnswer", this.currentQuestion)
+        setTimeout(() => this.sendToHost("scoreboard", game.currentQuestion), 5000)
+    }
+
+    playerJSON(){
+        let j = [];
+        this.players.forEach((player) => {
+            j.push({googleid: player.googleid, name: player.name, score: player.score})
+        })
+        return j
     }
 
     toJSON() {
         return {
             "code": this.code,
-            "players": this.players
+            "players": this.playerJSON()
         }
     }
 
-    join(player) {
+    join(player, socket) {
         console.log(`[INFO][GAME][${this.code}] New player joined`)
-        this.players.push(player)
+        player.socket = socket;
+        this.players.push(player);
     }
 
     broadcastLobbyStatus() {
@@ -115,6 +167,9 @@ class Game {
     }
 
     async sendQuestion() {
+        if(this.currentQuestion){
+            this.pastQuestions.push(this.currentQuestion)
+        }
         console.log(`[INFO][GAME][${this.code}] Sending question`)
         this.currentQuestion = await database.GetRandomQuestion();
         this.currentQuestion.userAnswers = [];
@@ -122,7 +177,15 @@ class Game {
     }
 
     broadcast(name, data) {
-        io.in(this.code).emit(name, data);
+        try{
+            io.in(this.code).emit(name, data);
+        } catch(e){
+            console.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
+        }
+    }
+
+    sendToHost(name, data){
+        this.host.socket.emit(name, data);
     }
 }
 

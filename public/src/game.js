@@ -40,10 +40,10 @@ function setupSocketEvents(socket) {
 
     socket.on("revealAnswer", function(question){
         console.log("Reveal answer")
-        document.getElementById("answer-"+question.correctAnswer).class += " correctAnswer";
+        showCorrectAnswer(question.correctAnswer)
     })
 
-    socket.on("scoreboard", function(){
+    socket.on("scoreboard", function(question){
         loadScene("scoreboard", question)
     })
 
@@ -57,5 +57,17 @@ function setupSocketEvents(socket) {
     socket.on("updateLobbyStatus", function (data) {
         currentGame = data.game;
         loadScene(currentUser.userType == 0 ? "studentlobby" : "teacherlobby");
+    })
+
+    socket.on("correctAnswer", function(data){
+        if(currentUser.userType == 0){
+            loadScene("correctanswer", data)
+        }
+    })
+
+    socket.on("incorrectAnswer", function(data){
+        if(currentGame.userType == 0){
+            loadScene("incorrectanswer", data)
+        }
     })
 }
