@@ -11,5 +11,5 @@ It is a quiz for A level physics students to help them revise the multiple choic
 ├───public - Client side scripts
 ├───src - Server side scripts
 ├───package.json - npm package json
-├───server.js - Main server file
+└───server.js - Main server file
 ```

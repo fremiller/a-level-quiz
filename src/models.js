@@ -73,7 +73,7 @@ var UserSchema = {
  * 
  * This function initialises all the models for the database object to use
  */
-function init() {
+exports.init = function() {
     console.log("[MODELS] Initialising User Model")
     exports.User = mongoose.model("User", UserSchema);
     console.log("[MODELS] Initialising UserGameStats Model")

@@ -39,6 +39,11 @@ async function onConnection(socket) {
             game.startGame();
         })
     }
+    else{
+        socket.on("submitAnswer", function(id){
+            game.submitAnswer(user.googleid, id)
+        })
+    }
     game.join(user.toJSON());
     game.broadcastLobbyStatus();
 }
@@ -48,11 +53,48 @@ class Game {
         this.code = generateGameCode();
         this.players = [];
         this.topics = [];
+        this.pastQuestions = [];
+        this.currentQuestion = undefined;
         console.log("[INFO][GAME] New game "+ this.code)
     }
 
     startGame() {
         this.sendQuestion();
+    }
+
+    getCurrentQuestion(){
+        return this.pastQuestions[this.pastQuestions.length - 1]
+    }
+
+    getCurrentAnswerByUser(user){
+        for(let i = 0; i < this.currentQuestion.userAnswers.length; i++){
+            if(this.currentQuestion.userAnswers[i].userid == user){
+                return this.currentQuestion.userAnswers[i];
+            }
+        }
+        return undefined;
+    }
+
+    submitAnswer(user, answer){
+        if(this.getCurrentAnswerByUser(user)){
+            throw "User has already submitted an answer"
+        }
+        console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
+        this.currentQuestion.userAnswers.push({
+            "userid": user,
+            "answer": answer,
+            "time": 0
+        });
+        console.log(this.currentQuestion)
+        if(this.currentQuestion.userAnswers.length == this.players.length - 1){
+            this.showScoreboard()
+        }
+    }
+
+    showScoreboard(){
+        console.log("revealAnswer")
+        this.broadcast("revealAnswer", this.currentQuestion)
+        setTimeout(() => this.broadcast("scoreboard"), 5000)
     }
 
     toJSON() {
@@ -62,9 +104,9 @@ class Game {
         }
     }
 
-    join(playerid) {
+    join(player) {
         console.log(`[INFO][GAME][${this.code}] New player joined`)
-        this.players.push(playerid)
+        this.players.push(player)
     }
 
     broadcastLobbyStatus() {
@@ -74,7 +116,9 @@ class Game {
 
     async sendQuestion() {
         console.log(`[INFO][GAME][${this.code}] Sending question`)
-        this.broadcast("showQuestion", await database.GetRandomQuestion())
+        this.currentQuestion = await database.GetRandomQuestion();
+        this.currentQuestion.userAnswers = [];
+        this.broadcast("showQuestion", this.currentQuestion)
     }
 
     broadcast(name, data) {

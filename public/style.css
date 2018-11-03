@@ -141,3 +141,60 @@ html {
     color: white;
     font-family: "Montserrat", sans-serif;
 }
+
+.questiontitle {
+    width: 100%;
+    text-align: center;
+}
+
+.answer {
+    width: 48%;
+    margin: 1%;
+    display: inline-block;
+    height: 150px;
+    padding-top: 50px;
+
+    text-align: center;
+    font-size: 30px;
+    font-weight: 800;
+
+    user-select: none;
+}
+
+#answer-0 {
+    color: rgb(83, 83, 207);
+    border: rgb(83, 83, 207) 4px solid;
+}
+
+#answer-0:hover {
+    background-color: rgb(83, 83, 207);
+    color: coral;
+}
+
+#answer-1 {
+    color: rgb(20, 160, 20);
+    border: rgb(20, 160, 20) 4px solid;
+}
+
+#answer-1:hover {
+    background-color: rgb(20, 160, 20);
+    color: coral;
+}
+#answer-2 {
+    color: rgb(253, 253, 59);
+    border: rgb(253, 253, 59) 4px solid;
+}
+
+#answer-2:hover {
+    background-color: rgb(253, 253, 59);
+    color: coral;
+}
+#answer-3 {
+    color: rgb(255, 0, 43);
+    border: rgb(255, 0, 43) 4px solid;
+}
+
+#answer-3:hover {
+    background-color: rgb(255, 0, 43);
+    color: coral;
+}

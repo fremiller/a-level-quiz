@@ -6,6 +6,7 @@ const {
 var initTried = false;
 
 exports.init = init = function (callback) {
+    models.init();
     console.log("\tConnecting")
     mongoose.connect("mongodb://localhost:27017/quiztest", {
         useNewUrlParser: true
@@ -54,7 +55,7 @@ exports.CreateUser = async function (userObj) {
 
 exports.GetRandomQuestion = async function () {
     return {
-        question: "Test question one",
+        question: "Which of these statements are correct?",
         description: "1) a\n2) b\n3) c",
         answers: [
             "1 is correct",

@@ -22,6 +22,11 @@ function connectToGame(code) {
     socket = io(`localhost:8000/?code=${code}&token=${GOOGLE_TOKEN}`);
     setupSocketEvents(socket)
 }
+
+function submitAnswer(id){
+    console.log(`answer ${id}`)
+    socket.emit("submitAnswer", id)
+}
 /**
  * Adds all required events to the socket.io socket
  * This contains almost all game logic
@@ -32,6 +37,15 @@ function setupSocketEvents(socket) {
     socket.on("displayError", function (data) {
         loadScene("error", { text: data.text, status: "" })
     });
+
+    socket.on("revealAnswer", function(question){
+        console.log("Reveal answer")
+        document.getElementById("answer-"+question.correctAnswer).class += " correctAnswer";
+    })
+
+    socket.on("scoreboard", function(){
+        loadScene("scoreboard", question)
+    })
 
     // This runs when the server wants us to display a question
     socket.on("showQuestion", function (question) {

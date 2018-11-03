@@ -76,18 +76,16 @@ let scenes = {
   },
   studentquestion: function (question) {
     let answerBoxes = "";
-    let i = 0;
-    question.answers.forEach(answer => {
-      answerBoxes += `<div id="answer-${i}" class="answer">${answer}</div>`;
-      i++;
+    question.answers.forEach((answer, i) => {
+      answerBoxes += `<div id="answer-${i}" class="answer" onclick="submitAnswer(${i})">${answer}</div>`;
     });
     return /*html*/ `<div class="answers">${answerBoxes}</div>`;
   },
   teacherquestion: function (question) {
     console.log(question);
     let answerBoxes = "";
-    question.answers.forEach(answer => {
-      answerBoxes += `<div class="answer">${answer}</div>`;
+    question.answers.forEach((answer, i) => {
+      answerBoxes += `<div class="answer" id="answer-${i}">${answer}</div>`;
     });
     return /*html*/ `<h1 class="questiontitle">${
       question.question

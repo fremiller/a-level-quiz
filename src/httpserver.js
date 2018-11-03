@@ -36,6 +36,7 @@ app.post("/users/login", async function (req, res) {
         res.json(user);
     }
     catch (err) {
+        console.log(err)
         res.status(403).send(err);
     }
 });
