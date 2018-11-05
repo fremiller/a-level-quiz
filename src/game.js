@@ -38,6 +38,9 @@ async function onConnection(socket) {
             console.log("[INFO][GAME] Starting game "+game.code)
             game.startGame();
         })
+        socket.on("lobbyContinue", function(){
+            game.sendQuestion();
+        })
         game.setHost(user.toJSON(), socket)
     }
     else{
@@ -49,7 +52,7 @@ async function onConnection(socket) {
     game.broadcastLobbyStatus();
 }
 
-exports.Game = class Game {
+let Game = exports.Game = class Game {
     constructor(creator) {
         this.code = generateGameCode();
         this.players = [];
@@ -117,7 +120,6 @@ exports.Game = class Game {
 
     showScoreboard(){
         console.log("revealAnswer")
-        this.sortScoreboard()
         let scoresToAdd = {};
         let game = this;
         this.currentQuestion.userAnswers.forEach(function(player, i){
@@ -131,9 +133,11 @@ exports.Game = class Game {
                 player.socket.emit("correctAnswer", player.score)
             }
             else{
+                console.log("incorrect")
                 player.socket.emit("incorrectAnswer", player.score)
             }
         })
+        this.sortScoreboard()
         this.currentQuestion.leaderboard = this.playerJSON()
         game = this;
         this.sendToHost("revealAnswer", this.currentQuestion)

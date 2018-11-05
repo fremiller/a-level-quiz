@@ -142,6 +142,10 @@ html {
     font-family: "Montserrat", sans-serif;
 }
 
+.questiondescription{
+    font-size: 30px;   
+}
+
 .questiontitle {
     width: 100%;
     text-align: center;
@@ -212,6 +216,26 @@ html {
     font-weight: 800;
 
     user-select: none;
+}
+
+.leaderboard{
+    width: 100%;
+    text-align: center;
+    color: white;
+}
+
+.leaderboard h5 span{
+    font-family: 'Baloo', sans-serif
+}
+
+.leaderboard h5{
+    margin: 5 auto;
+    position: block;
+    width: 300px;
+    font-size: 30px;
+    color: white;
+    text-align: center;
+    width: 100%;
 }
 
 .incorrectAnswer{

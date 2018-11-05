@@ -53,17 +53,21 @@ exports.CreateUser = async function (userObj) {
     return usr;
 }
 
-exports.GetRandomQuestion = async function () {
-    return {
-        question: "Which of these statements are correct?",
-        description: "1) a\n2) b\n3) c",
+const questions = [
+    {
+        question: "The temperature of a fixed volume of an ideal gas is raised from 300K to 330K.\nWhich of the following statements about the gas is/are true?",
+        description: "1) The mean energy of the particles of the gas increases by 10% \n 2) The mean square velocity of the particles increases by 10% \n 3) The number of collisions per second with the walls of the container increases by 10%",
         answers: [
-            "1 is correct",
-            "1 and 2 are correct",
-            "1 2 and 3 are correct",
-            "None are correct"
+            "1, 2 and 3 are correct",
+            "Only 1 and 2 are correct",
+            "Only 2 and 3 are correct",
+            "Only 1 is correct"
         ],
-        correctAnswer: 3,
+        correctAnswer: 1,
         timeLimit: 60,
     }
+]
+
+exports.GetRandomQuestion = async function () {
+    return questions[Math.floor(Math.random() * questions.length)]
 }

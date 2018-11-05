@@ -88,17 +88,20 @@ let scenes = {
       answerBoxes += `<div class="answer" id="answer-${i}">${answer}</div>`;
     });
     return /*html*/ `<h1 class="questiontitle">${
-      question.question
+      question.question.replace("\n", "<br>")
     }</h1><p class="questiondescription">${
-      question.description
+      question.description.replace(/\n/g, "<br>")
     }</p><div class="answers">${answerBoxes}</div>`;
   },
   scoreboard: function(question){
     let leaderboard = "";
-    question.leaderboard.forEach(function(player){
-      leaderboard += `<h5>${player.name}<span>${player.score}</span></h5>`
+    question.leaderboard.forEach(function(player, i){
+      if(i > 4){
+        return;
+      }
+      leaderboard += `<h5><strong>${i + 1}</strong> ${player.name} <span>${player.score}</span></h5>`
     })
-    return /*html*/`<h1>Scoreboard</h1><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
+    return /*html*/`<h1>Scoreboard</h1><button onclick="lobbyContinue()" class="lobbystartbutton">Continue</button><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
   },
   correctanswer: function(score){
     return /*html*/`<h1>Correct</h1><p>You now have ${score} points</p>`

@@ -23,6 +23,10 @@ function connectToGame(code) {
     setupSocketEvents(socket)
 }
 
+function lobbyContinue(){
+    socket.emit("lobbyContinue")
+}
+
 function submitAnswer(id){
     console.log(`answer ${id}`)
     socket.emit("submitAnswer", id)
@@ -66,7 +70,8 @@ function setupSocketEvents(socket) {
     })
 
     socket.on("incorrectAnswer", function(data){
-        if(currentGame.userType == 0){
+        console.log("incorrect")
+        if(currentUser.userType == 0){
             loadScene("incorrectanswer", data)
         }
     })
