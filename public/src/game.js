@@ -19,7 +19,7 @@ function startgame() {
  */
 function connectToGame(code) {
     // Connects to the socket.io server
-    socket = io(`localhost:8000/?code=${code}&token=${GOOGLE_TOKEN}`);
+    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}`);
     setupSocketEvents(socket)
 }
 
