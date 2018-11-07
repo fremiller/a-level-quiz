@@ -110,6 +110,7 @@ let Game = exports.Game = class Game {
             "answer": answer,
             "time": 0
         });
+        this.updateAnswersAmount();
         if (this.currentQuestion.userAnswers.length >= this.players.length - 1) {
             this.showScoreboard()
         }
@@ -175,6 +176,10 @@ let Game = exports.Game = class Game {
         }
     }
 
+    updateAnswersAmount(){
+        this.sendToHost("numberOfAnswers", this.currentQuestion.userAnswers.length)
+    }
+
     join(player, socket) {
         console.log(`[INFO][GAME][${this.code}] New player joined`)
         player.socket = socket;
@@ -195,6 +200,7 @@ let Game = exports.Game = class Game {
         console.log(`[INFO][GAME][${this.code}] Sending question`)
         this.currentQuestion = await database.GetRandomQuestion();
         this.currentQuestion.userAnswers = [];
+        this.currentQuestion.number = this.pastQuestions.length + 1;
         this.broadcast("showQuestion", this.currentQuestion)
     }
 

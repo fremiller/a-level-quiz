@@ -87,7 +87,9 @@ let scenes = {
     question.answers.forEach((answer, i) => {
       answerBoxes += `<div class="answer" id="answer-${i}">${answer}</div>`;
     });
-    return /*html*/ `<h1 class="questiontitle">${
+    return /*html*/ `<div class="header"><h1>Question ${question.number}</h1><button class="lobbystartbutton" onclick="continueQ()">Continue</button><div class="headerplayercount"><h1 id="numberAnswers">${
+      question.userAnswers?question.userAnswers.length:0
+    }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle">${
       question.question.replace("\n", "<br>")
     }</h1><p class="questiondescription">${
       question.description.replace(/\n/g, "<br>")

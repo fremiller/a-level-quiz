@@ -61,6 +61,10 @@ function setupSocketEvents(socket) {
         loadScene("waitingForAnswers")
     })
 
+    socket.on("numberOfAnswers", function(num){
+        $("#numberAnswers").text(num)
+    })
+
     // This is when the lobby has changed, and updates the screen accordingly
     socket.on("updateLobbyStatus", function (data) {
         currentGame = data.game;
