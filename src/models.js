@@ -74,10 +74,10 @@ var UserSchema = {
  * This function initialises all the models for the database object to use
  */
 exports.init = function() {
-    console.log("[MODELS] Initialising User Model")
+    console.log("[MODELS] Initialising User Model");
     exports.User = mongoose.model("User", UserSchema);
-    console.log("[MODELS] Initialising UserGameStats Model")
+    console.log("[MODELS] Initialising UserGameStats Model");
     exports.UserGameStats = mongoose.model("UserGameStats", UserGameStatsSchema);
-    console.log("[MODELS] Initialising GameStats Model")
+    console.log("[MODELS] Initialising GameStats Model");
     exports.GameStats = mongoose.model("GameStats", GameStatsSchema);
 }
