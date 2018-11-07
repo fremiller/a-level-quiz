@@ -57,6 +57,10 @@ function setupSocketEvents(socket) {
         loadScene(currentUser.userType == 0 ? "studentquestion" : "teacherquestion", question);
     })
 
+    socket.on("hideAnswers", function(){
+        loadScene("waitingForAnswers")
+    })
+
     // This is when the lobby has changed, and updates the screen accordingly
     socket.on("updateLobbyStatus", function (data) {
         currentGame = data.game;

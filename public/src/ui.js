@@ -103,6 +103,9 @@ let scenes = {
     })
     return /*html*/`<h1>Scoreboard</h1><button onclick="lobbyContinue()" class="lobbystartbutton">Continue</button><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
   },
+  waitingForAnswers: function(){
+    return /*html*/`<h1>Waiting</h1>`
+  },
   correctanswer: function(score){
     return /*html*/`<h1>Correct</h1><p>You now have ${score} points</p>`
   },

@@ -7,7 +7,7 @@ let database = require("./database")
 exports.start = function () {
     console.log("Initializing IO object")
     io = server.io;
-    io.on("connection", onConnection)
+    io.on("connection", onConnection);
 }
 
 async function onConnection(socket) {
@@ -16,7 +16,9 @@ async function onConnection(socket) {
     let token = socket.request._query.token;
     if (!code || !token) {
         console.log("[ERROR][GAME] Invalid Join Parameters")
-        socket.emit("displayError", { "text": "Invalid Parameters" });
+        socket.emit("displayError", {
+            "text": "Invalid Parameters"
+        });
         return;
     }
     console.log("[INFO][GAME] Getting user")
@@ -25,31 +27,39 @@ async function onConnection(socket) {
     let game = getGameByCode(code);
     if (!game) {
         console.log("[ERROR][GAME] Invalid Game Code")
-        socket.emit("displayError", { "text": "Invalid game code" });
+        socket.emit("displayError", {
+            "text": "Invalid game code"
+        });
         return;
     }
-    console.log("[INFO][GAME] Joining game by code")
-    socket.join(code);
-
-    if (game.players.length == 0) {
-        console.log("[INFO][GAME] First Game User")
-        // We are the first player (the owner of the game)
-        socket.on("startgame", function () {
-            console.log("[INFO][GAME] Starting game "+game.code)
-            game.startGame();
-        })
-        socket.on("lobbyContinue", function(){
-            game.sendQuestion();
-        })
-        game.setHost(user.toJSON(), socket)
+    if (game.state == "LOBBY") {
+        console.log("[INFO][GAME] Joining game by code")
+        socket.join(code);
+        if (game.players.length == 0) {
+            console.log("[INFO][GAME] First Game User")
+            // We are the first player (the owner of the game)
+            socket.on("startgame", function () {
+                console.log("[INFO][GAME] Starting game " + game.code)
+                game.startGame();
+            })
+            socket.on("lobbyContinue", function () {
+                game.sendQuestion();
+            })
+            game.setHost(user.toJSON(), socket)
+        } else {
+            socket.on("submitAnswer", function (id) {
+                game.submitAnswer(user.googleid, id)
+                socket.emit("hideAnswers")
+            })
+        }
+        game.join(user.toJSON(), socket);
+        game.broadcastLobbyStatus();
     }
     else{
-        socket.on("submitAnswer", function(id){
-            game.submitAnswer(user.googleid, id)
-        })
+        socket.emit("displayError", {
+            "text": "Game already started"
+        });
     }
-    game.join(user.toJSON(), socket);
-    game.broadcastLobbyStatus();
 }
 
 let Game = exports.Game = class Game {
@@ -60,36 +70,39 @@ let Game = exports.Game = class Game {
         this.topics = [];
         this.pastQuestions = [];
         this.currentQuestion = undefined;
-        console.log("[INFO][GAME] New game "+ this.code)
+        this.state = "LOBBY";
+        console.log("[INFO][GAME] New game " + this.code)
     }
 
-    setHost(host, socket){
-        host.socket = socket
+    setHost(host, socket) {
+        host.socket = socket;
         this.host = host;
     }
 
     startGame() {
-        this.players.forEach((player)=>{
+        this.players.forEach((player) => {
             player.score = 0;
         });
+        this.state = "GAME";
         this.sendQuestion();
     }
 
-    getCurrentAnswerByUser(user){
-        if(typeof(user) != "string"){
-            throw "User must be string";
+    getCurrentAnswerByUser(user) {
+        if (typeof (user) != "string") {
+            return undefined;
         }
-        for(let i = 0; i < this.currentQuestion.userAnswers.length; i++){
-            if(this.currentQuestion.userAnswers[i].userid == user){
+        for (let i = 0; i < this.currentQuestion.userAnswers.length; i++) {
+            if (this.currentQuestion.userAnswers[i].userid == user) {
                 return this.currentQuestion.userAnswers[i];
             }
         }
         return undefined;
     }
 
-    submitAnswer(user, answer){
-        if(this.getCurrentAnswerByUser(user)){
-            throw "User has already submitted an answer"
+    submitAnswer(user, answer) {
+        if (this.getCurrentAnswerByUser(user)) {
+            console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
+            return;
         }
         console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
         this.currentQuestion.userAnswers.push({
@@ -97,42 +110,41 @@ let Game = exports.Game = class Game {
             "answer": answer,
             "time": 0
         });
-        if(this.currentQuestion.userAnswers.length >= this.players.length - 1){
+        if (this.currentQuestion.userAnswers.length >= this.players.length - 1) {
             this.showScoreboard()
         }
     }
 
-    sortScoreboard(){
-        this.players.sort((a, b)=>{
+    sortScoreboard() {
+        this.players.sort((a, b) => {
             return b.score - a.score;
         })
     }
 
-    getPlayerByGoogleId(id){
+    getPlayerByGoogleId(id) {
         let p = undefined;
         this.players.forEach((pl) => {
-            if(pl.googleid == id){
+            if (pl.googleid == id) {
                 p = pl;
             }
         })
         return p
     }
 
-    showScoreboard(){
+    showScoreboard() {
         console.log("revealAnswer")
         let scoresToAdd = {};
         let game = this;
-        this.currentQuestion.userAnswers.forEach(function(player, i){
-            if(player.answer == game.currentQuestion.correctAnswer){
+        this.currentQuestion.userAnswers.forEach(function (player, i) {
+            if (player.answer == game.currentQuestion.correctAnswer) {
                 scoresToAdd[player.userid] = game.players.length - i + 5;
             }
         })
-        this.players.forEach((player)=>{
-            if(scoresToAdd[player.googleid]){
+        this.players.forEach((player) => {
+            if (scoresToAdd[player.googleid]) {
                 player.score += scoresToAdd[player.googleid];
                 player.socket.emit("correctAnswer", player.score)
-            }
-            else{
+            } else {
                 console.log("incorrect")
                 player.socket.emit("incorrectAnswer", player.score)
             }
@@ -144,10 +156,14 @@ let Game = exports.Game = class Game {
         setTimeout(() => this.sendToHost("scoreboard", game.currentQuestion), 5000)
     }
 
-    playerJSON(){
+    playerJSON() {
         let j = [];
         this.players.forEach((player) => {
-            j.push({googleid: player.googleid, name: player.name, score: player.score})
+            j.push({
+                googleid: player.googleid,
+                name: player.name,
+                score: player.score
+            })
         })
         return j
     }
@@ -167,11 +183,13 @@ let Game = exports.Game = class Game {
 
     broadcastLobbyStatus() {
         console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
-        this.broadcast("updateLobbyStatus", { game: this.toJSON() });
+        this.broadcast("updateLobbyStatus", {
+            game: this.toJSON()
+        });
     }
 
     async sendQuestion() {
-        if(this.currentQuestion){
+        if (this.currentQuestion) {
             this.pastQuestions.push(this.currentQuestion)
         }
         console.log(`[INFO][GAME][${this.code}] Sending question`)
@@ -181,14 +199,14 @@ let Game = exports.Game = class Game {
     }
 
     broadcast(name, data) {
-        try{
+        try {
             io.in(this.code).emit(name, data);
-        } catch(e){
+        } catch (e) {
             console.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
         }
     }
 
-    sendToHost(name, data){
+    sendToHost(name, data) {
         this.host.socket.emit(name, data);
     }
 }
@@ -196,7 +214,7 @@ let Game = exports.Game = class Game {
 var generateGameCode = exports.generateGameCode = function () {
     let code = "";
     for (let i = 0; i < 6; i++) {
-        code += "1234567890"[Math.floor(Math.random() * 10)];
+        code += "1234567890" [Math.floor(Math.random() * 10)];
     }
     return code;
 }

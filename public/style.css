@@ -143,11 +143,12 @@ html {
 }
 
 .questiondescription{
-    font-size: 30px;   
+    font-size: 3vmin; 
 }
 
 .questiontitle {
     width: 100%;
+    font-size: 5vmin;
     text-align: center;
 }
 
