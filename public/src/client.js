@@ -14,6 +14,7 @@ let currentGame = undefined;
 //  GOOGLE_TOKEN: String
 //  The Google access token of the current user
 let GOOGLE_TOKEN = undefined;
+let ACCESS_TOKEN = undefined;
 
 let classroom_data = {};
 
@@ -26,14 +27,16 @@ function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
     // The ID token you need to pass to your backend:
     var id_token = googleUser.getAuthResponse().id_token;
+    var access_token = googleUser.getAuthResponse().access_token;
     // Stores the token for later authentication with socket.io
     GOOGLE_TOKEN = id_token;
+    GOOGLE_ACCESS_TOKEN = access_token;
     // Shows the loading screen while we're sending the token to the server
     loadScene("loading", { text: "Logging in" });
     // Sends a POST request to the server with the token
     $.ajax({
         method: "POST",
-        url: `/users/login/?token=${id_token}`,
+        url: `/users/login/?id=${id_token}&token=${access_token}`,
         success: function (response) {
             // Sets the currentUser
             currentUser = response;
@@ -61,9 +64,20 @@ function signOut() {
  * Tells the server to create a game and joins it
 */
 function creategame() {
+    loadScene("loading", {text: "Getting topics"})
+    $.ajax({
+        method: "GET",
+        url: `/topics/list`,
+        success: function(data){
+            loadScene("createGame")
+        }
+    })
+}
+
+function creategamesubmit(){
     $.ajax({
         method: "POST",
-        url: `/games/create`,
+        url: `/games/create?class=${document.getElementById("class").value}`,
         success: function (game) {
             currentGame = game;
             loadScene("loading", { text: "Connecting to game..." })

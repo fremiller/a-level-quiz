@@ -65,6 +65,10 @@ var UserSchema = {
     domain: String,
     profileImage: String,
     userType: Number,
+    classes: [{
+        name: String,
+        id: String
+    }]
 }
 
 

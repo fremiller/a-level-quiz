@@ -1,28 +1,27 @@
 const {
     google
 } = require("googleapis");
+var request = require("request");
 
-const oauth2client = new google.auth.OAuth2();
+exports.getClasses = function (token, isTeacher) {
+    let p = new Promise((resolve, reject) => {
+        var options = {
+            method: 'GET',
+            url: 'https://classroom.googleapis.com/v1/courses',
+            qs: isTeacher ? {
+                teacherId: 'me'
+            } : {
+                studentId: 'me'
+            },
+            headers: {
+                'Authorization': "Bearer " + token,
+                'cache-control': 'no-cache'
+            }
+        };
 
-exports.getClasses = function (token, callback) {
-    oauth2client.setCredentials(token);
-    let classroom = google.classroom({
-        version: "v1",
-        auth
+        request(options, function (err, res, body) {
+            resolve(body)
+        });
     })
-    classroom.courses.list({
-        pageSize: 10
-    }, (err, res) => {
-        if (err) return console.error('The API returned an error: ' + err);
-        const courses = res.data.courses;
-        if (courses && courses.length) {
-            console.log('Courses:');
-            courses.forEach((course) => {
-                console.log(`${course.name} (${course.id})`);
-            });
-        } else {
-            console.log('No courses found.');
-        }
-        callback(courses)
-    })
+    return p;
 }

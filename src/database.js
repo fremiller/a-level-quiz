@@ -64,7 +64,40 @@ const questions = [
             "Only 1 is correct"
         ],
         correctAnswer: 1,
-        timeLimit: 60,
+        timeLimit: 60
+    },
+    {
+        question: "If a gang pull up, are you gonna back your bredrin?",
+        description: "",
+        answers: [
+            "Yes",
+            "No",
+            "On",
+            "yop"
+        ],
+        correctAnswer: 3
+    },
+    {
+        question: "Would you rather...",
+        description: "",
+        answers: [
+            "Victory Royale",
+            "Friends",
+            "Money",
+            "Minecraft"
+        ],
+        correctAnswer: 3
+    },
+    {
+        question: "What is luke's waifu",
+        description: "",
+        answers: [
+            "Karim",
+            "Femscout",
+            "Andrew",
+            "The guide from terraria"
+        ],
+        correctAnswer: 3
     }
 ]
 

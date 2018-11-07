@@ -63,8 +63,8 @@ async function onConnection(socket) {
 }
 
 let Game = exports.Game = class Game {
-    constructor(creator) {
-        this.code = generateGameCode();
+    constructor(classid) {
+        this.code = classid;
         this.players = [];
         this.host = undefined;
         this.topics = [];
@@ -225,12 +225,12 @@ var generateGameCode = exports.generateGameCode = function () {
     return code;
 }
 
-function getGameByCode(code) {
+exports.getGameByCode = getGameByCode = function(code) {
     return games[code];
 }
 
-var createGame = exports.createGame = function (userid) {
-    let game = new Game(userid);
+var createGame = exports.createGame = function (classid) {
+    let game = new Game(classid);
     games[game.code] = game;
     return game.toJSON();
 }
