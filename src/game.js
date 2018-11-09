@@ -234,12 +234,15 @@ exports.isGame = isGame = function(domain, classid){
 }
 
 exports.getGameByCode = getGameByCode = function(code, domain) {
-    return games[domain?domain:"none"][classid];
+    return games[domain?domain:"none"][code];
 }
 
 var createGame = exports.createGame = function (classid, domain) {
     let game = new Game(classid);
     //games[game.code] = game;
+    if(!games[domain?domain:"none"]){
+        games[domain?domain:"none"] = {};
+    }
     games[domain?domain:"none"][classid] = game;
     return game.toJSON();
 }
