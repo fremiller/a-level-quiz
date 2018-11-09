@@ -74,6 +74,16 @@ function creategame() {
     })
 }
 
+function getRunningGames(){
+    $.ajax({
+        method: "GET",
+        url: "/games/user?id="+GOOGLE_TOKEN,
+        success: function(data){
+            showRunningGames(data.classesWithGames)
+        }
+    })
+}
+
 function creategamesubmit(){
     $.ajax({
         method: "POST",

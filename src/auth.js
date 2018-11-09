@@ -23,6 +23,7 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
     // if (payload.hd != "orleanspark.school"){
     //     throw "You can't sign up for this"
     // }
+
     let user = await db.getUserFromGoogleID(userid);
     if (!user) {
         user = await db.CreateUser({
@@ -34,7 +35,13 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
         });
     }
     if (isSignIn) {
-        user.userType = payload.email.startsWith("12") ? models.UserType.STUDENT : models.UserType.TEACHER;
+        if (user.domain == "orleanspark.school") {
+            user.userType = payload.email.startsWith(/[0-9]{2}/) ? models.UserType.STUDENT : models.UserType.TEACHER;
+        } else {
+            if (payload.email == "fred.miller097@gmail.com") {
+                user.userType = models.UserType.TEACHER;
+            }
+        }
         user.profileImage = payload.picture;
         let classData = JSON.parse(await classroom.getClasses(code, user.userType == models.UserType.TEACHER))
         let clasids = [];

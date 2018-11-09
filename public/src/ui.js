@@ -54,21 +54,22 @@ let scenes = {
   <button class="bigbtn" onclick="creategamesubmit()">Start</button></form></div></div>`
   },
   studentdashboard: function (data) {
-    let classSelect = ""
-    currentUser.classes.forEach((clas)=>{
-      classSelect += `<button onclick="connectToGame(${clas.id})">${clas.name}</button>`
-    })
-
+    // let classSelect = ""
+    // currentUser.classes.forEach((clas)=>{
+    //   classSelect += `<button onclick="connectToGame(${clas.id})">${clas.name}</button>`
+    // })
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
     }"><div><h5>${currentUser.name}</h5><h6>${
       currentUser.domain
     }</h6></div></div></div><div class="input-group mb-3">
-        <input type="number" id="codeinput" class="form-control" placeholder="Code" aria-label="Code" aria-describedby="joingamebutton">
+        <!-- <input type="number" id="codeinput" class="form-control" placeholder="Code" aria-label="Code" aria-describedby="joingamebutton">
         <div class="input-group-append">
           <button class="btn btn-outline-secondary" type="button" id="joingamebutton" onclick="joinGame()">Join</button>
+        </div> -->
+        <div id="joinGames">
+
         </div>
-        ${classSelect}
       </div></div>`;
   },
   teacherdashboard: function (data) {
@@ -169,6 +170,13 @@ function showError(err) {
     status: err.statusCode,
     text: err.responseText
   });
+}
+
+function showRunningGames(games){
+  let g = undefined;
+  games.forEach((gam)=>{
+    g += `<div class="gamejoin" onclick="connectToGame(${gam.id})">${gam.name}</div>`
+  })
 }
 
 function showCorrectAnswer(answerid) {

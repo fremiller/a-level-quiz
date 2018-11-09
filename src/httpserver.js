@@ -19,12 +19,16 @@ app.get("/", function (req, res) {
 });
 
 app.get("/games/user", async function (req, res) {
-    let usr = await database.getUserFromGoogleID(req.query.id);
+    
+    let usr = await auth.GetUserFromToken(req.query.id);
     let clasWithGame = [];
     usr.classes.forEach((clas) => {
-        if (game.getGameByCode(clas.id)) {
+        if (game.isGame(usr.domain, clas.id)) {
             clasWithGame.push(clas);
         }
+    })
+    res.json({
+        classesWithGames: clasWithGame
     })
 })
 
@@ -48,14 +52,6 @@ app.post("/users/login", async function (req, res) {
     }
     try {
         let user = await auth.GetUserFromToken(req.query.id, req.query.token, true);
-        let usr = await database.getUserFromGoogleID(user.googleid);
-        let clasWithGame = [];
-        usr.classes.forEach((clas) => {
-            if (game.getGameByCode(clas.id)) {
-                clasWithGame.push(clas);
-            }
-        })
-        user.clasWithGame = clasWithGame;
         res.json(user);
     } catch (err) {
         console.log(err);

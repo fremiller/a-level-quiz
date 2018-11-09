@@ -5,7 +5,7 @@ let io = undefined;
 let database = require("./database")
 
 exports.start = function () {
-    console.log("Initializing IO object")
+    console.log("Initializing IO object");
     io = server.io;
     io.on("connection", onConnection);
 }
@@ -24,7 +24,7 @@ async function onConnection(socket) {
     console.log("[INFO][GAME] Getting user")
     let user = await auth.GetUserFromToken(token);
     console.log("[INFO][GAME] Getting game")
-    let game = getGameByCode(code);
+    let game = getGameByCode(code, user.domain);
     if (!game) {
         console.log("[ERROR][GAME] Invalid Game Code")
         socket.emit("displayError", {
@@ -225,12 +225,21 @@ var generateGameCode = exports.generateGameCode = function () {
     return code;
 }
 
-exports.getGameByCode = getGameByCode = function(code) {
-    return games[code];
+exports.isGame = isGame = function(domain, classid){
+    if(!games[domain]){
+        return undefined;
+    }
+    let g = games[domain][classid];
+    return g?g.code:undefined;
 }
 
-var createGame = exports.createGame = function (classid) {
+exports.getGameByCode = getGameByCode = function(code, domain) {
+    return games[domain?domain:"none"][classid];
+}
+
+var createGame = exports.createGame = function (classid, domain) {
     let game = new Game(classid);
-    games[game.code] = game;
+    //games[game.code] = game;
+    games[domain?domain:"none"][classid] = game;
     return game.toJSON();
 }
