@@ -19,7 +19,6 @@ app.get("/", function (req, res) {
 });
 
 app.get("/games/user", async function (req, res) {
-    
     let usr = await auth.GetUserFromToken(req.query.id);
     let clasWithGame = [];
     usr.classes.forEach((clas) => {
