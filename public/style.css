@@ -1,5 +1,5 @@
 .error {
-    background-color: white;
+    background-color: var(--foreground-color);
     border-radius: 5px;
     display: block;
     margin: 0 auto;
@@ -8,22 +8,45 @@
     height: 400px;
 }
 
+#joinGames {
+    width: 100%;
+}
+
+.gamejoin {
+    width: 100%;
+    margin: 5px;
+    padding: 5px;
+
+    background-color: rgb(55, 236, 55);
+    border: rgb(28, 175, 28) 2px solid;
+}
+
+.gamejoin h5 {
+    font-family: 'Baloo', sans-serif;
+    color: white;
+    font-size: 3vmin;
+}
+
+:root {
+    --background-color: rgb(102, 102, 247);
+    --foreground-color: white;
+}
 
 
 h1 {
     font-family: 'Baloo', sans-serif;
-    color: white;
+    color: var(--foreground-color);
     font-size: 60px;
 }
 
 p {
     font-family: 'Montserrat', sans-serif;
-    color: white;
+    color: var(--foreground-color);
 }
 
 .bigbtn {
     font-family: 'Montserrat', sans-serif;
-    color: white;
+    color: var(--foreground-color);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.1);
     border: none;
@@ -35,7 +58,7 @@ p {
 
 .lobbystartbutton {
     font-family: 'Montserrat', sans-serif;
-    color: white;
+    color: var(--foreground-color);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.1);
     border: none;
@@ -46,11 +69,11 @@ p {
 }
 
 .lobbystartbutton:hover {
-    border: white 2px solid;
+    border: var(--foreground-color) 2px solid;
 }
 
 .bigbtn:hover {
-    border: white 2px solid;
+    border: var(--foreground-color) 2px solid;
 }
 
 #google-align {
@@ -98,7 +121,7 @@ p {
 
 .headeruserdetails div * {
     display: block;
-    color: white;
+    color: var(--foreground-color);
 }
 
 .headeruserdetails img {
@@ -109,7 +132,7 @@ p {
 
 body,
 html {
-    background-color: coral;
+    background-color: var(--background-color);
     width: 100%;
     max-width: 100%;
     margin: 0;
@@ -117,7 +140,7 @@ html {
 }
 
 .code {
-    background-color: white;
+    background-color: var(--foreground-color);
     font-family: 'Baloo', monospace;
     font-weight: 900;
     color: black;
@@ -138,12 +161,12 @@ html {
 
 .mini {
     font-size: 10px;
-    color: white;
+    color: var(--foreground-color);
     font-family: "Montserrat", sans-serif;
 }
 
-.questiondescription{
-    font-size: 3vmin; 
+.questiondescription {
+    font-size: 3vmin;
 }
 
 .questiontitle {
@@ -152,11 +175,18 @@ html {
     text-align: center;
 }
 
+.answers {
+    display:flex;
+    flex-flow: column;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
 .answer {
-    width: 48%;
+    width: 47%;
+    margin: 1%;
+    height: 47%;
     margin: 1%;
     display: inline-block;
-    height: 150px;
     padding-top: 50px;
 
     text-align: center;
@@ -164,47 +194,39 @@ html {
     font-weight: 800;
 
     user-select: none;
+    color: white;
+    border-radius: 7px;
+    border: rgba(0, 0, 0, 0) 3px solid;
+}
+
+.answer:hover{
+    border: white 3px solid;
 }
 
 .answer#answer-0 {
-    color: rgb(83, 83, 207);
-    border: rgb(83, 83, 207) 4px solid;
+    background-color: rgb(83, 83, 207);
+
 }
 
-.answer#answer-0:hover {
-    background-color: rgb(83, 83, 207);
-    color: coral;
-}
 
 .answer#answer-1 {
-    color: rgb(20, 160, 20);
-    border: rgb(20, 160, 20) 4px solid;
-}
-
-.answer#answer-1:hover {
     background-color: rgb(20, 160, 20);
-    color: coral;
+
 }
+
 .answer#answer-2 {
-    color: rgb(253, 253, 59);
-    border: rgb(253, 253, 59) 4px solid;
-}
-
-.answer#answer-2:hover {
     background-color: rgb(253, 253, 59);
-    color: coral;
+
 }
+
+
 .answer#answer-3 {
-    color: rgb(255, 0, 43);
-    border: rgb(255, 0, 43) 4px solid;
-}
-
-.answer#answer-3:hover {
     background-color: rgb(255, 0, 43);
-    color: coral;
+
 }
 
-.correctAnswer{
+
+.correctAnswer {
     width: 48%;
     margin: 1%;
     display: inline-block;
@@ -219,27 +241,27 @@ html {
     user-select: none;
 }
 
-.leaderboard{
+.leaderboard {
     width: 100%;
     text-align: center;
-    color: white;
+    color: var(--foreground-color);
 }
 
-.leaderboard h5 span{
+.leaderboard h5 span {
     font-family: 'Baloo', sans-serif
 }
 
-.leaderboard h5{
+.leaderboard h5 {
     margin: 5 auto;
     position: block;
     width: 300px;
     font-size: 30px;
-    color: white;
+    color: var(--foreground-color);
     text-align: center;
     width: 100%;
 }
 
-.incorrectAnswer{
+.incorrectAnswer {
     width: 48%;
     margin: 1%;
     display: inline-block;

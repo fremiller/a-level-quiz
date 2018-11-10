@@ -226,14 +226,17 @@ var generateGameCode = exports.generateGameCode = function () {
 }
 
 exports.isGame = isGame = function(domain, classid){
-    if(!games[domain]){
+    if(!games[domain?domain:"none"]){
         return undefined;
     }
-    let g = games[domain][classid];
+    let g = games[domain?domain:"none"][classid];
     return g?g.code:undefined;
 }
 
 exports.getGameByCode = getGameByCode = function(code, domain) {
+    if(!games[domain?domain:"none"]){
+        return undefined;
+    }
     return games[domain?domain:"none"][code];
 }
 

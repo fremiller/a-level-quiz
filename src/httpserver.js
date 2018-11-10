@@ -21,7 +21,8 @@ app.get("/", function (req, res) {
 app.get("/games/user", async function (req, res) {
     let usr = await auth.GetUserFromToken(req.query.id);
     let clasWithGame = [];
-    usr.classes.forEach((clas) => {
+    let classes = usr.classes.toObject();
+    classes.forEach((clas) => {
         if (game.isGame(usr.domain, clas.id)) {
             clasWithGame.push(clas);
         }

@@ -84,9 +84,9 @@ let scenes = {
     for (let i = 0; i < currentGame.players.length; i++) {
       playerlist += `<p>${currentGame.players[i].name}</p>`;
     }
-    return /*html*/ `<div class="header"><h1 class="code">${
+    return /*html*/ `<div class="header"><!--<h1 class="code">${
       currentGame.code
-    }</h1><button class="lobbystartbutton" onclick="startgame()">Start Game</button>${currentGame?`<div id="classroom-share" class="g-sharetoclassroom" data-size="32" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>`:""}<div class="headerplayercount"><h1>${
+    }</h1>--><button class="lobbystartbutton" onclick="startgame()">Start Game</button>${currentGame?`<div id="classroom-share" class="g-sharetoclassroom" data-size="32" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>`:""}<div class="headerplayercount"><h1>${
       currentGame.players.length
     }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
   },
@@ -173,10 +173,14 @@ function showError(err) {
 }
 
 function showRunningGames(games){
-  let g = undefined;
+  let g = "";
   games.forEach((gam)=>{
-    g += `<div class="gamejoin" onclick="connectToGame(${gam.id})">${gam.name}</div>`
+    g += `<div class="gamejoin" onclick="connectToGame(${gam.id})"><h6>Found game</h6><h5>${gam.name}<h5></div>`
   })
+  if(g == ""){
+    g = "<h5>Searching for games...</h5>"
+  }
+  $("#joinGames").html(g);
 }
 
 function showCorrectAnswer(answerid) {

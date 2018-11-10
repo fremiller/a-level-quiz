@@ -36,7 +36,7 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
     }
     if (isSignIn) {
         if (user.domain == "orleanspark.school") {
-            user.userType = payload.email.startsWith(/[0-9]{2}/) ? models.UserType.STUDENT : models.UserType.TEACHER;
+            user.userType = payload.email.match(/^[0-9]{2}.+/) ? models.UserType.STUDENT : models.UserType.TEACHER;
         } else {
             if (payload.email == "fred.miller097@gmail.com") {
                 user.userType = models.UserType.TEACHER;

@@ -42,6 +42,7 @@ function onSignIn(googleUser) {
             currentUser = response;
             // Loads the appropriate dashboard scene
             loadScene(currentUser.userType == 0 ? "studentdashboard" : "teacherdashboard");
+            getRunningGames()
             setInterval(getRunningGames, 5000)
         },
         error: function (err) {
