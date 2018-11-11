@@ -117,10 +117,10 @@ let scenes = {
         if (i > 4) {
           return;
         }
-        leaderboard += `<h5><strong>${i + 1}</strong> ${player.name} <span>${player.score}</span></h5>`
+        leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
       }
     })
-    return /*html*/ `<h1>Scoreboard</h1><button onclick="lobbyContinue()" class="lobbystartbutton">Continue</button><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
+    return /*html*/ `<div class="header"><h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button></div><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
   },
   waitingForAnswers: function () {
     clearInterval(currentTimer);
