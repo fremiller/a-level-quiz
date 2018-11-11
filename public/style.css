@@ -3,28 +3,32 @@
     width: 100%;
 }
 
-body{
+body {
     background-color: rgb(69, 149, 224);
     height: 100%;
 }
 
-.spacer{
+
+
+.spacer {
     width: 92vw;
     margin: 4vw;
 }
 
-*{
+* {
     color: white;
     font-family: sans-serif;
     margin: 0;
 }
 
-h1{
+
+
+h1 {
     font-family: 'Baloo', sans-serif;
     font-size: 5vh;
 }
 
-.container{
+.container {
     display: flex;
     flex-flow: column;
     flex-direction: column;
@@ -35,7 +39,7 @@ h1{
 
 /* SIGN IN */
 
-.center-box{
+.center-box {
     width: 100%;
     margin-top: 30vh;
     height: 20vh;
@@ -46,18 +50,18 @@ h1{
     text-align: center;
 }
 
-.center-box #google-align{
+.center-box #google-align {
     width: 120px;
     display: block;
     margin: 15px auto;
 }
 
-.center-box #google-align *{
+.center-box #google-align * {
     color: #757575;
 }
 
 /* DASHBOARD */
-.header{
+.header {
     background: rgba(0, 0, 0, 0.1);
     flex: 0 1 auto;
     display: flex;
@@ -66,24 +70,25 @@ h1{
     padding: 0;
 }
 
-.header h1{
+.header h1 {
     width: 100%;
 }
 
-.header *{
+.header * {
     display: flex;
     margin-right: 1vw;
 }
 
-.header h5,.header h6{
+.header h5,
+.header h6 {
     display: none;
 }
 
-.header div{
+.header div {
     float: right;
 }
 
-.header div img{
+.header div img {
     width: 5vh;
     border-radius: 50%;
     height: 5vh;
@@ -92,15 +97,15 @@ h1{
 
 
 
-.g-sharetoclassroom{
+.g-sharetoclassroom {
     height: 5vh;
 }
 
-#players{
+#players {
     width: 100%;
 }
 
-#players p{
+#players p {
     font-family: 'Baloo', sans-serif;
     font-size: 35px;
     width: 33.333%;
@@ -108,7 +113,7 @@ h1{
     display: inline-block;
 }
 
-button{
+button {
     width: 300px;
     margin: 5px;
     height: 5vh;
@@ -118,22 +123,22 @@ button{
     font-size: 2vh;
 }
 
-button:hover{
+button:hover {
     border: 2px solid white;
 }
 
-.header button{
+.header button {
     flex: 1 0 auto;
     width: auto;
     height: 5vh;
     margin: 1vh;
 }
 
-#joinGames{
+#joinGames {
     padding: 1vw;
 }
 
-#joinGames div{
+#joinGames div {
     width: auto;
     display: block;
     background-color: white;
@@ -141,73 +146,75 @@ button:hover{
     border-radius: 7px;
 }
 
-#joinGames div h5{
+#joinGames div h5 {
     color: rgb(65, 65, 65);
 }
 
-#joinGames div h6{
+#joinGames div h6 {
     color: gray;
 }
 
-span#link{
+span#link {
     color: orange;
     font-family: 'Baloo', sans-serif;
     margin-left: 0.4ch;
 }
 
-.slobby{
+.slobby {
     text-align: center;
     width: 100%;
     margin-top: 30vh;
 }
 
-.slobby h3{
+.slobby h3 {
     font-family: 'Baloo', sans-serif;
     font-size: 5vh;
 }
-.slobby h5{
+
+.slobby h5 {
     font-size: 3vh;
 }
 
 /*question*/
-.questiontitle{
+.questiontitle {
     flex: 0 1 auto;
     height: auto;
     width: 100%;
     text-align: center;
 }
 
-.questiondescription{
+.questiondescription {
     flex: 0 1 auto;
     height: auto;
     font-size: 3vh;
     width: 100%;
 }
 
-.questionheader *{
+.questionheader * {
     display: inline-block;
 }
 
-.questionheader #timer{
+.questionheader #timer {
     float: right;
 }
 
-#timer{
+#timer {
     width: 3ch;
     text-align: center;
 }
 
-.leaderboard{
+.leaderboard {
     width: 100%;
 }
-.leaderboard h5{
+
+.leaderboard h5 {
     width: 100%;
     text-align: center;
     font-size: 4vh;
     font-family: 'Baloo', sans-serif;
 }
 
-.answers{
+.answers {
     flex: 0 0 auto;
     height: auto;
     padding: 1vh;
@@ -224,50 +231,54 @@ span#link{
     padding: auto;
 }
 
-.answers * div{
+.answers * div {
     display: table;
 }
 
-.answers * div div{
+.answers * div div {
     display: table-cell;
     vertical-align: middle;
 }
 
-.answer#answer-0, .answer#answer-0 *{
+.answer#answer-0,
+.answer#answer-0 * {
     background-color: red;
 }
 
-#answer-0{
+#answer-0 {
     margin-bottom: 1vh;
     margin-right: 1vw;
 }
 
-.answer#answer-1, .answer#answer-1 *{
+.answer#answer-1,
+.answer#answer-1 * {
     background-color: green;
-    
+
     /*  */
 }
 
-#answer-1{
+#answer-1 {
     margin-bottom: 1vh;
     /* margin-left: 1vw; */
 }
 
-.answer#answer-2, .answer#answer-2 *{
+.answer#answer-2,
+.answer#answer-2 * {
     background-color: orange;
-    
+
 }
 
-#answer-2{
+#answer-2 {
     margin-right: 1vw;
 }
 
-.answer#answer-3, .answer#answer-3 *{
+.answer#answer-3,
+.answer#answer-3 * {
     background-color: purple;
     /*  */
 }
 
-#answer-3{
+#answer-3 {
     /* margin-left: 1vw; */
 }
 
@@ -275,16 +286,37 @@ span#link{
     height: 20vh;
 }
 
-.incorrectAnswer, .incorrectAnswer *{
+.incorrectAnswer,
+.incorrectAnswer * {
     background-color: red;
 }
 
-.correctAnswer, .correctAnswer *{
+.correctAnswer,
+.correctAnswer * {
     background-color: green;
 }
 
-@media only screen and (min-width: 768px) {
+#fullscreenBox {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.1);
+    height: 3.5vh;
+}
 
+#fullscreenBox button {
+    font-size: 1.5vh;
+    width: auto;
+    height: auto;
+    border-radius: 3px;
+}
+
+@media only screen and (min-width: 768px) {
+    #fullscreenBox{
+        display: none;
+    }
     /* For desktop: */
     .col-1 {
         width: 8.33%;
@@ -355,8 +387,9 @@ span#link{
     position: relative;
     width: 64px;
     height: 64px;
-  }
-  .lds-ring div {
+}
+
+.lds-ring div {
     box-sizing: border-box;
     display: block;
     position: absolute;
@@ -367,21 +400,27 @@ span#link{
     border-radius: 50%;
     animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
     border-color: #fff transparent transparent transparent;
-  }
-  .lds-ring div:nth-child(1) {
+}
+
+.lds-ring div:nth-child(1) {
     animation-delay: -0.45s;
-  }
-  .lds-ring div:nth-child(2) {
+}
+
+.lds-ring div:nth-child(2) {
     animation-delay: -0.3s;
-  }
-  .lds-ring div:nth-child(3) {
+}
+
+.lds-ring div:nth-child(3) {
     animation-delay: -0.15s;
-  }
-  @keyframes lds-ring {
+}
+
+@keyframes lds-ring {
     0% {
-      transform: rotate(0deg);
+        transform: rotate(0deg);
     }
+
     100% {
-      transform: rotate(360deg);
+        transform: rotate(360deg);
     }
-  }
+}
+

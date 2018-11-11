@@ -141,25 +141,23 @@ let scenes = {
  * @param {*} data Any data to be given to the scene
  */
 function loadScene(tag, data) {
-  $("#scene").html(scenes[tag](data));
-  if (tag == "signin") {
-    gapi.signin2.render("g-signin", {
-      scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
-      onsuccess: onSignIn
-    });
-    let playerlist = document.getElementById("players");
-    for (let i = 0; i < currentGame.players.length; i++) {
-      if (currentGame.players[i].type == 0) {
-        playerlist.innerHTML += `<p>${currentGame.players[i].name}</p>`;
+  try {
+    $("#scene").html(scenes[tag](data));
+    if (tag == "signin") {
+      if (gapi) {
+        gapi.signin2.render("g-signin", {
+          scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
+          onsuccess: onSignIn
+        });
       }
     }
-  }
-  if (tag == "teacherlobby") {
-    gapi.sharetoclassroom.render("classroom-share", {
-      theme: "light",
-      size: 70
-    })
-  }
+    if (tag == "teacherlobby") {
+      gapi.sharetoclassroom.render("classroom-share", {
+        theme: "light",
+        size: 70
+      })
+    }
+  } catch (e) {}
 }
 
 /**
@@ -207,14 +205,28 @@ function startTimer(tlimit) {
 
 $(function () {
   loadScene("signin");
-  window.scrollTo(0,1);
-  $(function () {
-    $('[data-toggle="tooltip"]').tooltip();
-  });
+  //setInterval(checkFullscreen, 10000);
+  window.scrollTo(0, 1);
 });
 
 /* Get the documentElement (<html>) to display the page in fullscreen */
 var elem = document.documentElement;
+
+document.onwebkitfullscreenchange = checkFullscreen;
+document.onfullscreenchange = checkFullscreen;
+
+let FULLSCREEN_ENABLED = true;
+
+function checkFullscreen() {
+  var doc = window.document;
+  var docEl = doc.documentElement;
+  console.log("check")
+  if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement && FULLSCREEN_ENABLED) {
+    $("#fullscreenBox").show();
+  } else {
+    $("#fullscreenBox").hide();
+  }
+}
 
 function toggleFullscreen() {
   var doc = window.document;
@@ -223,10 +235,10 @@ function toggleFullscreen() {
   var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
   var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
 
-  if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+  if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+    $("#fullscreenBox").hide();
     requestFullScreen.call(docEl);
-  }
-  else {
+  } else {
     cancelFullScreen.call(doc);
   }
 }
