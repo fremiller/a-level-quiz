@@ -83,7 +83,7 @@ let scenes = {
     }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
   },
   studentlobby: function (data) {
-    return /*html*/ `<div class="slobby"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h3>Connected</h3><h5>Get ready</h5></div>`;
+    return /*html*/ `<div class="slobby"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h3>Connected</h3><h5>Go fullscreen for the best experience</h5><button onclick="toggleFullscreen()">Fullscreen</button></div>`;
   },
   studentquestion: function (question) {
     let answerBoxes = "";
@@ -216,7 +216,7 @@ $(function () {
 /* Get the documentElement (<html>) to display the page in fullscreen */
 var elem = document.documentElement;
 
-function toggleFullScreen() {
+function toggleFullscreen() {
   var doc = window.document;
   var docEl = doc.documentElement;
 
