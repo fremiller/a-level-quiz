@@ -109,10 +109,10 @@ let Game = exports.Game = class Game {
             return;
         }
         let p = this.getPlayerByGoogleId(user)
-        if(!p){
+        if (!p) {
             return;
         }
-        if(p.socket.id != socket.id){
+        if (p.socket.id != socket.id) {
             return;
         }
         console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
@@ -225,10 +225,12 @@ let Game = exports.Game = class Game {
     }
 
     broadcastLobbyStatus() {
-        console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
-        this.broadcast("updateLobbyStatus", {
-            game: this.toJSON()
-        });
+        if (this.state == "LOBBY") {
+            console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
+            this.broadcast("updateLobbyStatus", {
+                game: this.toJSON()
+            });
+        }
     }
 
     async sendQuestion() {
