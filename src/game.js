@@ -48,14 +48,17 @@ async function onConnection(socket) {
             game.setHost(user.toJSON(), socket)
         } else {
             socket.on("submitAnswer", function (id) {
-                game.submitAnswer(user.googleid, id)
+                game.submitAnswer(user.googleid, id, socket)
                 socket.emit("hideAnswers")
             })
         }
+        socket.on("disconnect", function () {
+            game.leave(socket);
+            game.broadcastLobbyStatus();
+        })
         game.join(user.toJSON(), socket);
         game.broadcastLobbyStatus();
-    }
-    else{
+    } else {
         socket.emit("displayError", {
             "text": "Game already started"
         });
@@ -70,6 +73,7 @@ let Game = exports.Game = class Game {
         this.topics = [];
         this.pastQuestions = [];
         this.currentQuestion = undefined;
+        this.questionTimeout = undefined;
         this.state = "LOBBY";
         console.log("[INFO][GAME] New game " + this.code)
     }
@@ -99,9 +103,16 @@ let Game = exports.Game = class Game {
         return undefined;
     }
 
-    submitAnswer(user, answer) {
+    submitAnswer(user, answer, socket) {
         if (this.getCurrentAnswerByUser(user)) {
             console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
+            return;
+        }
+        let p = this.getPlayerByGoogleId(user)
+        if(!p){
+            return;
+        }
+        if(p.socket.id != socket.id){
             return;
         }
         console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
@@ -111,8 +122,9 @@ let Game = exports.Game = class Game {
             "time": 0
         });
         this.updateAnswersAmount();
+        let game = this;
         if (this.currentQuestion.userAnswers.length >= this.players.length - 1) {
-            this.showScoreboard()
+            setTimeout(() => game.showScoreboard(game), 200)
         }
     }
 
@@ -132,16 +144,18 @@ let Game = exports.Game = class Game {
         return p
     }
 
-    showScoreboard() {
+    showScoreboard(game) {
+        if (game.questionTimeout) {
+            clearTimeout(game.questionTimeout);
+        }
         console.log("revealAnswer")
         let scoresToAdd = {};
-        let game = this;
-        this.currentQuestion.userAnswers.forEach(function (player, i) {
+        game.currentQuestion.userAnswers.forEach(function (player, i) {
             if (player.answer == game.currentQuestion.correctAnswer) {
                 scoresToAdd[player.userid] = game.players.length - i + 5;
             }
         })
-        this.players.forEach((player) => {
+        game.players.forEach((player) => {
             if (scoresToAdd[player.googleid]) {
                 player.score += scoresToAdd[player.googleid];
                 player.socket.emit("correctAnswer", player.score)
@@ -150,11 +164,10 @@ let Game = exports.Game = class Game {
                 player.socket.emit("incorrectAnswer", player.score)
             }
         })
-        this.sortScoreboard()
-        this.currentQuestion.leaderboard = this.playerJSON()
-        game = this;
-        this.sendToHost("revealAnswer", this.currentQuestion)
-        setTimeout(() => this.sendToHost("scoreboard", game.currentQuestion), 5000)
+        game.sortScoreboard()
+        game.currentQuestion.leaderboard = game.playerJSON()
+        game.sendToHost("revealAnswer", game.currentQuestion)
+        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 5000)
     }
 
     playerJSON() {
@@ -163,7 +176,8 @@ let Game = exports.Game = class Game {
             j.push({
                 googleid: player.googleid,
                 name: player.name,
-                score: player.score
+                score: player.score,
+                type: player.userType
             })
         })
         return j
@@ -172,18 +186,42 @@ let Game = exports.Game = class Game {
     toJSON() {
         return {
             "code": this.code,
-            "players": this.playerJSON()
+            "players": this.playerJSON(),
+            "state": this.state
         }
     }
 
-    updateAnswersAmount(){
+    updateAnswersAmount() {
         this.sendToHost("numberOfAnswers", this.currentQuestion.userAnswers.length)
     }
 
     join(player, socket) {
         console.log(`[INFO][GAME][${this.code}] New player joined`)
+        for (let i = 0; i < this.players.length; i++) {
+            if (this.players[i].googleid == player.googleid) {
+                this.players[i].socket.emit("displayError", {
+                    "text": "Another device has signed in with this account."
+                })
+                this.players[i].socket.emit("forceDisconnect")
+                this.players[i].socket.disconnect(true);
+                console.log(`[GAME][${this.code}] Player connection overwritten`)
+                // This socket will be destroyed
+            }
+        }
         player.socket = socket;
         this.players.push(player);
+    }
+
+    leave(socket) {
+        let indx = -1;
+        for (let i = 0; i < this.players.length; i++) {
+            if (this.players[i].socket.id == socket.id) {
+                indx = i;
+            }
+        }
+        if (indx != -1) {
+            this.players.splice(indx);
+        }
     }
 
     broadcastLobbyStatus() {
@@ -202,6 +240,8 @@ let Game = exports.Game = class Game {
         this.currentQuestion.userAnswers = [];
         this.currentQuestion.number = this.pastQuestions.length + 1;
         this.broadcast("showQuestion", this.currentQuestion)
+        let game = this;
+        this.questionTimeout = setTimeout(() => game.showScoreboard(game), this.currentQuestion.timeLimit * 1000)
     }
 
     broadcast(name, data) {
@@ -225,27 +265,27 @@ var generateGameCode = exports.generateGameCode = function () {
     return code;
 }
 
-exports.isGame = isGame = function(domain, classid){
-    if(!games[domain?domain:"none"]){
+exports.isGame = isGame = function (domain, classid) {
+    if (!games[domain ? domain : "none"]) {
         return undefined;
     }
-    let g = games[domain?domain:"none"][classid];
-    return g?g.code:undefined;
+    let g = games[domain ? domain : "none"][classid];
+    return g ? g.code : undefined;
 }
 
-exports.getGameByCode = getGameByCode = function(code, domain) {
-    if(!games[domain?domain:"none"]){
+exports.getGameByCode = getGameByCode = function (code, domain) {
+    if (!games[domain ? domain : "none"]) {
         return undefined;
     }
-    return games[domain?domain:"none"][code];
+    return games[domain ? domain : "none"][code];
 }
 
 var createGame = exports.createGame = function (classid, domain) {
     let game = new Game(classid);
     //games[game.code] = game;
-    if(!games[domain?domain:"none"]){
-        games[domain?domain:"none"] = {};
+    if (!games[domain ? domain : "none"]) {
+        games[domain ? domain : "none"] = {};
     }
-    games[domain?domain:"none"][classid] = game;
+    games[domain ? domain : "none"][classid] = game;
     return game.toJSON();
 }

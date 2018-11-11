@@ -42,6 +42,10 @@ function setupSocketEvents(socket) {
         loadScene("error", { text: data.text, status: "" })
     });
 
+    socket.on("forceDisconnect", function(){
+        socket.disconnect(true);
+    })
+
     socket.on("revealAnswer", function(question){
         console.log("Reveal answer")
         showCorrectAnswer(question.correctAnswer)

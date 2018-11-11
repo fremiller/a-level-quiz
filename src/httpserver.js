@@ -23,8 +23,11 @@ app.get("/games/user", async function (req, res) {
     let clasWithGame = [];
     let classes = usr.classes.toObject();
     classes.forEach((clas) => {
-        if (game.isGame(usr.domain, clas.id)) {
-            clasWithGame.push(clas);
+        let gam = game.getGameByCode(clas.id, usr.domain)
+        if (gam) {
+            let c = clas;
+            c.gameInfo = gam.toJSON();
+            clasWithGame.push(c);
         }
     })
     res.json({

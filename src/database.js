@@ -75,7 +75,8 @@ const questions = [
             "On",
             "yop"
         ],
-        correctAnswer: 3
+        correctAnswer: 3,
+        timeLimit: 60
     },
     {
         question: "Would you rather...",
@@ -86,7 +87,8 @@ const questions = [
             "Money",
             "Minecraft"
         ],
-        correctAnswer: 3
+        correctAnswer: 3,
+        timeLimit: 60
     },
     {
         question: "What is luke's waifu",
@@ -97,7 +99,8 @@ const questions = [
             "Andrew",
             "The guide from terraria"
         ],
-        correctAnswer: 3
+        correctAnswer: 3,
+        timeLimit: 60
     }
 ]
 
