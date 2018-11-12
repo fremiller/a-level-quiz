@@ -78,7 +78,7 @@ let scenes = {
         playerlist += `<p>${currentGame.players[i].name}</p>`;
       }
     }
-    return /*html*/ `<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length == 1)?"disabled":""}>Start Game</button>${currentGame?`<!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`:""}<h1>Play at <span id="link"> ffsh.xyz</span></h1><div class="headerplayercount"><h1>${
+    return /*html*/ `<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length == 1)?"":""}>Start Game</button>${currentGame?`<!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`:""}<h1>Play at <span id="link"> ffsh.xyz</span></h1><div class="headerplayercount"><h1>${
       currentGame.players.length - 1
     }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
   },
@@ -95,20 +95,28 @@ let scenes = {
   },
   teacherquestion: function (question) {
     console.log(question);
+    currentQuestion = question;
     startTimer(question.timeLimit)
+    let examStyle = question.type == "EXAM";
     let answerBoxes = "";
-    question.answers.forEach((answer, i) => {
-      answerBoxes += `<div class="answer" id="answer-${i}"><div><div>${answer}</div></div></div>`;
-    });
-    return /*html*/ `<div class="header"><h1>Question ${question.number}</h1><h1 id="timer"></h1>
+    if (!examStyle) {
+      question.answers.forEach((answer, i) => {
+        answerBoxes += `<div class="answer" id="answer-${i}"><div><div>${answer}</div></div></div>`;
+      });
+    } else {
+      question.answers.forEach((answer, i) => {
+        answerBoxes += `<br><br><span class="bold">${"ABCD"[i]}</span> <span id="answer-${i}">${answer}</span>`;
+      });
+    }
+    return `<div class="header"><h1>Question ${question.number}</h1><h1 id="timer"></h1>
     <button class="lobbystartbutton" onclick="continueQ()">Continue</button>
     <div class="headerplayercount"><h1 id="numberAnswers">${
       question.userAnswers?question.userAnswers.length:0
-    }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle">${
-      question.question.replace("/\n/g", "<br>")
-    }</h1><p class="questiondescription">${
-      question.description.replace(/\n/g, "<br>")
-    }</p><div class="answers host">${answerBoxes}</div>`;
+    }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle ${examStyle?"exam":""}">${(examStyle && question.exam)?"["+question.exam+"]<br>":""}${
+      question.question.replace(/\n/g, "<br>")
+    }${examStyle?answerBoxes:""}</h1><p class="questiondescription">${
+      question.description?question.description.replace(/\n/g, "<br>"):""
+    }</p><div class="answers host">${examStyle?"":answerBoxes}</div>`;
   },
   scoreboard: function (question) {
     let leaderboard = "";
@@ -184,8 +192,21 @@ function showRunningGames(games) {
 
 function showCorrectAnswer(answerid) {
   clearInterval(currentTimer);
-  $(".answer").removeClass("answer").addClass("incorrectAnswer")
-  $("#answer-" + answerid).removeClass("incorrectAnswer").addClass("correctAnswer")
+  if (currentQuestion.type == "EXAM") {
+    let ht = $("#answer-"+answerid).html()
+    for(let i = 0; i < currentQuestion.answers.length; i++){
+      if (i == answerid){
+        $("#answer-"+i).html(ht + "✔")
+      }
+      else{
+        $("#answer-"+i).html(ht + "X")
+      }
+    }
+    
+  } else {
+    $(".answer").removeClass("answer").addClass("incorrectAnswer")
+    $("#answer-" + answerid).removeClass("incorrectAnswer").addClass("correctAnswer")
+  }
 }
 
 let currentTimer = undefined;

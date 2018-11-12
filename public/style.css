@@ -72,6 +72,7 @@ h1 {
 
 .header h1 {
     width: 100%;
+    padding-left: 1vw;
 }
 
 .header * {
@@ -183,6 +184,29 @@ span#link {
     text-align: center;
 }
 
+.exam.questiontitle{
+    background-color: white;
+    text-align: left;
+    font-size: 3vh;
+    font-weight: 300;
+    width: auto;
+    font-family: 'Arial';
+    color: black;
+    margin: 3vh;
+    padding: 1vh 1vw;
+}
+
+.exam.questiontitle *{
+    background-color: white;
+    text-align: left;
+    font-family: 'Arial';
+    color: black;
+}
+
+.exam.questiontitle span.bold{
+    font-weight: 800;
+}
+
 .questiondescription {
     flex: 0 1 auto;
     height: auto;
@@ -217,14 +241,16 @@ span#link {
 .answers {
     flex: 0 0 auto;
     height: auto;
-    padding: 1vh;
+    padding: 1vh 1.5vw;
 }
 
 .answers * {
     display: inline-block;
-    width: 47vw;
+    width: 48vw;
     height: 45vh;
+    font-size: 3vh;
     margin: 0;
+    
     color: white;
     text-align: center;
     border-radius: 5px;
@@ -238,6 +264,10 @@ span#link {
 .answers * div div {
     display: table-cell;
     vertical-align: middle;
+}
+
+.answers * div div sup {
+    display: inline;
 }
 
 .answer#answer-0,

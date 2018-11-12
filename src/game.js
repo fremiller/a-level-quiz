@@ -3,6 +3,7 @@ let server = require("./httpserver");
 let auth = require("./auth")
 let io = undefined;
 let database = require("./database")
+let currentQuestion = undefined;
 
 exports.start = function () {
     console.log("Initializing IO object");

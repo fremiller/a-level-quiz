@@ -55,52 +55,17 @@ exports.CreateUser = async function (userObj) {
 
 const questions = [
     {
-        question: "The temperature of a fixed volume of an ideal gas is raised from 300K to 330K.\nWhich of the following statements about the gas is/are true?",
-        description: "1) The mean energy of the particles of the gas increases by 10% \n 2) The mean square velocity of the particles increases by 10% \n 3) The number of collisions per second with the walls of the container increases by 10%",
-        answers: [
-            "1, 2 and 3 are correct",
-            "Only 1 and 2 are correct",
-            "Only 2 and 3 are correct",
-            "Only 1 is correct"
+        "question": "One million electrons travel between two points in a circuit.\nThe total energy gained by the electrons is 1.6x10<sup>-10</sup>J.\n\nWhat is the potential difference between the two points?",
+        "type": "EXAM",
+        "answers": [
+            "1.6x10<sup>-16</sup>V",
+            "1.6x10<sup>-4</sup>V",
+            "1.0x10<sup>3</sup>V",
+            "1.0x10<sup>9</sup>V"
         ],
-        correctAnswer: 1,
-        timeLimit: 60
-    },
-    {
-        question: "If a gang pull up, are you gonna back your bredrin?",
-        description: "",
-        answers: [
-            "Yes",
-            "No",
-            "On",
-            "yop"
-        ],
-        correctAnswer: 3,
-        timeLimit: 60
-    },
-    {
-        question: "Would you rather...",
-        description: "",
-        answers: [
-            "Victory Royale",
-            "Friends",
-            "Money",
-            "Minecraft"
-        ],
-        correctAnswer: 3,
-        timeLimit: 60
-    },
-    {
-        question: "What is luke's waifu",
-        description: "",
-        answers: [
-            "Karim",
-            "Femscout",
-            "Andrew",
-            "The guide from terraria"
-        ],
-        correctAnswer: 3,
-        timeLimit: 60
+        "correctAnswer": 2,
+        "timeLimit": 60,
+        "exam": "H556/02 June 2017 Question 2"
     }
 ]
 
