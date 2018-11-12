@@ -266,9 +266,10 @@ span#link {
     vertical-align: middle;
 }
 
-.answers * div div sup {
+.answers * div div sup, .answers * div div sub, .answers * div div em {
     display: inline;
 }
+
 
 .answer#answer-0,
 .answer#answer-0 * {
