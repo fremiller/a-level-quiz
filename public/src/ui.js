@@ -1,3 +1,5 @@
+let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
+
 let scenes = {
   signin: function (data) {
     return /*html*/ `<div class="row">
@@ -18,8 +20,8 @@ let scenes = {
   loading: function (data) {
     return /*html*/ `<div class="row">
             <div class="center-box center-block "><h1>Loading</h1><p>${
-              data.text ? data.text : ""
-            }</p><div class="progress">
+      data.text ? data.text : ""
+      }</p><div class="progress">
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>
             </div>
             </div>`;
@@ -29,7 +31,7 @@ let scenes = {
     currentUser.classes.forEach(function (clas) {
       classSelect += `<option value=${clas.id}>${clas.name}</option>`
     })
-    return /*html*/ `<div class="row"><div class="center-box center-block"><h1>Create game</h1><form><div class="form-group">
+    return /*html*/ `<div class="row"><div class="center-box center-block"><h1>Create game</h1><form>
     <label for="topic">Topic</label>
     <select class="form-control" id="topic">
       <option>Electric Fields</option>
@@ -37,28 +39,26 @@ let scenes = {
       <option>All</option>
       <option>Auto</option>
     </select>
-  </div>
-  <div class="form-group">
+
     <label for="classs">Class</label>
     <select class="form-control" id="class">
       ${classSelect}
     </select>
-  </div>
-  <div class="form-group">
+
     <label for="testselect">Gamemode</label>
     <select class="form-control" id="testselect">
     <option>Quiz</option>
       <option>Test</option>
     </select>
-  </div>
-  <button class="bigbtn" onclick="creategamesubmit()">Start</button></form></div></div>`
+</form>
+  <button class="bigbtn" onclick="creategamesubmit()">Start</button></div></div>`
   },
   studentdashboard: function (data) {
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
-    }"><div><h5>${currentUser.name}</h5><h6>${
+      }"><div><h5>${currentUser.name}</h5><h6>${
       currentUser.domain
-    }</h6></div></div></div>
+      }</h6></div></div></div>
         <div id="joinGames">
 
         </div>
@@ -67,9 +67,9 @@ let scenes = {
   teacherdashboard: function (data) {
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
-    }"><div><h5>${currentUser.name}</h5><h6>${
+      }"><div><h5>${currentUser.name}</h5><h6>${
       currentUser.domain
-    }</h6></div></div></div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
+      }</h6></div></div></div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
   },
   teacherlobby: function (data) {
     let playerlist = "";
@@ -78,9 +78,9 @@ let scenes = {
         playerlist += `<p>${currentGame.players[i].name}</p>`;
       }
     }
-    return /*html*/ `<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length == 1)?"":""}>Start Game</button>${currentGame?`<!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`:""}<h1>Play at <span id="link"> ffsh.xyz</span></h1><div class="headerplayercount"><h1>${
+    return /*html*/ `<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length == 1) ? "" : ""}>Start Game</button>${currentGame ? `<!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->` : ""}<h1>Play at <span id="link"> ffsh.xyz</span></h1><div class="headerplayercount"><h1>${
       currentGame.players.length - 1
-    }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
+      }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
   },
   studentlobby: function (data) {
     return /*html*/ `<div class="slobby"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h3>Connected</h3><h5>Go fullscreen for the best experience</h5><button onclick="toggleFullscreen()">Fullscreen</button></div>`;
@@ -101,22 +101,22 @@ let scenes = {
     let answerBoxes = "";
     if (!examStyle) {
       question.answers.forEach((answer, i) => {
-        answerBoxes += `<div class="answer" id="answer-${i}"><div><div>${answer}</div></div></div>`;
+        answerBoxes += `<div class="answer normal" id="answer-${i}"><div><div>${answer}</div></div></div>`;
       });
     } else {
       question.answers.forEach((answer, i) => {
-        answerBoxes += `<br><br><span class="bold">${"ABCD"[i]}</span> <span id="answer-${i}">${answer}</span>`;
+        answerBoxes += `<br><br><span class="examAnswer" id="answer-${i}"><span class="bold">${"ABCD"[i]}</span> ${answer}</span>`;
       });
     }
     return `<div class="header"><h1>Question ${question.number}</h1><h1 id="timer"></h1>
     <button class="lobbystartbutton" onclick="continueQ()">Continue</button>
     <div class="headerplayercount"><h1 id="numberAnswers">${
-      question.userAnswers?question.userAnswers.length:0
-    }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle ${examStyle?"exam":""}">${(examStyle && question.exam)?"["+question.exam+"]<br>":""}${
+      question.userAnswers ? question.userAnswers.length : 0
+      }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle ${examStyle ? "exam" : ""}">${(examStyle && question.exam) ? "[" + question.exam + "]<br>" : ""}${
       question.question.replace(/\n/g, "<br>")
-    }${examStyle?answerBoxes:""}</h1><p class="questiondescription">${
-      question.description?question.description.replace(/\n/g, "<br>"):""
-    }</p><div class="answers host">${examStyle?"":answerBoxes}</div>`;
+      }${examStyle ? answerBoxes : ""}</h1><p class="questiondescription">${
+      question.description ? question.description.replace(/\n/g, "<br>") : ""
+      }</p><div class="answers host">${examStyle ? "" : answerBoxes}</div>`;
   },
   scoreboard: function (question) {
     let leaderboard = "";
@@ -128,7 +128,7 @@ let scenes = {
         leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
       }
     })
-    return /*html*/ `<div class="header"><h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button></div><h3>${question.fact?question.fact:""}</h3><div class="leaderboard">${leaderboard}</div>`
+    return /*html*/ `<div class="header"><h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button></div><h3>${question.fact ? question.fact : ""}</h3><div class="leaderboard">${leaderboard}</div>`
   },
   waitingForAnswers: function () {
     clearInterval(currentTimer);
@@ -165,7 +165,7 @@ function loadScene(tag, data) {
         size: 70
       })
     }
-  } catch (e) {}
+  } catch (e) { }
 }
 
 /**
@@ -190,22 +190,50 @@ function showRunningGames(games) {
   $("#joinGames").html(g);
 }
 
-function showCorrectAnswer(answerid) {
+function showCorrectAnswer(data) {
+  let revealLast = 0;
+  let revealRandom = [];
+  data.forEach(function (ans, i) {
+    let ht = $("#answer-" + i).html()
+    $("#answer-" + i).html(ht + `<span class="answerCount"> ${ans.count}</span>`);
+    if (ans.correct) {
+      revealLast = i;
+    }
+    else {
+      revealRandom.push(i);
+    }
+  })
+  let revealQueue = shuffle(revealRandom);
+  revealQueue.push(revealLast);
+  revealQueue.forEach((answer, i) => {
+    let ht = $("#answer-" + answer).html()
+    if (data[answer].correct) {
+      setInterval(() => $("#answer-" + answer).html(ht + tick), 5000 + (1000 * i));
+    }
+    else {
+      setInterval(() => $("#answer-" + answer).attr("style", "background-color: red; color: white;"), 5000 + (1000 * i));
+    }
+  })
   clearInterval(currentTimer);
+  if (currentQuestion.type != "EXAM") {
+    setTimeout(() => colourAnswer(data), 5000);
+  }
+}
+
+function colourAnswer(data) {
   if (currentQuestion.type == "EXAM") {
-    let ht = $("#answer-"+answerid).html()
-    for(let i = 0; i < currentQuestion.answers.length; i++){
-      if (i == answerid){
-        $("#answer-"+i).html(ht + "✔")
+    for (let i = 0; i < currentQuestion.answers.length; i++) {
+
+    }
+  } else {
+    for (let i = 0; i < currentQuestion.answers.length; i++) {
+      if (data[i].correct) {
+        $("#answer-" + i).removeClass("answer").addClass("correctAnswer")
       }
-      else{
-        $("#answer-"+i).html(ht + "X")
+      else {
+        $("#answer-" + i).removeClass("answer").addClass("incorrectAnswer")
       }
     }
-    
-  } else {
-    $(".answer").removeClass("answer").addClass("incorrectAnswer")
-    $("#answer-" + answerid).removeClass("incorrectAnswer").addClass("correctAnswer")
   }
 }
 
@@ -262,4 +290,15 @@ function toggleFullscreen() {
   } else {
     cancelFullScreen.call(doc);
   }
+}
+
+function shuffle(a) {
+  var j, x, i;
+  for (i = a.length - 1; i > 0; i--) {
+    j = Math.floor(Math.random() * (i + 1));
+    x = a[i];
+    a[i] = a[j];
+    a[j] = x;
+  }
+  return a;
 }

@@ -151,7 +151,10 @@ let Game = exports.Game = class Game {
         }
         console.log("revealAnswer")
         let scoresToAdd = {};
+        let answerStats = [{count: 0}, {count: 0}, {count: 0}, {count: 0}];
+        answerStats[game.currentQuestion.correctAnswer].correct = true;
         game.currentQuestion.userAnswers.forEach(function (player, i) {
+            answerStats[player.answer] += 1;
             if (player.answer == game.currentQuestion.correctAnswer) {
                 scoresToAdd[player.userid] = game.players.length - i + 5;
             }
@@ -167,7 +170,7 @@ let Game = exports.Game = class Game {
         })
         game.sortScoreboard()
         game.currentQuestion.leaderboard = game.playerJSON()
-        game.sendToHost("revealAnswer", game.currentQuestion)
+        game.sendToHost("revealAnswer", answerStats)
         setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 5000)
     }
 

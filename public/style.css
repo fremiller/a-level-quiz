@@ -176,6 +176,34 @@ span#link {
     font-size: 3vh;
 }
 
+form{
+    margin: 1vh 1vw;
+}
+
+label{
+    display: block;
+    margin: 0.2vh 2vw;
+}
+
+select{
+    display: block;
+    width: auto;
+    margin: 0 auto;
+    font-size: 2vh;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(0, 0, 0, 0);
+}
+
+select:hover{
+    border: 2px solid white;
+}
+
+select *{
+    background-color: rgba(0, 0, 0, 0.1);
+    font-size: 2vh;
+    color: black;
+}
+
 /*question*/
 .questiontitle {
     flex: 0 1 auto;
@@ -186,6 +214,7 @@ span#link {
 
 .exam.questiontitle{
     background-color: white;
+    border-radius: 5px;
     text-align: left;
     font-size: 3vh;
     font-weight: 300;
@@ -197,11 +226,11 @@ span#link {
 }
 
 .exam.questiontitle *{
-    background-color: white;
     text-align: left;
     font-family: 'Arial';
-    color: black;
+    color: inherit;
 }
+
 
 .exam.questiontitle span.bold{
     font-weight: 800;
@@ -276,7 +305,7 @@ span#link {
     background-color: red;
 }
 
-#answer-0 {
+.normal#answer-0 {
     margin-bottom: 1vh;
     margin-right: 1vw;
 }
@@ -288,7 +317,7 @@ span#link {
     /*  */
 }
 
-#answer-1 {
+.normal#answer-1 {
     margin-bottom: 1vh;
     /* margin-left: 1vw; */
 }
@@ -299,7 +328,7 @@ span#link {
 
 }
 
-#answer-2 {
+.normal#answer-2 {
     margin-right: 1vw;
 }
 
@@ -307,10 +336,6 @@ span#link {
 .answer#answer-3 * {
     background-color: purple;
     /*  */
-}
-
-#answer-3 {
-    /* margin-left: 1vw; */
 }
 
 .answers.host * {
@@ -343,6 +368,21 @@ span#link {
     height: auto;
     border-radius: 3px;
 }
+
+.examAnswer{
+    margin-top: 1vh;
+    float: left;
+    color: black;
+}
+
+.examAnswer *{
+    color: inherit;
+}
+
+.answerCount{
+    font-weight: 900;
+}
+
 
 @media only screen and (min-width: 768px) {
     #fullscreenBox{
@@ -455,3 +495,52 @@ span#link {
     }
 }
 
+
+.checkmark__circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    stroke-miterlimit: 10;
+    stroke: #7ac142;
+    fill: none;
+    animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+  
+  .checkmark {
+    width: 3vh;
+    height: 3vh;
+    border-radius: 50%;
+    display: inline-block;
+    stroke-width: 2;
+    stroke: #fff;
+    stroke-miterlimit: 10;
+    margin: 0;
+    box-shadow: inset 0px 0px 0px #7ac142;
+    animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+  }
+  
+  .checkmark__check {
+    transform-origin: 50% 50%;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+  }
+  
+  @keyframes stroke {
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes scale {
+    0%, 100% {
+      transform: none;
+    }
+    50% {
+      transform: scale3d(1.1, 1.1, 1);
+    }
+  }
+  @keyframes fill {
+    100% {
+      box-shadow: inset 0px 0px 0px 30px #7ac142;
+    }
+  }

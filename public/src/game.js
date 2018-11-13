@@ -46,9 +46,9 @@ function setupSocketEvents(socket) {
         socket.disconnect(true);
     })
 
-    socket.on("revealAnswer", function(question){
+    socket.on("revealAnswer", function(answerStats){
         console.log("Reveal answer")
-        showCorrectAnswer(question.correctAnswer)
+        showCorrectAnswer(answerStats)
     })
 
     socket.on("scoreboard", function(question){
