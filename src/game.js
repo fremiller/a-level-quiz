@@ -171,7 +171,7 @@ let Game = exports.Game = class Game {
         game.sortScoreboard()
         game.currentQuestion.leaderboard = game.playerJSON()
         game.sendToHost("revealAnswer", answerStats)
-        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 5000)
+        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
     }
 
     playerJSON() {

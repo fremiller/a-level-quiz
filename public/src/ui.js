@@ -208,10 +208,14 @@ function showCorrectAnswer(data) {
   revealQueue.forEach((answer, i) => {
     let ht = $("#answer-" + answer).html()
     if (data[answer].correct) {
-      setInterval(() => $("#answer-" + answer).html(ht + tick), 5000 + (1000 * i));
+      setInterval(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
     }
     else {
-      setInterval(() => $("#answer-" + answer).attr("style", "background-color: red; color: white;"), 5000 + (1000 * i));
+      setInterval(() => $("#answer-" + answer).addClass("animated slideOutLeft").one("animationend", function() {
+        $(this).removeClass('animated slideOutLeft');
+        $(this).html("");
+        //if (typeof callback === 'function') callback();
+      }), 5000 + (300 * i));
     }
   })
   clearInterval(currentTimer);
@@ -235,6 +239,10 @@ function colourAnswer(data) {
       }
     }
   }
+}
+
+function dropQuestion(){
+  $(".exam.questiontitle").addClass("animated hinge slow");
 }
 
 let currentTimer = undefined;
