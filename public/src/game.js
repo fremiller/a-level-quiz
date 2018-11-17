@@ -39,7 +39,7 @@ function submitAnswer(id){
 function setupSocketEvents(socket) {
     // This runs when there is an error on the server
     socket.on("displayError", function (data) {
-        loadScene("error", { text: data.text, status: "" })
+        loadScene("error", { text: data.text, status: "", continue: data.continue })
     });
 
     socket.on("forceDisconnect", function(){
@@ -82,9 +82,16 @@ function setupSocketEvents(socket) {
     })
 
     socket.on("incorrectAnswer", function(data){
-        console.log("incorrect")
         if(currentUser.userType == 0){
             loadScene("incorrectanswer", data)
         }
     })
+}
+
+function continueQuestion(){
+    socket.emit("continueQuestion");
+}
+
+function revealAnswersToPlayers(){
+    socket.emit("revealAnswersToPlayers")
 }

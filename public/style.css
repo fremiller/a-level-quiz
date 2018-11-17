@@ -4,11 +4,25 @@
 }
 
 body {
-    background-color: rgb(69, 149, 224);
     height: 100%;
+    background-color: rgb(69, 149, 224);
+    background-size: 100% 400%;
+    background-image: linear-gradient(to bottom, rgb(89, 216, 89) 0%, rgb(89, 216, 89) 33.333%, rgb(69, 149, 224) 33.334%, rgb(69, 149, 224) 66.666%, red 66.667%, red 100%);
+    background-position: 0 50%;
+    transition: background-position 1s;
 }
 
+.body-green {
+    background-position: 0 0%;
+}
 
+.body-blue {
+    background-position: 0 50%;
+}
+
+.body-red{
+    background-position: 0 100%;
+}
 
 .spacer {
     width: 92vw;

@@ -43,8 +43,14 @@ async function onConnection(socket) {
                 console.log("[INFO][GAME] Starting game " + game.code)
                 game.startGame();
             })
+            socket.on("revealAnswersToPlayers", function(){
+                game.revealAnswersToPlayers();
+            })
             socket.on("lobbyContinue", function () {
                 game.sendQuestion();
+            })
+            socket.on("continueQuestion", function(){
+                game.showScoreboard(game);
             })
             game.setHost(user.toJSON(), socket)
         } else {
@@ -67,15 +73,17 @@ async function onConnection(socket) {
 }
 
 let Game = exports.Game = class Game {
-    constructor(classid) {
+    constructor(classid, domain) {
         this.code = classid;
         this.players = [];
         this.host = undefined;
         this.topics = [];
+        this.domain = domain;
         this.pastQuestions = [];
         this.currentQuestion = undefined;
         this.questionTimeout = undefined;
         this.state = "LOBBY";
+        this.scoresToAdd = {};
         console.log("[INFO][GAME] New game " + this.code)
     }
 
@@ -150,28 +158,34 @@ let Game = exports.Game = class Game {
             clearTimeout(game.questionTimeout);
         }
         console.log("revealAnswer")
-        let scoresToAdd = {};
+        game.scoresToAdd = {};
         let answerStats = [{count: 0}, {count: 0}, {count: 0}, {count: 0}];
         answerStats[game.currentQuestion.correctAnswer].correct = true;
         game.currentQuestion.userAnswers.forEach(function (player, i) {
             answerStats[player.answer].count += 1;
             if (player.answer == game.currentQuestion.correctAnswer) {
-                scoresToAdd[player.userid] = game.players.length - i + 5;
+                game.scoresToAdd[player.userid] = game.players.length - i + 5;
             }
         })
-        game.players.forEach((player) => {
-            if (scoresToAdd[player.googleid]) {
-                player.score += scoresToAdd[player.googleid];
+        this.players.forEach((player) => {
+            if (this.scoresToAdd[player.googleid]) {
+                player.score += this.scoresToAdd[player.googleid];
+            }
+        })
+        game.sendToHost("revealAnswer", answerStats)
+        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
+    }
+
+    revealAnswersToPlayers(){
+        this.players.forEach((player) => {
+            if (this.scoresToAdd[player.googleid]) {
                 player.socket.emit("correctAnswer", player.score)
             } else {
-                console.log("incorrect")
                 player.socket.emit("incorrectAnswer", player.score)
             }
         })
-        game.sortScoreboard()
-        game.currentQuestion.leaderboard = game.playerJSON()
-        game.sendToHost("revealAnswer", answerStats)
-        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
+        this.sortScoreboard()
+        this.currentQuestion.leaderboard = this.playerJSON()
     }
 
     playerJSON() {
@@ -223,9 +237,23 @@ let Game = exports.Game = class Game {
                 indx = i;
             }
         }
+        if(indx == 0){
+            // This player is the teacher
+            // end the game
+            this.end("Teacher left.")
+        }
         if (indx != -1) {
             this.players.splice(indx);
         }
+    }
+
+    end(message){
+        this.broadcast("displayError", {
+            "text": message,
+            "continue": "studentdashboard"
+        })
+        this.broadcast("forceDisconnect");
+        games[this.domain][this.code] = undefined;
     }
 
     broadcastLobbyStatus() {
@@ -287,7 +315,7 @@ exports.getGameByCode = getGameByCode = function (code, domain) {
 }
 
 var createGame = exports.createGame = function (classid, domain) {
-    let game = new Game(classid);
+    let game = new Game(classid, domain ? domain : "none");
     //games[game.code] = game;
     if (!games[domain ? domain : "none"]) {
         games[domain ? domain : "none"] = {};

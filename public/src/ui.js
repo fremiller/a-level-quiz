@@ -1,5 +1,5 @@
 let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
-
+let getInterval;
 let scenes = {
   signin: function (data) {
     return /*html*/ `<div class="row">
@@ -14,17 +14,16 @@ let scenes = {
     return /*html*/ `<div class="row">
     <div class="center-box center-block "><h1>Error ${data.status}</h1>
         <p>${data.text}</p>
-        <p>Reload the page to try again</p></div>
+        ${(data.continue)?`<button onclick="loadScene('${data.continue}')">Continue</button>`:`<p>Reload the page to try again</p>`}</div>
     </div>`;
   },
   loading: function (data) {
-    return /*html*/ `<div class="row">
-            <div class="center-box center-block "><h1>Loading</h1><p>${
+    return /*html*/`<div class="row">
+            <div class="center-box center-block"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h1>Loading</h1><p>${
       data.text ? data.text : ""
-      }</p><div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div></div>
+      }</p>
             </div>
-            </div>`;
+            </div></div>`;
   },
   createGame: function (data) {
     let classSelect = ""
@@ -54,6 +53,8 @@ let scenes = {
   <button class="bigbtn" onclick="creategamesubmit()">Start</button></div></div>`
   },
   studentdashboard: function (data) {
+    getRunningGames()
+    setInterval(getRunningGames, 5000);
     return /*html*/ `<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
       currentUser.profileImage
       }"><div><h5>${currentUser.name}</h5><h6>${
@@ -86,6 +87,7 @@ let scenes = {
     return /*html*/ `<div class="slobby"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h3>Connected</h3><h5>Go fullscreen for the best experience</h5><button onclick="toggleFullscreen()">Fullscreen</button></div>`;
   },
   studentquestion: function (question) {
+    clearInterval(currentTimer);
     let answerBoxes = "";
     startTimer(question.timeLimit)
     question.answers.forEach((answer, i) => {
@@ -94,6 +96,7 @@ let scenes = {
     return /*html*/ `<div class="header questionheader"><h1>Question ${question.number}</h1><h1 id="timer"></h1></div><div class="answers">${answerBoxes}</div>`;
   },
   teacherquestion: function (question) {
+    clearInterval(currentTimer);
     console.log(question);
     currentQuestion = question;
     startTimer(question.timeLimit)
@@ -109,7 +112,7 @@ let scenes = {
       });
     }
     return `<div class="header"><h1>Question ${question.number}</h1><h1 id="timer"></h1>
-    <button class="lobbystartbutton" onclick="continueQ()">Continue</button>
+    <button class="lobbystartbutton" onclick="continueQuestion()">Continue</button>
     <div class="headerplayercount"><h1 id="numberAnswers">${
       question.userAnswers ? question.userAnswers.length : 0
       }</h1><h6 class="mini">Answers</h6></div></div><h1 class="questiontitle ${examStyle ? "exam" : ""}">${(examStyle && question.exam) ? "[" + question.exam + "]<br>" : ""}${
@@ -132,25 +135,44 @@ let scenes = {
   },
   waitingForAnswers: function () {
     clearInterval(currentTimer);
-    return /*html*/ `<h1>Waiting</h1>`
+    return /*html*/ `<div class="row">
+    <div class="center-box center-block"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h1>Waiting</h1></div></div>`
   },
   correctanswer: function (score) {
+    changeBackgroundColour("body-green");
     clearInterval(currentTimer);
-    return /*html*/ `<h1>Correct</h1><p>You now have ${score} points</p>`
+    return /*html*/ `<div class="row">
+    <div class="center-box center-block"><h1>Correct</h1><p>You now have ${score} points</p></div></div>`
   },
   incorrectanswer: function (score) {
+    changeBackgroundColour("body-red");
     clearInterval(currentTimer);
-    return /*html*/ `<h1>Incorrect</h1><p>You still have ${score} points</p>`
+    return /*html*/ `<div class="row">
+    <div class="center-box center-block"><h1>Incorrect</h1><p>You still have ${score} points</p></div></div>`
   },
 };
+
+let intervalsToClear = [];
+
 /**
  * Displays a "scene" on the client
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
 function loadScene(tag, data) {
+  changeBackgroundColour("body-blue")
   try {
     $("#scene").html(scenes[tag](data));
+    if(timeoutsToClear.length > 0){
+      timeoutsToClear.forEach(function(timeout){
+        clearTimeout(timeout);
+      })
+    }
+    if(intervalsToClear.length > 0){
+      intervalsToClear.forEach(function(interval){
+        clearInterval(interval);
+      })
+    }
     if (tag == "signin") {
       if (gapi) {
         gapi.signin2.render("g-signin", {
@@ -175,8 +197,28 @@ function loadScene(tag, data) {
 function showError(err) {
   loadScene("error", {
     status: err.statusCode,
-    text: err.responseText
+    text: err.responseText,
+    continue: err.continue
   });
+}
+
+const colours = ["body-green", "body-blue", "body-red"];
+
+function changeBackgroundColour(c){
+  let r = "";
+  let a = "";
+  colours.forEach((colour)=>{
+    if(colour == c){
+      a += " " + colour;
+    }
+    else{
+      r += " " + colour;
+    }
+  })
+  if(a == ""){
+    a += colours[1];
+  }
+  $("body").removeClass(r).addClass(a);
 }
 
 function showRunningGames(games) {
@@ -189,6 +231,8 @@ function showRunningGames(games) {
   }
   $("#joinGames").html(g);
 }
+
+let timeoutsToClear = [];
 
 function showCorrectAnswer(data) {
   let revealLast = 0;
@@ -208,14 +252,18 @@ function showCorrectAnswer(data) {
   revealQueue.forEach((answer, i) => {
     let ht = $("#answer-" + answer).html()
     if (data[answer].correct) {
-      setInterval(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
+      console.log("Adding class to correct answer")
+      let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
+      timeoutsToClear.push(t);
     }
     else {
-      setInterval(() => $("#answer-" + answer).addClass("animated slideOutLeft").one("animationend", function() {
+      let t = setTimeout(() => $("#answer-" + answer).addClass("animated slideOutLeft").one("animationend", function() {
         $(this).removeClass('animated slideOutLeft');
-        $(this).html("");
+        $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
+        revealAnswersToPlayers();
         //if (typeof callback === 'function') callback();
       }), 5000 + (300 * i));
+      timeoutsToClear.push(t);
     }
   })
   clearInterval(currentTimer);
