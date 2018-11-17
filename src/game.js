@@ -84,6 +84,7 @@ let Game = exports.Game = class Game {
         this.questionTimeout = undefined;
         this.state = "LOBBY";
         this.scoresToAdd = {};
+        this.showTimeout = undefined;
         console.log("[INFO][GAME] New game " + this.code)
     }
 
@@ -173,7 +174,7 @@ let Game = exports.Game = class Game {
             }
         })
         game.sendToHost("revealAnswer", answerStats)
-        setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
+        this.showTimeout = setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
     }
 
     revealAnswersToPlayers(){
@@ -266,6 +267,10 @@ let Game = exports.Game = class Game {
     }
 
     async sendQuestion() {
+        if(this.showTimeout){
+            clearTimeout(this.showTimeout);
+            this.showTimeout = undefined;
+        }
         if (this.currentQuestion) {
             this.pastQuestions.push(this.currentQuestion)
         }
