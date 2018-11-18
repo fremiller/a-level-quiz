@@ -3,9 +3,10 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
 version: 2
-deployment:
-  master:
-    branch: master
-    commands:
-      - echo 'Deploying'
-      - ssh -v $DROPLET_USER@$DROPLET_IP "git pull origin master;pm2 restart 0"
+jobs:
+  deployment:
+    master:
+      branch: master
+      commands:
+        - echo 'Deploying'
+        - ssh -v $DROPLET_USER@$DROPLET_IP "git pull origin master;pm2 restart 0"
