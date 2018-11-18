@@ -238,7 +238,7 @@ let Game = exports.Game = class Game {
                 indx = i;
             }
         }
-        if(indx == 0){
+        if(this.players[indx].googleid == this.host.googleid){
             // This player is the teacher
             // end the game
             this.end("Teacher left.")
