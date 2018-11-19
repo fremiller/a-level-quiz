@@ -155,6 +155,10 @@ let Game = exports.Game = class Game {
     }
 
     showScoreboard(game) {
+        if(this.state == "SCOREBOARD"){
+            return;
+        }
+        this.state = "SCOREBOARD";
         if (game.questionTimeout) {
             clearTimeout(game.questionTimeout);
         }
@@ -279,6 +283,7 @@ let Game = exports.Game = class Game {
         this.currentQuestion.userAnswers = [];
         this.currentQuestion.number = this.pastQuestions.length + 1;
         this.broadcast("showQuestion", this.currentQuestion)
+        this.state = "QUESTION";
         let game = this;
         this.questionTimeout = setTimeout(() => game.showScoreboard(game), this.currentQuestion.timeLimit * 1000)
     }
