@@ -1,4 +1,7 @@
 "use-strict";
+
+import './game';
+import './ui';
 /**
  * This script runs on the client and handles all communication with the server
  */
