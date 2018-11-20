@@ -14,7 +14,8 @@ class TeacherQuestion extends Scene {
                 answerBoxes += `<br><br><span class="examAnswer" id="answer-${i}"><span class="bold">${"ABCD"[i]}</span> ${answer}</span>`;
             });
         }
-        return html`<div class="header">
+        return html`
+<div class="header">
     <h1>Question ${data.number}</h1>
     <h1 id="timer"></h1>
     <button class="lobbystartbutton" onclick="continueQuestion()">Continue</button>
@@ -25,12 +26,12 @@ class TeacherQuestion extends Scene {
         <h6 class="mini">Answers</h6>
     </div>
 </div>
-<h1 class="questiontitle ${examStyle ? " exam" : "" }">${(examStyle && data.exam) ? "[" + data.exam + "]<br>" : ""}${
-    data.question.replace(/\n/g, "<br>")
-    }${examStyle ? answerBoxes : ""}</h1>
+<h1 class="questiontitle ${examStyle ? " exam" : ""}">${(examStyle && data.exam) ? "[" + data.exam + "]<br>" : ""}${
+            data.question.replace(/\n/g, "<br>")
+            }${examStyle ? answerBoxes : ""}</h1>
 <p class="questiondescription">${
-    data.description ? data.description.replace(/\n/g, "<br>") : ""
-    }</p>
+            data.description ? data.description.replace(/\n/g, "<br>") : ""
+            }</p>
 <div class="answers host">${examStyle ? "" : answerBoxes}</div>`;
     }
 }

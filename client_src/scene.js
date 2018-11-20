@@ -1,9 +1,8 @@
 let html = String.raw;
 
 class Scene {
-    constructor(state, sceneId) {
-        this.state = state;
-        this.id = sceneId;
+    constructor(renderId) {
+        this.renderId = renderId;
         this.currentHtml = "";
         this.save = false;
     }
@@ -16,9 +15,17 @@ class Scene {
         }
     }
 
+    onEnter() {
+        return new Promise(function (res) { res() });
+    }
+
     generateHtml(data) {
         this.currentHtml = "<h1>Test</h1>"
         return this.currentHtml;
+    }
+
+    onLeave(){
+        return new Promise(function(res) {res()});
     }
 
     postRender(data) {

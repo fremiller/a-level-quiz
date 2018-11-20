@@ -1,7 +1,8 @@
 class SignIn extends Scene {
     generateHtml(data) {
-        return html`<div class="row">
-    <div class="center-box center-block ">
+        return html`
+<div class="row">
+    <div class="center-box center-block animated slideInUp">
         <h1>Quiz</h1>
         <p>orleanspark.school emails only</p>
         <div id="google-align">

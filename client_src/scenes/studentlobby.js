@@ -1,6 +1,7 @@
 class StudentLobby extends Scene {
     generateHtml(data) {
-        return html`<div class="slobby">
+        return html`
+<div class="slobby">
     <div class="lds-ring">
         <div></div>
         <div></div>

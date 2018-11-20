@@ -10,6 +10,11 @@ class Scoreboard extends Scene {
         leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
       }
     })
-    return html`<div class="header"><h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button></div><h3>${data.fact ? data.fact : ""}</h3><div class="leaderboard">${leaderboard}</div>`;
+    return html`
+<div class="header">
+  <h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button>
+</div>
+<h3>${data.fact ? data.fact : ""}</h3>
+<div class="leaderboard">${leaderboard}</div>`;
   }
 }

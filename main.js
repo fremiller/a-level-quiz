@@ -208,9 +208,8 @@ function revealAnswersToPlayers(){
 }let html = String.raw;
 
 class Scene {
-    constructor(state, sceneId) {
-        this.state = state;
-        this.id = sceneId;
+    constructor(renderId) {
+        this.renderId = renderId;
         this.currentHtml = "";
         this.save = false;
     }
@@ -223,9 +222,17 @@ class Scene {
         }
     }
 
+    onEnter() {
+        return new Promise(function (res) { res() });
+    }
+
     generateHtml(data) {
         this.currentHtml = "<h1>Test</h1>"
         return this.currentHtml;
+    }
+
+    onLeave(){
+        return new Promise(function(res) {res()});
     }
 
     postRender(data) {
@@ -251,7 +258,8 @@ class CorrectAnswer extends Scene {
     generateHtml(data) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
-        return html`<div class="row">
+        return html`
+<div class="row">
     <div class="center-box center-block">
         <h1>Correct</h1>
         <p>You now have ${score} points</p>
@@ -259,56 +267,80 @@ class CorrectAnswer extends Scene {
 </div>`
     }
 }class CreateGameScene extends Scene {
+  generateHtml(data) {
+    let classSelect = ""
+    currentUser.classes.forEach(function (clas) {
+      classSelect += `<option value=${clas.id}>${clas.name}</option>`
+    })
+    return html`
+<div class="row">
+  <div class="center-box center-block">
+    <h1>Create game</h1>
+    <form>
+      <label for="topic">Topic</label>
+      <select class="form-control" id="topic">
+        <option>Electric Fields</option>
+        <option>Magnetic Fields</option>
+        <option>All</option>
+        <option>Auto</option>
+      </select>
+
+      <label for="classs">Class</label>
+      <select class="form-control" id="class">
+        ${classSelect}
+      </select>
+
+      <label for="testselect">Gamemode</label>
+      <select class="form-control" id="testselect">
+        <option>Quiz</option>
+        <option>Test</option>
+      </select>
+    </form>
+    <button class="bigbtn" onclick="creategamesubmit()">Start</button>
+  </div>
+</div>`
+  }
+}class ErrorScene extends Scene {
     generateHtml(data) {
-        let classSelect = ""
-        currentUser.classes.forEach(function (clas) {
-            classSelect += `<option value=${clas.id}>${clas.name}</option>`
-        })
-        return html`<div class="row"><div class="center-box center-block"><h1>Create game</h1><form>
-            <label for="topic">Topic</label>
-            <select class="form-control" id="topic">
-              <option>Electric Fields</option>
-              <option>Magnetic Fields</option>
-              <option>All</option>
-              <option>Auto</option>
-            </select>
-        
-            <label for="classs">Class</label>
-            <select class="form-control" id="class">
-              ${classSelect}
-            </select>
-        
-            <label for="testselect">Gamemode</label>
-            <select class="form-control" id="testselect">
-            <option>Quiz</option>
-              <option>Test</option>
-            </select>
-        </form>
-          <button class="bigbtn" onclick="creategamesubmit()">Start</button></div></div>`
-    }
-}class ErrorScene extends Scene{
-    generateHtml(data){
-        return html`<div class="row">
-    <div class="center-box center-block "><h1>Error ${data.status}</h1>
+        return html`
+<div class="row">
+    <div class="center-box center-block ">
+        <h1>Error ${data.status}</h1>
         <p>${data.text}</p>
-        ${(data.continue)?`<button onclick="loadScene('${data.continue}')">Continue</button>`:`<p>Reload the page to try again</p>`}</div>
-    </div>`;
+        ${(data.continue) ? `<button onclick="loadScene('${data.continue}')">Continue</button>` : `<p>Reload the page to
+            try again</p>`}
+    </div>
+</div>`;
     }
-}class IncorrectAnswer extends Scene{
-    generateHtml(data){
+}class IncorrectAnswer extends Scene {
+    generateHtml(data) {
         changeBackgroundColour("body-red");
         clearInterval(currentTimer);
-        return html`<div class="row">
-        <div class="center-box center-block"><h1>Incorrect</h1><p>You still have ${score} points</p></div></div>`
+        return html`
+<div class="row">
+    <div class="center-box center-block">
+        <h1>Incorrect</h1>
+        <p>You still have ${score} points</p>
+    </div>
+</div>`
     }
-}class LoadingScene extends Scene{
-    generateHtml(data){
-        return html`<div class="row">
-            <div class="center-box center-block"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h1>Loading</h1><p>${
-      data.text ? data.text : ""
-      }</p>
+}class LoadingScene extends Scene {
+    generateHtml(data) {
+        return html`
+        <div class="row">
+            <div class="center-box center-block animated slideInUp">
+                <div class="lds-ring">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <h1>Loading</h1>
+                <p>${
+                  data.text ? data.text : ""
+                  }</p>
             </div>
-            </div></div>`;
+        </div>`;
     }
 }class Scoreboard extends Scene {
   generateHtml(data) {
@@ -322,12 +354,18 @@ class CorrectAnswer extends Scene {
         leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
       }
     })
-    return html`<div class="header"><h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button></div><h3>${data.fact ? data.fact : ""}</h3><div class="leaderboard">${leaderboard}</div>`;
+    return html`
+<div class="header">
+  <h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button>
+</div>
+<h3>${data.fact ? data.fact : ""}</h3>
+<div class="leaderboard">${leaderboard}</div>`;
   }
 }class SignIn extends Scene {
     generateHtml(data) {
-        return html`<div class="row">
-    <div class="center-box center-block ">
+        return html`
+<div class="row">
+    <div class="center-box center-block animated slideInUp">
         <h1>Quiz</h1>
         <p>orleanspark.school emails only</p>
         <div id="google-align">
@@ -348,20 +386,30 @@ class CorrectAnswer extends Scene {
     generateHtml(data) {
         getRunningGames()
         setInterval(getRunningGames, 5000);
-        return html`<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
+        return html`
+<div class="header">
+    <h1>Dashboard</h1>
+    <div class="headeruserdetails"><img src="${
             currentUser.profileImage
-            }"><div><h5>${currentUser.name}</h5><h6>${
-            currentUser.domain
-            }</h6></div></div></div>
-        <div id="joinGames">
-
+            }">
+        <div>
+            <h5>${currentUser.name}</h5>
+            <h6>${
+                currentUser.domain
+                }</h6>
         </div>
-      </div>`;
+    </div>
+</div>
+<div id="joinGames">
+
+</div>
+</div>`;
         return;
     }
 }class StudentLobby extends Scene {
     generateHtml(data) {
-        return html`<div class="slobby">
+        return html`
+<div class="slobby">
     <div class="lds-ring">
         <div></div>
         <div></div>
@@ -372,36 +420,65 @@ class CorrectAnswer extends Scene {
     <h5>Go fullscreen for the best experience</h5><button onclick="toggleFullscreen()">Fullscreen</button>
 </div>`;
     }
-}class StudentQuestion extends Scene{
-    generateHtml(data){
+}class StudentQuestion extends Scene {
+    generateHtml(data) {
         clearInterval(currentTimer);
-    let answerBoxes = "";
-    startTimer(question.timeLimit)
-    question.answers.forEach((answer, i) => {
-      answerBoxes += html`<div id="answer-${i}" class="answer normal" onclick="submitAnswer(${i})"><div><div>${answer}</div></div></div>`;
-    });
-    return html`<div class="header questionheader"><h1>Question ${question.number}</h1><h1 id="timer"></h1></div><div class="answers">${answerBoxes}</div>`;
+        let answerBoxes = "";
+        startTimer(question.timeLimit)
+        question.answers.forEach((answer, i) => {
+            answerBoxes += html`
+<div id="answer-${i}" class="answer normal" onclick="submitAnswer(${i})">
+    <div>
+        <div>${answer}</div>
+    </div>
+</div>`;
+        });
+        return html`
+<div class="header questionheader">
+    <h1>Question ${question.number}</h1>
+    <h1 id="timer"></h1>
+</div>
+<div class="answers">${answerBoxes}</div>`;
     }
 }class TeacherDashboard extends Scene {
     generateHtml(data) {
-        return html`<div class="header"><h1>Dashboard</h1><div class="headeruserdetails"><img src="${
+        return html`
+<div class="header">
+    <h1>Dashboard</h1>
+    <div class="headeruserdetails"><img src="${
             currentUser.profileImage
-            }"><div><h5>${currentUser.name}</h5><h6>${
-            currentUser.domain
-            }</h6></div></div></div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
+            }">
+        <div>
+            <h5>${currentUser.name}</h5>
+            <h6>${
+                currentUser.domain
+                }</h6>
+        </div>
+    </div>
+</div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
     }
-}class TeacherLobby extends Scene{
-    generateHtml(data){
-        let playerlist = "";
+}class TeacherLobby extends Scene {
+  generateHtml(data) {
+    let playerlist = "";
     for (let i = 0; i < currentGame.players.length; i++) {
       if (currentGame.players[i].type == 0) {
         playerlist += `<p>${currentGame.players[i].name}</p>`;
       }
     }
-    return html`<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length == 1) ? "" : ""}>Start Game</button>${currentGame ? `<!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->` : ""}<h1>Play at <span id="link"> ffsh.xyz</span></h1><div class="headerplayercount"><h1>${
+    return html`
+<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length==1) ? "" : ""
+    }>Start Game</button>${currentGame ? `
+  <!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`
+  : ""}<h1>Play at <span id="link"> ffsh.xyz</span></h1>
+  <div class="headerplayercount">
+    <h1>${
       currentGame.players.length - 1
-      }</h1><h6 class="mini">Players</h6></div></div><div id="players">${playerlist}</div>`;
-    }
+      }</h1>
+    <h6 class="mini">Players</h6>
+  </div>
+</div>
+<div id="players">${playerlist}</div>`;
+  }
 }class TeacherQuestion extends Scene {
     generateHtml(data) {
         clearInterval(currentTimer);
@@ -418,7 +495,8 @@ class CorrectAnswer extends Scene {
                 answerBoxes += `<br><br><span class="examAnswer" id="answer-${i}"><span class="bold">${"ABCD"[i]}</span> ${answer}</span>`;
             });
         }
-        return html`<div class="header">
+        return html`
+<div class="header">
     <h1>Question ${data.number}</h1>
     <h1 id="timer"></h1>
     <button class="lobbystartbutton" onclick="continueQuestion()">Continue</button>
@@ -429,22 +507,33 @@ class CorrectAnswer extends Scene {
         <h6 class="mini">Answers</h6>
     </div>
 </div>
-<h1 class="questiontitle ${examStyle ? " exam" : "" }">${(examStyle && data.exam) ? "[" + data.exam + "]<br>" : ""}${
-    data.question.replace(/\n/g, "<br>")
-    }${examStyle ? answerBoxes : ""}</h1>
+<h1 class="questiontitle ${examStyle ? " exam" : ""}">${(examStyle && data.exam) ? "[" + data.exam + "]<br>" : ""}${
+            data.question.replace(/\n/g, "<br>")
+            }${examStyle ? answerBoxes : ""}</h1>
 <p class="questiondescription">${
-    data.description ? data.description.replace(/\n/g, "<br>") : ""
-    }</p>
+            data.description ? data.description.replace(/\n/g, "<br>") : ""
+            }</p>
 <div class="answers host">${examStyle ? "" : answerBoxes}</div>`;
     }
-}class WaitingForAnswers extends Scene{
-    generateHtml(data){
+}class WaitingForAnswers extends Scene {
+    generateHtml(data) {
         clearInterval(currentTimer);
-    return html`<div class="row">
-    <div class="center-box center-block"><div class="lds-ring"><div></div><div></div><div></div><div></div></div><h1>Waiting</h1></div></div>`
+        return html`
+<div class="row">
+    <div class="center-box center-block">
+        <div class="lds-ring">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <h1>Waiting</h1>
+    </div>
+</div>`
     }
 }let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
 let getInterval;
+
 let scenes = {
   signin: SignIn,
   error: ErrorScene,
@@ -460,19 +549,21 @@ let scenes = {
   waitingForAnswers: WaitingForAnswers,
   correctanswer: CorrectAnswer,
   incorrectanswer: IncorrectAnswer,
-};
+}; // [Scene]
 
 let intervalsToClear = [];
 let currentScene = undefined;
+
 /**
  * Displays a "scene" on the client
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
 function loadScene(tag, data) {
-  changeBackgroundColour("body-blue")
-  currentScene = new scenes[tag]();
+  changeBackgroundColour("body-blue");
+  currentScene = new scenes[tag]("#scene");
   currentScene.preRender();
+  currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
 }
@@ -539,7 +630,6 @@ function showCorrectAnswer(data) {
   revealQueue.forEach((answer, i) => {
     let ht = $("#answer-" + answer).html()
     if (data[answer].correct) {
-      console.log("Adding class to correct answer")
       let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
       timeoutsToClear.push(t);
     }

@@ -1,5 +1,6 @@
 let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
 let getInterval;
+
 let scenes = {
   signin: SignIn,
   error: ErrorScene,
@@ -15,19 +16,21 @@ let scenes = {
   waitingForAnswers: WaitingForAnswers,
   correctanswer: CorrectAnswer,
   incorrectanswer: IncorrectAnswer,
-};
+}; // [Scene]
 
 let intervalsToClear = [];
 let currentScene = undefined;
+
 /**
  * Displays a "scene" on the client
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
 function loadScene(tag, data) {
-  changeBackgroundColour("body-blue")
-  currentScene = new scenes[tag]();
+  changeBackgroundColour("body-blue");
+  currentScene = new scenes[tag]("#scene");
   currentScene.preRender();
+  currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
 }
@@ -94,7 +97,6 @@ function showCorrectAnswer(data) {
   revealQueue.forEach((answer, i) => {
     let ht = $("#answer-" + answer).html()
     if (data[answer].correct) {
-      console.log("Adding class to correct answer")
       let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
       timeoutsToClear.push(t);
     }
