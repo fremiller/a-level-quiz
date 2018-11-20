@@ -1,0 +1,10 @@
+{
+    "saveAndRun": {
+        "commands": [
+            {
+            "match": "/client_src/",
+            "cmd": "npm run build"
+            }
+        ]
+    }
+}

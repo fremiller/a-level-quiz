@@ -1,5 +1,7 @@
 "use-strict";
 
+import './game';
+import './ui';
 /**
  * This script runs on the client and handles all communication with the server
  */
@@ -204,7 +206,51 @@ function continueQuestion(){
 
 function revealAnswersToPlayers(){
     socket.emit("revealAnswersToPlayers")
-}let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
+}class Scene{
+    static scenes = [];
+    
+    constructor(state, sceneId){
+        this.state = state;
+        this.id = sceneId;
+        this.currentHtml = "";
+        this.save = false;
+    }
+
+    static register(s){
+        this.scenes.push(s);
+    }
+
+    static getSceneById(id){
+        let sc = undefined;
+        this.scenes.forEach((scene)=>{
+            if(scene.id == id){
+                sc = scene;
+            }
+        });
+        return sc;
+    }
+
+    generateHtml(data){
+        this.currentHtml =  "<h1>Test</h1>"
+        return this.currentHtml;
+    }
+
+    render(renderId, data){
+        this.generateHtml(data);
+        $("#"+renderId).html(this.currentHtml);
+    }
+}
+
+class SceneRenderer{
+    constructor(renderId){
+        this.renderId = renderId;
+    }
+
+    render(scene, data){
+        new Scene.getSceneById(scene).render(this.renderId, data);
+    }
+}
+let tick = `<svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>`
 let getInterval;
 let scenes = {
   signin: function (data) {

@@ -5,12 +5,14 @@ async function run(){
     let text = "";
     await files.forEach(async function(file) {
         let name = __dirname + "/client_src/" + file;
-        console.log(name);
+        console.log("Found source file: " + name);
         let t = await fs.readFileSync(name, {encoding: "utf-8"});
         text += t;
     });
-    await fs.writeFileSync(__dirname + "/public/main.js", text);
-    console.log("done")
+    let out = __dirname + "/public/main.js";
+    console.log("Writing to " + out + ".");
+    await fs.writeFileSync(out, text);
+    console.log("Done.");
 }
 
 run();
