@@ -161,7 +161,7 @@ const questions = [
     {
         "question": "There are four important attenuation mechanisms by which X-ray photons may interact when they pass through matter.\n\nIn which mechanism is the X-ray photon scattered with a longer wavelength?",
         "type": "EXAM",
-        "answer": [
+        "answers": [
             "simple scattering",
             "Compton effect",
             "pair production",

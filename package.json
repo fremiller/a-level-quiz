@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "mocha": "^5.2.0",
-    "mock-socket": "^8.0.5"
+    "mock-socket": "^8.0.5",
+    "node-minify": "^3.6.0"
   }
 }

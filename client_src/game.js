@@ -4,6 +4,7 @@
  */
 
 let socket;
+let currentQuestion;
 
 /**
 * Starts a game when it is in the lobby
