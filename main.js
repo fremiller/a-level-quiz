@@ -270,7 +270,7 @@ class AdminDashboard extends Scene{
 </div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
 }class CorrectAnswer extends Scene {
-    generateHtml(data) {
+    generateHtml(score) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
         return html`
@@ -355,7 +355,7 @@ class AdminDashboard extends Scene{
 </div>`;
     }
 }class IncorrectAnswer extends Scene {
-    generateHtml(data) {
+    generateHtml(score) {
         changeBackgroundColour("body-red");
         clearInterval(currentTimer);
         return html`

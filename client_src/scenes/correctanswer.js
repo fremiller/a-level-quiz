@@ -1,5 +1,5 @@
 class CorrectAnswer extends Scene {
-    generateHtml(data) {
+    generateHtml(score) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
         return html`
