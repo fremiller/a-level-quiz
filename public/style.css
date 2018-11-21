@@ -300,13 +300,13 @@ select *{
 
 .answers {
     flex: 0 0 auto;
-    height: auto;
+    height: 93vh;
     padding: 1vh 1.5vw;
 }
 
 .answers * {
     display: inline-block;
-    width: 48vw;
+    width: 47.2vw;
     height: 45vh;
     font-size: 3vh;
     margin: 0;
