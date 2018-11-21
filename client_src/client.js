@@ -108,3 +108,7 @@ function joinGame() {
         connectToGame(document.getElementById("codeinput").value);
     }
 }
+
+function createQuestion(){
+    loadScene("createquestion");
+}

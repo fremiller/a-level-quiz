@@ -108,6 +108,10 @@ function joinGame() {
         connectToGame(document.getElementById("codeinput").value);
     }
 }
+
+function createQuestion(){
+    loadScene("createquestion");
+}
 /**
  * This contains functions for use when the game is actually running
  * This is the only script which is allowed to use socket.io
@@ -254,7 +258,18 @@ class SceneRenderer {
         new Scene.getSceneById(scene).render(this.renderId, data);
     }
 }
-class CorrectAnswer extends Scene {
+class AdminDashboard extends Scene{
+    generateHtml(data){
+        return html`
+<div class="header">
+    <h1>Admin Dashboard</h1>
+    <div class="headeruserdetails"><img src="${
+            currentUser.profileImage
+            }">
+    </div>
+</div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    }
+}class CorrectAnswer extends Scene {
     generateHtml(data) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
@@ -300,6 +315,33 @@ class CorrectAnswer extends Scene {
   </div>
 </div>`
   }
+}class CreateQuestion extends Scene{
+    generateHtml(data){
+        return html`
+        <div class="row">
+  <div class="center-box center-block">
+    <h1>Create Question</h1>
+    <form>
+      <label for="topic">Topic</label>
+      <input id="topic" type="text">
+      <label for="question">Question</label>
+      <h1 class="questiontitle exam inpoot">
+        <input type="text">
+        <br><br><span class="examAnswer" id="answer-0"><span class="bold">A</span> <input type="text"></span>
+        <br><br><span class="examAnswer" id="answer-1"><span class="bold">B</span> <input type="text"></span>
+        <br><br><span class="examAnswer" id="answer-2"><span class="bold">C</span> <input type="text"></span>
+        <br><br><span class="examAnswer" id="answer-3"><span class="bold">D</span> <input type="text"></span>
+      </h1>
+      <label for="testselect">Gamemode</label>
+      <select class="form-control" id="testselect">
+        <option>Quiz</option>
+        <option>Test</option>
+      </select>
+    </form>
+    <button class="bigbtn" onclick="creategamesubmit()">Start</button>
+  </div>
+</div>`
+    }
 }class ErrorScene extends Scene {
     generateHtml(data) {
         return html`
@@ -549,6 +591,8 @@ let scenes = {
   waitingForAnswers: WaitingForAnswers,
   correctanswer: CorrectAnswer,
   incorrectanswer: IncorrectAnswer,
+  createquestion: CreateQuestion,
+  admindashboard: AdminDashboard
 }; // [Scene]
 
 let intervalsToClear = [];

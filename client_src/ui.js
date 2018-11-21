@@ -16,6 +16,8 @@ let scenes = {
   waitingForAnswers: WaitingForAnswers,
   correctanswer: CorrectAnswer,
   incorrectanswer: IncorrectAnswer,
+  createquestion: CreateQuestion,
+  admindashboard: AdminDashboard
 }; // [Scene]
 
 let intervalsToClear = [];
