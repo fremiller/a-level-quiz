@@ -310,26 +310,26 @@ var generateGameCode = exports.generateGameCode = function () {
 }
 
 exports.isGame = isGame = function (domain, classid) {
-    if (!games[domain ? domain : "none"]) {
+    if (!games["none"]) {
         return undefined;
     }
-    let g = games[domain ? domain : "none"][classid];
+    let g = games["none"][classid];
     return g ? g.code : undefined;
 }
 
 exports.getGameByCode = getGameByCode = function (code, domain) {
-    if (!games[domain ? domain : "none"]) {
+    if (!games["none"]) {
         return undefined;
     }
-    return games[domain ? domain : "none"][code];
+    return games["none"][code];
 }
 
 var createGame = exports.createGame = function (classid, domain) {
-    let game = new Game(classid, domain ? domain : "none");
+    let game = new Game(classid, "none");
     //games[game.code] = game;
-    if (!games[domain ? domain : "none"]) {
-        games[domain ? domain : "none"] = {};
+    if (!games["none"]) {
+        games["none"] = {};
     }
-    games[domain ? domain : "none"][classid] = game;
+    games["none"][classid] = game;
     return game.toJSON();
 }
