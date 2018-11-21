@@ -1,5 +1,5 @@
 class StudentQuestion extends Scene {
-    generateHtml(data) {
+    generateHtml(question) {
         clearInterval(currentTimer);
         let answerBoxes = "";
         startTimer(question.timeLimit)

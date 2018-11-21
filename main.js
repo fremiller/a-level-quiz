@@ -319,7 +319,7 @@ class AdminDashboard extends Scene{
     generateHtml(data){
         return html`
         <div class="row">
-  <div class="center-box center-block">
+  <div class="center-box">
     <h1>Create Question</h1>
     <form>
       <label for="topic">Topic</label>
@@ -463,7 +463,7 @@ class AdminDashboard extends Scene{
 </div>`;
     }
 }class StudentQuestion extends Scene {
-    generateHtml(data) {
+    generateHtml(question) {
         clearInterval(currentTimer);
         let answerBoxes = "";
         startTimer(question.timeLimit)
