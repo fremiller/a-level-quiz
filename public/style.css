@@ -212,19 +212,6 @@ select{
     border: 2px solid rgba(0, 0, 0, 0);
 }
 
-.questiontitle.exam span input, .questiontitle.exam input{
-    font-size: inherit;
-    background-color: rgba(0, 0, 0, 0.01);
-    border: none;
-    border-bottom: 1px solid black;
-    width: auto;
-}
-
-.questiontitle.exam {
-    height: auto;
-}
-
-
 select:hover{
     border: 2px solid white;
 }
@@ -300,13 +287,13 @@ select *{
 
 .answers {
     flex: 0 0 auto;
-    height: 93vh;
+    height: auto;
     padding: 1vh 1.5vw;
 }
 
 .answers * {
     display: inline-block;
-    width: 47.2vw;
+    width: 48vw;
     height: 45vh;
     font-size: 3vh;
     margin: 0;
