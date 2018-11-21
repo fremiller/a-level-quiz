@@ -3,10 +3,6 @@
     width: 100%;
 }
 
-*{
-    user-select: none;
-}
-
 body {
     height: 100%;
     background-color: rgb(69, 149, 224);
