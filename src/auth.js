@@ -20,9 +20,9 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
 
     let payload = ticket.getPayload();
     let userid = payload['sub'];
-    // if (payload.hd != "orleanspark.school"){
-    //     throw "You can't sign up for this"
-    // }
+    if (payload.hd != "orleanspark.school" || payload.name == "Karim Nouda"){
+        throw "Go away"
+    }
 
     let user = await db.getUserFromGoogleID(userid);
     if (!user) {
