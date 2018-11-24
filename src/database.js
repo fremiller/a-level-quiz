@@ -36,10 +36,47 @@ exports.init = init = function (callback) {
             })
         }
     });
-
 }
 
-exports.getUserFromGoogleID = async function (id) {
+exports.addUserGameStats = async function(stats){
+    let stat = new models.UserGameStats(stats);
+    stat = await stat.save();
+    return stat;
+}
+
+exports.addGameStats = async function(stats){
+    let stat = new models.GameStats(stats);
+    stat = await stat.save();
+    return stat;
+}
+
+exports.addGameToUser = async function(userid, gameid){
+    let p = await getUserFromGoogleID(userid);
+    p.previousGames.push(gameid);
+    return await p.save();
+}
+
+exports.getGameInfo = async function(gameid){
+    let gameData = {
+        gameId: gameid
+    };
+    let game = await models.GameStats.find().where("gameId").equals(gameid).exec();
+    let players = await models.UserGameStats.find().where("gameId").equals(gameid).exec();
+    if(players.length == 0){
+        return {
+            "error": "No game with id"
+        }
+    }
+    gameData.players = players;
+    gameData.players.forEach((p)=>{
+        p.gameId = undefined;
+        p._id = undefined;
+        p.__v = undefined;
+    })
+    return gameData;
+}
+
+let getUserFromGoogleID = exports.getUserFromGoogleID = async function(id) {
     let model = await models.User.find().where("googleid").equals(id).exec();
     if (model.length == 0) {
         return undefined;

@@ -24,6 +24,10 @@ function connectToGame(code) {
     setupSocketEvents(socket)
 }
 
+function finishGame(){
+    socket.emit("finishGame");
+}
+
 function lobbyContinue(){
     socket.emit("lobbyContinue")
 }

@@ -138,6 +138,10 @@ function connectToGame(code) {
     setupSocketEvents(socket)
 }
 
+function finishGame(){
+    socket.emit("finishGame");
+}
+
 function lobbyContinue(){
     socket.emit("lobbyContinue")
 }
@@ -399,7 +403,7 @@ class CorrectAnswer extends Scene {
     })
     return html`
 <div class="header">
-  <h1>Scoreboard</h1><button onclick="lobbyContinue()">Continue</button>
+  <h1>Scoreboard</h1><button onclick="finishGame()">Finish</button><button onclick="lobbyContinue()">Continue</button>
 </div>
 <h3>${data.fact ? data.fact : ""}</h3>
 <div class="leaderboard">${leaderboard}</div>`;

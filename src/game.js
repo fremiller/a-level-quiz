@@ -75,6 +75,9 @@ exports.GameManager = class GameManager extends Module {
                 socket.on("continueQuestion", function () {
                     game.showScoreboard(game);
                 })
+                socket.on("finishGame", function () {
+                    game.finishGame(game);
+                })
                 game.setHost(user.toJSON(), socket)
             } else {
                 socket.on("submitAnswer", function (id) {
@@ -147,7 +150,7 @@ exports.GameManager = class GameManager extends Module {
 /**
  * Represents a class's game
  */
-exports.Game = class Game {
+let Game = exports.Game = class Game {
     /**
      * @constructor
      * @description Initialises the game object
@@ -164,7 +167,6 @@ exports.Game = class Game {
         this.currentQuestion = undefined;
         this.questionTimeout = undefined;
         this.state = "LOBBY";
-        this.scoresToAdd = {};
         this.showTimeout = undefined;
         console.log("[INFO][GAME] New game " + this.code)
     }
@@ -224,6 +226,7 @@ exports.Game = class Game {
         if (p.socket.id != socket.id) {
             return;
         }
+        p.questions[this.pastQuestions.length] = answer;
         console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
         this.currentQuestion.userAnswers.push({
             "userid": user,
@@ -273,18 +276,18 @@ exports.Game = class Game {
         if (game.questionTimeout) {
             clearTimeout(game.questionTimeout);
         }
-        game.scoresToAdd = {};
+        game.currentQuestion.scoresToAdd = {};
         let answerStats = [{ count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }];
         answerStats[game.currentQuestion.correctAnswer].correct = true;
         game.currentQuestion.userAnswers.forEach(function (player, i) {
             answerStats[player.answer].count += 1;
             if (player.answer == game.currentQuestion.correctAnswer) {
-                game.scoresToAdd[player.userid] = game.players.length - i + 5;
+                game.currentQuestion.scoresToAdd[player.userid] = game.players.length - i + 5;
             }
         })
         this.players.forEach((player) => {
-            if (this.scoresToAdd[player.googleid]) {
-                player.score += this.scoresToAdd[player.googleid];
+            if (game.currentQuestion.scoresToAdd[player.googleid]) {
+                player.score += game.currentQuestion.scoresToAdd[player.googleid];
             }
         })
         game.sendToHost("revealAnswer", answerStats)
@@ -296,7 +299,7 @@ exports.Game = class Game {
      */
     revealAnswersToPlayers() {
         this.players.forEach((player) => {
-            if (this.scoresToAdd[player.googleid]) {
+            if (this.currentQuestion.scoresToAdd[player.googleid]) {
                 player.socket.emit("correctAnswer", player.score)
             } else {
                 player.socket.emit("incorrectAnswer", player.score)
@@ -318,10 +321,42 @@ exports.Game = class Game {
                 googleid: player.googleid,
                 name: player.name,
                 score: player.score,
-                type: player.userType
+                type: player.userType,
+                questions: player.questions
             })
         })
         return j
+    }
+
+    async finishGame(g) {
+        console.log(`[INFO][GAME][${this.code}] Game finished`);
+        let time = new Date().getTime();
+        if (this.currentQuestion) {
+            this.pastQuestions.push(this.currentQuestion);
+        }
+        console.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
+        let gameId = this.code + "T" + time;
+        console.log(`[INFO][GAME][${this.code}][UPLOAD] New game id ${gameId}`);
+        console.log(gameId);
+        this.currentQuestion = undefined;
+        let playerids = [];
+        await this.players.forEach(async (player, i) => {
+            let userGameStats = {
+                gameId: gameId,
+                position: i,
+                userId: player.googleid,
+                questions: player.questions
+            };
+            console.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
+            playerids.push(player.googleId)
+            await database.addUserGameStats(userGameStats);
+            await database.addGameToUser(player.googleid, gameId)
+        });
+        await database.addGameStats({
+            gameId: gameId,
+            players: playerids
+        });
+        console.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
     }
 
     toJSON() {
@@ -350,6 +385,7 @@ exports.Game = class Game {
             }
         }
         player.socket = socket;
+        player.questions = [];
         this.players.push(player);
     }
 
@@ -396,6 +432,9 @@ exports.Game = class Game {
         if (this.currentQuestion) {
             this.pastQuestions.push(this.currentQuestion)
         }
+        this.players.forEach((p)=>{
+            p.questions.push(-1);
+        })
         console.log(`[INFO][GAME][${this.code}] Sending question`)
         this.currentQuestion = await database.GetRandomQuestion();
         this.currentQuestion.userAnswers = [];
@@ -418,12 +457,3 @@ exports.Game = class Game {
         this.host.socket.emit(name, data);
     }
 }
-
-var generateGameCode = exports.generateGameCode = function () {
-    let code = "";
-    for (let i = 0; i < 6; i++) {
-        code += "1234567890"[Math.floor(Math.random() * 10)];
-    }
-    return code;
-}
-

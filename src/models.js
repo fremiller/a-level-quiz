@@ -15,11 +15,9 @@ var mongoose = require("./database").mongoose;
  */
 var UserGameStatsSchema = {
     gameId: String,
-    timeStamp: String,
-    score: Number,
-    percentageCorrect: Number,
     position: Number,
-    userId: String
+    userId: String,
+    questions: [Number]
 }
 
 /**
@@ -33,8 +31,7 @@ var UserGameStatsSchema = {
  */
 var GameStatsSchema = {
     gameId: String,
-    players: [String],
-    timeStamp: String,
+    players: [String]
 }
 /**
  * 
@@ -55,7 +52,7 @@ let UserType = exports.UserType = {
  * 
  * @property {string} name The user's real name
  * @property {string} googleid The GoogleId of the user
- * @property {string} previousGames The IDs of the previous games that the user has played
+ * @property {string[]} previousGames The IDs of the previous games that the user has played
  * @property {string} domain The school domain that the user signed up with
  * @property {string} profileImage The URL to the profile image of the user
  * @property {number} userType The type of the user

@@ -81,6 +81,11 @@ app.get("/classes/list", async function (req, res) {
     classroom.getClasses(req.query.token, true, (body => {
         res.json(body)
     }));
+});
+
+app.get("/games/data", async function (req, res){
+    let d = await database.getGameInfo(req.query.gameid);
+    res.json(d);
 })
 
 app.post("/games/create", async function (req, res) {
