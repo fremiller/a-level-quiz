@@ -5,12 +5,20 @@ let io = undefined;
 let database = require("./database")
 let currentQuestion = undefined;
 
+/**
+ * Starts the Socket.io server
+ */
 exports.start = function () {
     console.log("Initializing IO object");
     io = server.io;
     io.on("connection", onConnection);
 }
 
+/**
+ * Runs when a new socket connects.
+ * Sets up all socket.io events for the user
+ * @param {Socket} socket 
+ */
 async function onConnection(socket) {
     console.log("[GAME] New socket connection")
     let code = socket.request._query.code;
@@ -72,7 +80,16 @@ async function onConnection(socket) {
     }
 }
 
+/**
+ * Represents a class's game
+ */
 let Game = exports.Game = class Game {
+    /**
+     * @constructor Game
+     * Initialises the game object
+     * @param {string} classid The GC ID of the class
+     * @param {string} domain The GSuite domain of the class
+     */
     constructor(classid, domain) {
         this.code = classid;
         this.players = [];
@@ -88,11 +105,19 @@ let Game = exports.Game = class Game {
         console.log("[INFO][GAME] New game " + this.code)
     }
 
+    /**
+     * Sets the host of the game
+     * @param {User} host The host of the game (teacher)
+     * @param {Socket} socket The host's socket
+     */
     setHost(host, socket) {
         host.socket = socket;
         this.host = host;
     }
 
+    /**
+     * Starts the game
+     */
     startGame() {
         this.players.forEach((player) => {
             player.score = 0;
@@ -101,6 +126,10 @@ let Game = exports.Game = class Game {
         this.sendQuestion();
     }
 
+    /**
+     * Gets the answer submitted by the given user
+     * @param {string} user The UserID of the user
+     */
     getCurrentAnswerByUser(user) {
         if (typeof (user) != "string") {
             return undefined;
@@ -113,6 +142,12 @@ let Game = exports.Game = class Game {
         return undefined;
     }
 
+    /**
+     * Submits the answer from the user
+     * @param {string} user The ID of the user
+     * @param {number} answer The index of the answer
+     * @param {Socket} socket The player's socket
+     */
     submitAnswer(user, answer, socket) {
         if (this.getCurrentAnswerByUser(user)) {
             console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
@@ -144,6 +179,11 @@ let Game = exports.Game = class Game {
         })
     }
 
+    /**
+     * Gets the player object
+     * @param {string} id The ID of the player
+     * @returns {player} The player that has that ID
+     */
     getPlayerByGoogleId(id) {
         let p = undefined;
         this.players.forEach((pl) => {

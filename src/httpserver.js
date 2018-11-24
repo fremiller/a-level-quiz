@@ -80,7 +80,7 @@ app.post("/games/create", async function (req, res) {
 /**
  * This makes sure that a request contains the required query parameters
  * @param {Request} req The request to check
- * @param {[String]} params The required parameters
+ * @param {string[]} params The required parameters
  */
 function VerifyParams(req, params) {
     for (let i = 0; i < params.length; i++) {

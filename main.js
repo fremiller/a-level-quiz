@@ -269,7 +269,8 @@ class AdminDashboard extends Scene{
     </div>
 </div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
-}class CorrectAnswer extends Scene {
+}
+class CorrectAnswer extends Scene {
     generateHtml(score) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
