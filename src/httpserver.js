@@ -6,7 +6,7 @@
 var express = require("express");
 var app = express();
 var webpageurl = __dirname + "/webpage/";
-var database = require("./database");
+var {Database} = require("./database");
 let auth = require("./auth");
 let model = require("./models");
 let {GameManager} = require("./game");
@@ -52,7 +52,7 @@ app.get("/users/register", async function (req, res) {
         res.status(402).send("Failed to add user. Invalid parameters");
         return;
     }
-    let usr = await database.CreateUser({
+    let usr = await Database.singleton.CreateUser({
         name: req.query.name,
         previousGames: []
     });
@@ -84,7 +84,7 @@ app.get("/classes/list", async function (req, res) {
 });
 
 app.get("/games/data", async function (req, res){
-    let d = await database.getGameInfo(req.query.gameid);
+    let d = await Database.singleton.getGameInfo(req.query.gameid);
     res.json(d);
 })
 

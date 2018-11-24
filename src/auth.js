@@ -1,7 +1,7 @@
 const {
     OAuth2Client
 } = require('google-auth-library');
-let db = require("./database");
+let {Database} = require("./database");
 let models = require("./models")
 const CLIENT_ID = "628238058270-ea37oolom6rtkfhkdulour1ckqe52v3h.apps.googleusercontent.com";
 let client = new OAuth2Client();
@@ -29,9 +29,9 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
         throw "Go away"
     }
 
-    let user = await db.getUserFromGoogleID(userid);
+    let user = await Database.singleton.getUserFromGoogleID(userid);
     if (!user) {
-        user = await db.CreateUser({
+        user = await Database.singleton.CreateUser({
             "name": payload.name,
             "domain": payload.hd,
             "googleid": payload.sub,

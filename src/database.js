@@ -1,93 +1,104 @@
 var mongoose = exports.mongoose = require("mongoose");
 var models = exports.models = require("./models");
+const { Module } = require("./module");
 const {
     exec
 } = require('child_process');
 var initTried = false;
 
-exports.init = init = function (callback) {
-    models.init();
-    console.log("\tConnecting")
-    mongoose.connect("mongodb://localhost:27017/quiztest", {
-        useNewUrlParser: true
-    });
-    var db = mongoose.connection;
-    if (!initTried) {
-        db.once('open', function () {
-            console.log("\r\tConnected");
-            callback();
+exports.Database = class Database extends Module {
+    constructor(callback){
+        super("Database");
+        this.init(callback);
+    }
+
+    init(callback) {
+        models.init();
+        console.log("\tConnecting")
+        mongoose.connect("mongodb://localhost:27017/quiztest", {
+            useNewUrlParser: true
+        });
+        var db = mongoose.connection;
+        if (!initTried) {
+            db.once('open', function () {
+                console.log("\r\tConnected");
+                callback();
+            });
+        }
+        db.on('error', function () {
+            if (initTried) {
+                throw "Failed to connect to database"
+            } else {
+                console.log("Unable to connect to database. Attempting to start");
+                initTried = true;
+                exec("service mongod start", (err, stdout, stderr) => {
+                    if (err) {
+                        if (err.message.includes("Access denied")) {
+                            throw "Unable to start service. Run this server as root or start mongo service manually"
+                        } else {
+                            throw "Unable to start service:\n" + err.message
+                        }
+                    }
+                    setTimeout(init, 1000, callback);
+                })
+            }
         });
     }
-    db.on('error', function () {
-        if (initTried) {
-            throw "Failed to connect to database"
-        } else {
-            console.log("Unable to connect to database. Attempting to start");
-            initTried = true;
-            exec("service mongod start", (err, stdout, stderr) => {
-                if (err) {
-                    if (err.message.includes("Access denied")) {
-                        throw "Unable to start service. Run this server as root or start mongo service manually"
-                    } else {
-                        throw "Unable to start service:\n" + err.message
-                    }
-                }
-                setTimeout(init, 1000, callback);
-            })
-        }
-    });
-}
 
-exports.addUserGameStats = async function(stats){
-    let stat = new models.UserGameStats(stats);
-    stat = await stat.save();
-    return stat;
-}
-
-exports.addGameStats = async function(stats){
-    let stat = new models.GameStats(stats);
-    stat = await stat.save();
-    return stat;
-}
-
-exports.addGameToUser = async function(userid, gameid){
-    let p = await getUserFromGoogleID(userid);
-    p.previousGames.push(gameid);
-    return await p.save();
-}
-
-exports.getGameInfo = async function(gameid){
-    let gameData = {
-        gameId: gameid
-    };
-    let game = await models.GameStats.find().where("gameId").equals(gameid).exec();
-    let players = await models.UserGameStats.find().where("gameId").equals(gameid).exec();
-    if(players.length == 0){
-        return {
-            "error": "No game with id"
-        }
+    async addUserGameStats(stats) {
+        let stat = new models.UserGameStats(stats);
+        stat = await stat.save();
+        return stat;
     }
-    gameData.players = players;
-    gameData.players.forEach((p)=>{
-        p.gameId = undefined;
-        p._id = undefined;
-        p.__v = undefined;
-    })
-    return gameData;
-}
 
-let getUserFromGoogleID = exports.getUserFromGoogleID = async function(id) {
-    let model = await models.User.find().where("googleid").equals(id).exec();
-    if (model.length == 0) {
-        return undefined;
+    async addGameStats(stats) {
+        let stat = new models.GameStats(stats);
+        stat = await stat.save();
+        return stat;
     }
-    return model[0];
-}
 
-exports.CreateUser = async function (userObj) {
-    let usr = new models.User(userObj);
-    usr = await usr.save();
-    return usr;
+    async addGameToUser(userid, gameid) {
+        let p = await this.getUserFromGoogleID(userid);
+        p.previousGames.push(gameid);
+        return await p.save();
+    }
+
+    async getGameInfo(gameid) {
+        let gameData = {
+            gameId: gameid
+        };
+        let game = await models.GameStats.find().where("gameId").equals(gameid).exec();
+        let players = await models.UserGameStats.find().where("gameId").equals(gameid).exec();
+        if (players.length == 0) {
+            return {
+                "error": "No game with id"
+            }
+        }
+        gameData.players = players;
+        gameData.players.forEach((p) => {
+            p.gameId = undefined;
+            p._id = undefined;
+            p.__v = undefined;
+        })
+        return gameData;
+    }
+    async getUserFromGoogleID(id) {
+        let model = await models.User.find().where("googleid").equals(id).exec();
+        if (model.length == 0) {
+            return undefined;
+        }
+        return model[0];
+    }
+
+    async CreateUser(userObj) {
+        let usr = new models.User(userObj);
+        usr = await usr.save();
+        return usr;
+    }
+
+    GetRandomQuestion() {
+        return questions[Math.floor(Math.random() * questions.length)]
+    }
 }
 
 const questions = [
@@ -209,7 +220,3 @@ const questions = [
         "exam": "H556/02 June 2017 Question 14"
     }
 ]
-
-exports.GetRandomQuestion = async function () {
-    return questions[Math.floor(Math.random() * questions.length)]
-}

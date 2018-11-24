@@ -7,7 +7,7 @@ let server = require("./httpserver");
 let auth = require("./auth")
 let { Module } = require("./module");
 let io = undefined;
-let database = require("./database")
+let {Database} = require("./database")
 let currentQuestion = undefined;
 
 /** 
@@ -168,7 +168,7 @@ let Game = exports.Game = class Game {
         this.questionTimeout = undefined;
         this.state = "LOBBY";
         this.showTimeout = undefined;
-        console.log("[INFO][GAME] New game " + this.code)
+        this.log("[INFO][GAME] New game " + this.code)
     }
 
     /**
@@ -216,7 +216,7 @@ let Game = exports.Game = class Game {
      */
     submitAnswer(user, answer, socket) {
         if (this.getCurrentAnswerByUser(user)) {
-            console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
+            this.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
             return;
         }
         let p = this.getPlayerByGoogleId(user)
@@ -227,7 +227,7 @@ let Game = exports.Game = class Game {
             return;
         }
         p.questions[this.pastQuestions.length] = answer;
-        console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
+        this.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
         this.currentQuestion.userAnswers.push({
             "userid": user,
             "answer": answer,
@@ -329,15 +329,15 @@ let Game = exports.Game = class Game {
     }
 
     async finishGame(g) {
-        console.log(`[INFO][GAME][${this.code}] Game finished`);
+        this.log(`[INFO][GAME][${this.code}] Game finished`);
         let time = new Date().getTime();
         if (this.currentQuestion) {
             this.pastQuestions.push(this.currentQuestion);
         }
-        console.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
+        this.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
         let gameId = this.code + "T" + time;
-        console.log(`[INFO][GAME][${this.code}][UPLOAD] New game id ${gameId}`);
-        console.log(gameId);
+        this.log(`[INFO][GAME][${this.code}][UPLOAD] New game id ${gameId}`);
+        this.log(gameId);
         this.currentQuestion = undefined;
         let playerids = [];
         await this.players.forEach(async (player, i) => {
@@ -347,16 +347,16 @@ let Game = exports.Game = class Game {
                 userId: player.googleid,
                 questions: player.questions
             };
-            console.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
+            this.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
             playerids.push(player.googleId)
-            await database.addUserGameStats(userGameStats);
-            await database.addGameToUser(player.googleid, gameId)
+            await Database.singleton.addUserGameStats(userGameStats);
+            await Database.singleton.addGameToUser(player.googleid, gameId)
         });
-        await database.addGameStats({
+        await Database.singleton.addGameStats({
             gameId: gameId,
             players: playerids
         });
-        console.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
+        this.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
     }
 
     toJSON() {
@@ -372,7 +372,7 @@ let Game = exports.Game = class Game {
     }
 
     join(player, socket) {
-        console.log(`[INFO][GAME][${this.code}] New player joined`)
+        this.log(`[INFO][GAME][${this.code}] New player joined`)
         for (let i = 0; i < this.players.length; i++) {
             if (this.players[i].googleid == player.googleid) {
                 this.players[i].socket.emit("displayError", {
@@ -380,7 +380,7 @@ let Game = exports.Game = class Game {
                 })
                 this.players[i].socket.emit("forceDisconnect")
                 this.players[i].socket.disconnect(true);
-                console.log(`[GAME][${this.code}] Player connection overwritten`)
+                this.log(`[GAME][${this.code}] Player connection overwritten`)
                 // This socket will be destroyed
             }
         }
@@ -417,7 +417,7 @@ let Game = exports.Game = class Game {
 
     broadcastLobbyStatus() {
         if (this.state == "LOBBY") {
-            console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
+            this.log(`[INFO][GAME][${this.code}] Updating lobby status`)
             this.broadcast("updateLobbyStatus", {
                 game: this.toJSON()
             });
@@ -435,8 +435,8 @@ let Game = exports.Game = class Game {
         this.players.forEach((p)=>{
             p.questions.push(-1);
         })
-        console.log(`[INFO][GAME][${this.code}] Sending question`)
-        this.currentQuestion = await database.GetRandomQuestion();
+        this.log(`[INFO][GAME][${this.code}] Sending question`)
+        this.currentQuestion = await Database.singleton.GetRandomQuestion();
         this.currentQuestion.userAnswers = [];
         this.currentQuestion.number = this.pastQuestions.length + 1;
         this.broadcast("showQuestion", this.currentQuestion)
@@ -449,7 +449,7 @@ let Game = exports.Game = class Game {
         try {
             io.in(this.code).emit(name, data);
         } catch (e) {
-            console.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
+            this.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
         }
     }
 
