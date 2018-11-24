@@ -1,92 +1,156 @@
-let games = exports.games = {};
+/**
+ * Game module
+ * @module src/game
+ */
+
 let server = require("./httpserver");
 let auth = require("./auth")
+let { Module } = require("./module");
 let io = undefined;
 let database = require("./database")
 let currentQuestion = undefined;
 
-/**
- * Starts the Socket.io server
+/** 
+ * Class which manages all games
+ * @extends Module
  */
-exports.start = function () {
-    console.log("Initializing IO object");
-    io = server.io;
-    io.on("connection", onConnection);
+exports.GameManager = class GameManager extends Module {
+
+    /**
+     * @constructor
+     * @description Adds the onConnection method to the server
+     */
+    constructor() {
+        super("GameManager");
+        this.log("Initializing IO object");
+        this.games = {};
+        io = server.io;
+        io.on("connection", this.onConnection);
+    }
+
+    /**
+     * Runs when a new socket connects.
+     * Sets up all socket.io events for the user
+     * @param {Socket} socket 
+     */
+    async onConnection(socket) {
+        const gm = GameManager.singleton;
+        gm.log("[GAME] New socket connection")
+        let code = socket.request._query.code;
+        let token = socket.request._query.token;
+        if (!code || !token) {
+            gm.log("[ERROR][GAME] Invalid Join Parameters")
+            socket.emit("displayError", {
+                "text": "Invalid Parameters"
+            });
+            return;
+        }
+        gm.log("[INFO][GAME] Getting user")
+        let user = await auth.GetUserFromToken(token);
+        gm.log("[INFO][GAME] Getting game")
+        let game = gm.getGameByCode(code, user.domain);
+        if (!game) {
+            gm.log("[ERROR][GAME] Invalid Game Code")
+            socket.emit("displayError", {
+                "text": "Invalid game code"
+            });
+            return;
+        }
+        if (game.state == "LOBBY") {
+            gm.log("[INFO][GAME] Joining game by code")
+            socket.join(code);
+            if (game.players.length == 0) {
+                gm.log("[INFO][GAME] First Game User")
+                // We are the first player (the owner of the game)
+                socket.on("startgame", function () {
+                    gm.log("[INFO][GAME] Starting game " + game.code)
+                    game.startGame();
+                })
+                socket.on("revealAnswersToPlayers", function () {
+                    game.revealAnswersToPlayers();
+                })
+                socket.on("lobbyContinue", function () {
+                    game.sendQuestion();
+                })
+                socket.on("continueQuestion", function () {
+                    game.showScoreboard(game);
+                })
+                game.setHost(user.toJSON(), socket)
+            } else {
+                socket.on("submitAnswer", function (id) {
+                    game.submitAnswer(user.googleid, id, socket)
+                    socket.emit("hideAnswers")
+                })
+            }
+            socket.on("disconnect", function () {
+                game.leave(socket);
+                game.broadcastLobbyStatus();
+            })
+            game.join(user.toJSON(), socket);
+            game.broadcastLobbyStatus();
+        } else {
+            socket.emit("displayError", {
+                "text": "Game already started"
+            });
+        }
+    }
+
+    /**
+     * Checks if there is game based on the domain and class ID  
+     * @param {string} domain domain the class is in
+     * @param {string} classid The classID of the class
+     */
+    isGame(domain, classid) {
+        if (!this.games["none"]) {
+            return undefined;
+        }
+        let g = this.games["none"][classid];
+        return g ? g.code : undefined;
+    }
+
+    /**
+     * Returns a game with the specified ID and code
+     * @param {string} code The classID of the game
+     * @param {string} domain The domain of the class
+     */
+    getGameByCode(code, domain) {
+        if (!this.games["none"]) {
+            return undefined;
+        }
+        return this.games["none"][code];
+    }
+
+    /**
+     * Creates a game based on the specified domain and class
+     * @param {string} classid The ClassID of the class
+     * @param {string} domain The Domain of the class
+     */
+    createGame(classid, domain) {
+        let game = new Game(classid, "none");
+        //games[game.code] = game;
+        if (!this.games["none"]) {
+            this.games["none"] = {};
+        }
+        this.games["none"][classid] = game;
+        return game.toJSON();
+    }
 }
 
 /**
- * Runs when a new socket connects.
- * Sets up all socket.io events for the user
- * @param {Socket} socket 
+ * @typedef {Object} GamePlayer
+ * @property {string} googleId The googleID of the player
+ * @property {string} name The name of the player
+ * @property {number} score The score of the player
+ * @property {UserType} type The UserType of the player
  */
-async function onConnection(socket) {
-    console.log("[GAME] New socket connection")
-    let code = socket.request._query.code;
-    let token = socket.request._query.token;
-    if (!code || !token) {
-        console.log("[ERROR][GAME] Invalid Join Parameters")
-        socket.emit("displayError", {
-            "text": "Invalid Parameters"
-        });
-        return;
-    }
-    console.log("[INFO][GAME] Getting user")
-    let user = await auth.GetUserFromToken(token);
-    console.log("[INFO][GAME] Getting game")
-    let game = getGameByCode(code, user.domain);
-    if (!game) {
-        console.log("[ERROR][GAME] Invalid Game Code")
-        socket.emit("displayError", {
-            "text": "Invalid game code"
-        });
-        return;
-    }
-    if (game.state == "LOBBY") {
-        console.log("[INFO][GAME] Joining game by code")
-        socket.join(code);
-        if (game.players.length == 0) {
-            console.log("[INFO][GAME] First Game User")
-            // We are the first player (the owner of the game)
-            socket.on("startgame", function () {
-                console.log("[INFO][GAME] Starting game " + game.code)
-                game.startGame();
-            })
-            socket.on("revealAnswersToPlayers", function(){
-                game.revealAnswersToPlayers();
-            })
-            socket.on("lobbyContinue", function () {
-                game.sendQuestion();
-            })
-            socket.on("continueQuestion", function(){
-                game.showScoreboard(game);
-            })
-            game.setHost(user.toJSON(), socket)
-        } else {
-            socket.on("submitAnswer", function (id) {
-                game.submitAnswer(user.googleid, id, socket)
-                socket.emit("hideAnswers")
-            })
-        }
-        socket.on("disconnect", function () {
-            game.leave(socket);
-            game.broadcastLobbyStatus();
-        })
-        game.join(user.toJSON(), socket);
-        game.broadcastLobbyStatus();
-    } else {
-        socket.emit("displayError", {
-            "text": "Game already started"
-        });
-    }
-}
 
 /**
  * Represents a class's game
  */
-let Game = exports.Game = class Game {
+exports.Game = class Game {
     /**
-     * @constructor Game
-     * Initialises the game object
+     * @constructor
+     * @description Initialises the game object
      * @param {string} classid The GC ID of the class
      * @param {string} domain The GSuite domain of the class
      */
@@ -173,6 +237,9 @@ let Game = exports.Game = class Game {
         }
     }
 
+    /**
+     * Sorts the scoreboard based on the players' scores
+     */
     sortScoreboard() {
         this.players.sort((a, b) => {
             return b.score - a.score;
@@ -194,17 +261,20 @@ let Game = exports.Game = class Game {
         return p
     }
 
+    /**
+     * Sorts and shows the scoreboard on the clients
+     * @param {Game} game The game object to display the scoreboard on
+     */
     showScoreboard(game) {
-        if(this.state == "SCOREBOARD"){
+        if (this.state == "SCOREBOARD") {
             return;
         }
         this.state = "SCOREBOARD";
         if (game.questionTimeout) {
             clearTimeout(game.questionTimeout);
         }
-        console.log("revealAnswer")
         game.scoresToAdd = {};
-        let answerStats = [{count: 0}, {count: 0}, {count: 0}, {count: 0}];
+        let answerStats = [{ count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }];
         answerStats[game.currentQuestion.correctAnswer].correct = true;
         game.currentQuestion.userAnswers.forEach(function (player, i) {
             answerStats[player.answer].count += 1;
@@ -221,7 +291,10 @@ let Game = exports.Game = class Game {
         this.showTimeout = setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
     }
 
-    revealAnswersToPlayers(){
+    /**
+     * Shows the answers to all player clients. Called by the teacher client
+     */
+    revealAnswersToPlayers() {
         this.players.forEach((player) => {
             if (this.scoresToAdd[player.googleid]) {
                 player.socket.emit("correctAnswer", player.score)
@@ -233,6 +306,11 @@ let Game = exports.Game = class Game {
         this.currentQuestion.leaderboard = this.playerJSON()
     }
 
+    /**
+     * Turns the player object to JSON
+     * @returns {GamePlayer[]} playerList
+     * 
+     */
     playerJSON() {
         let j = [];
         this.players.forEach((player) => {
@@ -292,13 +370,13 @@ let Game = exports.Game = class Game {
         }
     }
 
-    end(message){
+    end(message) {
         this.broadcast("displayError", {
             "text": message,
             "continue": "studentdashboard"
         })
         this.broadcast("forceDisconnect");
-        games[this.domain][this.code] = undefined;
+        this.games[this.domain][this.code] = undefined;
     }
 
     broadcastLobbyStatus() {
@@ -311,7 +389,7 @@ let Game = exports.Game = class Game {
     }
 
     async sendQuestion() {
-        if(this.showTimeout){
+        if (this.showTimeout) {
             clearTimeout(this.showTimeout);
             this.showTimeout = undefined;
         }
@@ -344,32 +422,8 @@ let Game = exports.Game = class Game {
 var generateGameCode = exports.generateGameCode = function () {
     let code = "";
     for (let i = 0; i < 6; i++) {
-        code += "1234567890" [Math.floor(Math.random() * 10)];
+        code += "1234567890"[Math.floor(Math.random() * 10)];
     }
     return code;
 }
 
-exports.isGame = isGame = function (domain, classid) {
-    if (!games["none"]) {
-        return undefined;
-    }
-    let g = games["none"][classid];
-    return g ? g.code : undefined;
-}
-
-exports.getGameByCode = getGameByCode = function (code, domain) {
-    if (!games["none"]) {
-        return undefined;
-    }
-    return games["none"][code];
-}
-
-var createGame = exports.createGame = function (classid, domain) {
-    let game = new Game(classid, "none");
-    //games[game.code] = game;
-    if (!games["none"]) {
-        games["none"] = {};
-    }
-    games["none"][classid] = game;
-    return game.toJSON();
-}

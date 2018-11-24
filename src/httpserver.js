@@ -1,10 +1,15 @@
+/**
+ * HTTP server module
+ * @module src/httpserver
+ */
+
 var express = require("express");
 var app = express();
 var webpageurl = __dirname + "/webpage/";
 var database = require("./database");
 let auth = require("./auth");
 let model = require("./models");
-let game = require("./game");
+let {GameManager} = require("./game");
 let classroom = require("./classroom")
 let http = require("http").Server(app);
 let io = exports.io = require("socket.io")(http);
@@ -13,6 +18,12 @@ const nocache = require('nocache');
 app.use(nocache());
 app.use(express.static('public'));
 
+
+/**
+ * @function
+ * @param {Object} req Express request
+ * @param {Object} res Express response
+ */
 app.get("/", function (req, res) {
     console.log("[REQUEST] index.html");
     res.sendFile(webpageurl + "index.html");
@@ -23,7 +34,7 @@ app.get("/games/user", async function (req, res) {
     let clasWithGame = [];
     let classes = usr.classes.toObject();
     classes.forEach((clas) => {
-        let gam = game.getGameByCode(clas.id, usr.domain)
+        let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
         if (gam) {
             let c = clas;
             c.gameInfo = gam.toJSON();
@@ -74,7 +85,7 @@ app.get("/classes/list", async function (req, res) {
 
 app.post("/games/create", async function (req, res) {
     console.log("[REQUEST] /games/create")
-    res.json(game.createGame(req.query.class));
+    res.json(GameManager.singleton.createGame(req.query.class));
 });
 
 /**

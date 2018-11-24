@@ -1,10 +1,10 @@
 var database = require("./src/database");
 var httpServer = require("./src/httpserver");
-var game = require("./src/game")
+var {GameManager} = require("./src/game");
 
 async function init(){
     console.log("A Level Quiz server");
-    console.log("Freddie Miller");
+    console.log("By Freddie Miller");
     console.log("Version 0.0.1");
     console.log("Setting up database");
     await database.init(function(){
@@ -12,8 +12,7 @@ async function init(){
         // Start express server
         console.log("Starting HTTP server");
         httpServer.start(function(){
-            console.log("Starting Socket.IO");
-            game.start();
+            GameManager.singleton = new GameManager();
             console.log("Ready");
         }) 
     });

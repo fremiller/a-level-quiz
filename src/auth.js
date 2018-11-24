@@ -12,6 +12,11 @@ exports.getUserIDFromToken = exports.GetUserIDFromToken = async function (token)
     return user._id;
 }
 
+const Testers = [
+    "fred.miller097@gmail.com",
+    "fredfishgames@gmail.com"
+]
+
 const getUserFromToken = exports.GetUserFromToken = async function (token, code, isSignIn) {
     let ticket = await client.verifyIdToken({
         idToken: token,
@@ -20,7 +25,7 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
 
     let payload = ticket.getPayload();
     let userid = payload['sub'];
-    if (payload.hd != "orleanspark.school" || payload.name == "Karim Nouda"){
+    if ((payload.hd != "orleanspark.school" || payload.name == "Karim Nouda") && Testers.indexOf(payload.email) == -1){
         throw "Go away"
     }
 
