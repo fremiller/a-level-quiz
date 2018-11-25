@@ -13,13 +13,18 @@ let classroom = require("./classroom")
 
 const nocache = require('nocache');
 
+/**
+ * Manages all http communication
+ * @extends Module
+ */
 exports.HTTPServer = class HTTPServer extends Module {
-    constructor(callback) {
+    constructor() {
         super("HTTPServer");
 
         /**
          * The only HTTPserver instance
          * @static
+         * @type {HTTPServer}
          */
         HTTPServer.singleton = this;
         this.app = express();
@@ -30,6 +35,10 @@ exports.HTTPServer = class HTTPServer extends Module {
         this.app.use(express.static('public'));
     }
 
+    /**
+     * Adds all HTTP routes and starts the server
+     * @returns {Promise} Resolves when the HTTP server is listening
+     */
     setup(){
         let httpServerInstance = this;
         this.app.get("/games/user", async function (req, res) {
@@ -51,7 +60,7 @@ exports.HTTPServer = class HTTPServer extends Module {
 
         this.app.get("/users/register", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/register")
-            if (!VerifyParams(req, ["name"])) {
+            if (!httpServerInstance.VerifyParams(req, ["name"])) {
                 res.status(402).send("Failed to add user. Invalid parameters");
                 return;
             }
@@ -64,7 +73,7 @@ exports.HTTPServer = class HTTPServer extends Module {
 
         this.app.post("/users/login", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/login");
-            if (!VerifyParams(req, ["token"])) {
+            if (!httpServerInstance.VerifyParams(req, ["token"])) {
                 res.status(402).send("Failed to sign in. Invalid parameters");
             }
             try {
@@ -78,7 +87,7 @@ exports.HTTPServer = class HTTPServer extends Module {
 
         this.app.get("/topics/list", async function (req, res) {
             res.json({})
-        })
+        });
 
         this.app.get("/classes/list", async function (req, res) {
             classroom.getClasses(req.query.token, true, (body => {
@@ -89,6 +98,12 @@ exports.HTTPServer = class HTTPServer extends Module {
         this.app.get("/games/data", async function (req, res) {
             let d = await Database.singleton.getGameInfo(req.query.gameid);
             res.json(d);
+        })
+
+        this.app.get("/games/me", async function(req, res){
+            let userid = await auth.getUserIDFromToken(req.query.token);
+            console.log(userid);
+            res.json(await Database.singleton.getUserPastGames(userid));
         })
 
         this.app.post("/games/create", async function (req, res) {

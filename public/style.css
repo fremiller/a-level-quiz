@@ -153,19 +153,41 @@ button:hover {
     padding: 1vw;
 }
 
-#joinGames div {
+.gamejoin {
     width: auto;
     display: block;
     background-color: white;
     padding: 10px;
     border-radius: 7px;
+    margin-top: 1vh;
 }
 
-#joinGames div h5 {
+.gamejoin h5 {
     color: rgb(65, 65, 65);
 }
 
-#joinGames div h6 {
+.gamejoin h6 {
+    color: gray;
+}
+
+#pastGames{
+    padding: 1vw;
+}
+
+.gamestat {
+    width: auto;
+    display: block;
+    background-color: white;
+    padding: 10px;
+    border-radius: 7px;
+    margin-top: 1vh;
+}
+
+.gamestat h5 {
+    color: rgb(65, 65, 65);
+}
+
+.gamestat h6 {
     color: gray;
 }
 

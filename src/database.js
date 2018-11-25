@@ -93,9 +93,9 @@ exports.Database = class Database extends Module {
      * @param {string} userid The ID of the user
      * @param {string} gameid The ID of the game to add
      */
-    async addGameToUser(userid, gameid) {
+    async addGameToUser(userid, classId, timestamp) {
         let p = await this.getUserFromGoogleID(userid);
-        p.previousGames.push(gameid);
+        p.previousGames.push(`${classId}:${timestamp}`);
         return await p.save();
     }
 
@@ -103,12 +103,18 @@ exports.Database = class Database extends Module {
      * Gets all information about a game
      * @param {string} gameid The gameid to get
      */
-    async getGameInfo(gameid) {
+    async getGameInfo(classId, timestamp) {
         let gameData = {
             gameId: gameid
         };
-        let game = await models.GameStats.find().where("gameId").equals(gameid).exec();
-        let players = await models.UserGameStats.find().where("gameId").equals(gameid).exec();
+        let game = await models.GameStats.find({
+            classId: classId,
+            timestamp: timestamp
+        }).exec();
+        let players = await models.UserGameStats.find({
+            classId: classId,
+            timestamp: timestamp
+        }).exec();
         if (players.length == 0) {
             return {
                 "error": "No game with id"
@@ -121,6 +127,13 @@ exports.Database = class Database extends Module {
             p.__v = undefined;
         })
         return gameData;
+    }
+
+    async getUserPastGames(userid){
+        let games = await models.UserGameStats.find({
+            userId: userid
+        }).exec();
+        return games;
     }
 
     /**

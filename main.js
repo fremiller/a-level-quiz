@@ -43,7 +43,7 @@ function onSignIn(googleUser) {
             currentUser = response;
             // Loads the appropriate dashboard scene
             loadScene(currentUser.userType == 0 ? "studentdashboard" : "teacherdashboard");
-            
+
         },
         error: function (err) {
             // Shows an error if there is one
@@ -66,27 +66,27 @@ function signOut() {
  * Tells the server to create a game and joins it
 */
 function creategame() {
-    loadScene("loading", {text: "Getting topics"})
+    loadScene("loading", { text: "Getting topics" })
     $.ajax({
         method: "GET",
         url: `/topics/list`,
-        success: function(data){
+        success: function (data) {
             loadScene("createGame")
         }
     })
 }
 
-function getRunningGames(){
+function getRunningGames() {
     $.ajax({
         method: "GET",
-        url: "/games/user?id="+GOOGLE_TOKEN,
-        success: function(data){
+        url: "/games/user?id=" + GOOGLE_TOKEN,
+        success: function (data) {
             showRunningGames(data.classesWithGames)
         }
     })
 }
 
-function creategamesubmit(){
+function creategamesubmit() {
     $.ajax({
         method: "POST",
         url: `/games/create?class=${document.getElementById("class").value}`,
@@ -109,8 +109,20 @@ function joinGame() {
     }
 }
 
-function createQuestion(){
+function createQuestion() {
     loadScene("createquestion");
+}
+
+function getUserPastGames() {
+    return new Promise(function (resolve, reject) {
+        $.ajax({
+            method: "GET",
+            url: `/games/me?token=${GOOGLE_TOKEN}`,
+            success: function (games) {
+                resolve(games);
+            }
+        })
+    });
 }
 /**
  * This contains functions for use when the game is actually running
@@ -502,7 +514,24 @@ class CorrectAnswer extends Scene {
                 }</h6>
         </div>
     </div>
-</div><button class="bigbtn" onclick="creategame()">Create Game</button>`;
+</div><button class="bigbtn" onclick="creategame()">Create Game</button>
+<div id="pastGames">Loading past games...</div>`;
+    }
+    postRender(){
+        getUserPastGames().then(function(games){
+            let pgBox = "";
+            games.forEach(g => {
+                let className = "";
+                currentUser.classes.forEach((clas)=>{
+                    if(clas.id == g.classId){
+                        className = clas.name;
+                    }
+                })
+                let date = new Date(Number.parseInt(g.timestamp));
+                pgBox += html`<div class="gamejoin"><h5>${className}</h5><h6>${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>`
+            });
+            $("#pastGames").html(pgBox);
+        });
     }
 }class TeacherLobby extends Scene {
   generateHtml(data) {

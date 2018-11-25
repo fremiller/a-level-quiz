@@ -43,7 +43,7 @@ function onSignIn(googleUser) {
             currentUser = response;
             // Loads the appropriate dashboard scene
             loadScene(currentUser.userType == 0 ? "studentdashboard" : "teacherdashboard");
-            
+
         },
         error: function (err) {
             // Shows an error if there is one
@@ -66,27 +66,27 @@ function signOut() {
  * Tells the server to create a game and joins it
 */
 function creategame() {
-    loadScene("loading", {text: "Getting topics"})
+    loadScene("loading", { text: "Getting topics" })
     $.ajax({
         method: "GET",
         url: `/topics/list`,
-        success: function(data){
+        success: function (data) {
             loadScene("createGame")
         }
     })
 }
 
-function getRunningGames(){
+function getRunningGames() {
     $.ajax({
         method: "GET",
-        url: "/games/user?id="+GOOGLE_TOKEN,
-        success: function(data){
+        url: "/games/user?id=" + GOOGLE_TOKEN,
+        success: function (data) {
             showRunningGames(data.classesWithGames)
         }
     })
 }
 
-function creategamesubmit(){
+function creategamesubmit() {
     $.ajax({
         method: "POST",
         url: `/games/create?class=${document.getElementById("class").value}`,
@@ -109,6 +109,18 @@ function joinGame() {
     }
 }
 
-function createQuestion(){
+function createQuestion() {
     loadScene("createquestion");
+}
+
+function getUserPastGames() {
+    return new Promise(function (resolve, reject) {
+        $.ajax({
+            method: "GET",
+            url: `/games/me?token=${GOOGLE_TOKEN}`,
+            success: function (games) {
+                resolve(games);
+            }
+        })
+    });
 }

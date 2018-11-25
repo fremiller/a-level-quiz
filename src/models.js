@@ -14,7 +14,8 @@ var mongoose = require("./database").mongoose;
  * @property {string} userId - The ID of the user which can be used to get details of the user
  */
 var UserGameStatsSchema = {
-    gameId: String,
+    classId: String,
+    timestamp: String,
     position: Number,
     userId: String,
     questions: [Number]
@@ -30,7 +31,8 @@ var UserGameStatsSchema = {
  * @property {string} timeStamp The time that the game finished
  */
 var GameStatsSchema = {
-    gameId: String,
+    classId: String,
+    timeStamp: String,
     players: [String]
 }
 /**

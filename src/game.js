@@ -38,8 +38,8 @@ exports.Game = class Game {
         this.questionTimeout = undefined;
         this.state = "LOBBY";
         this.showTimeout = undefined;
-        this.log("[INFO][GAME] New game " + this.code);
-        io = GameManager.singleton.io;
+        console.log("[INFO][GAME] New game " + this.code);
+        io = require("./gamemanager").GameManager.singleton.io;
     }
 
     /**
@@ -87,7 +87,7 @@ exports.Game = class Game {
      */
     submitAnswer(user, answer, socket) {
         if (this.getCurrentAnswerByUser(user)) {
-            this.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
+            console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
             return;
         }
         let p = this.getPlayerByGoogleId(user)
@@ -98,7 +98,7 @@ exports.Game = class Game {
             return;
         }
         p.questions[this.pastQuestions.length] = answer;
-        this.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
+        console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
         this.currentQuestion.userAnswers.push({
             "userid": user,
             "answer": answer,
@@ -200,34 +200,33 @@ exports.Game = class Game {
     }
 
     async finishGame(g) {
-        this.log(`[INFO][GAME][${this.code}] Game finished`);
+        console.log(`[INFO][GAME][${this.code}] Game finished`);
         let time = new Date().getTime();
         if (this.currentQuestion) {
             this.pastQuestions.push(this.currentQuestion);
         }
-        this.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
-        let gameId = this.code + "T" + time;
-        this.log(`[INFO][GAME][${this.code}][UPLOAD] New game id ${gameId}`);
-        this.log(gameId);
+        console.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
         this.currentQuestion = undefined;
         let playerids = [];
         await this.players.forEach(async (player, i) => {
             let userGameStats = {
-                gameId: gameId,
+                classId: this.code,
+                timestamp: time,
                 position: i,
                 userId: player.googleid,
                 questions: player.questions
             };
-            this.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
+            console.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
             playerids.push(player.googleId)
             await Database.singleton.addUserGameStats(userGameStats);
-            await Database.singleton.addGameToUser(player.googleid, gameId)
+            await Database.singleton.addGameToUser(player.googleid, this.code, time)
         });
         await Database.singleton.addGameStats({
-            gameId: gameId,
+            timestamp: time,
+            classId: this.code,
             players: playerids
         });
-        this.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
+        console.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
     }
 
     toJSON() {
@@ -243,7 +242,7 @@ exports.Game = class Game {
     }
 
     join(player, socket) {
-        this.log(`[INFO][GAME][${this.code}] New player joined`)
+        console.log(`[INFO][GAME][${this.code}] New player joined`)
         for (let i = 0; i < this.players.length; i++) {
             if (this.players[i].googleid == player.googleid) {
                 this.players[i].socket.emit("displayError", {
@@ -251,7 +250,7 @@ exports.Game = class Game {
                 })
                 this.players[i].socket.emit("forceDisconnect")
                 this.players[i].socket.disconnect(true);
-                this.log(`[GAME][${this.code}] Player connection overwritten`)
+                console.log(`[GAME][${this.code}] Player connection overwritten`)
                 // This socket will be destroyed
             }
         }
@@ -288,7 +287,7 @@ exports.Game = class Game {
 
     broadcastLobbyStatus() {
         if (this.state == "LOBBY") {
-            this.log(`[INFO][GAME][${this.code}] Updating lobby status`)
+            console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
             this.broadcast("updateLobbyStatus", {
                 game: this.toJSON()
             });
@@ -306,7 +305,7 @@ exports.Game = class Game {
         this.players.forEach((p)=>{
             p.questions.push(-1);
         })
-        this.log(`[INFO][GAME][${this.code}] Sending question`)
+        console.log(`[INFO][GAME][${this.code}] Sending question`)
         this.currentQuestion = await Database.singleton.GetRandomQuestion();
         this.currentQuestion.userAnswers = [];
         this.currentQuestion.number = this.pastQuestions.length + 1;
@@ -320,7 +319,7 @@ exports.Game = class Game {
         try {
             io.in(this.code).emit(name, data);
         } catch (e) {
-            this.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
+            console.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
         }
     }
 

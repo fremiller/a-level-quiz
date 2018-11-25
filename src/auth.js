@@ -9,7 +9,7 @@ let classroom = require("./classroom")
 
 exports.getUserIDFromToken = exports.GetUserIDFromToken = async function (token) {
     let user = await getUserFromToken(token);
-    return user._id;
+    return user.googleid;
 }
 
 const Testers = [
@@ -22,7 +22,6 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
         idToken: token,
         audience: CLIENT_ID
     })
-
     let payload = ticket.getPayload();
     let userid = payload['sub'];
     if ((payload.hd != "orleanspark.school" || payload.name == "Karim Nouda") && Testers.indexOf(payload.email) == -1){
