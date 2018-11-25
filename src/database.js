@@ -1,3 +1,8 @@
+/**
+ * Interface with the local mongodb server
+ * @module src/database
+ */
+
 var mongoose = exports.mongoose = require("mongoose");
 var models = exports.models = require("./models");
 const { Module } = require("./module");
@@ -6,12 +11,29 @@ const {
 } = require('child_process');
 var initTried = false;
 
+/**
+ * Contains a database connection and helper functions
+ */
 exports.Database = class Database extends Module {
+    /**
+     * Connects to a database
+     * @param {function} callback Runs when the setup is complete
+     */
     constructor(callback){
         super("Database");
+        /**
+         * The reference to the only instance of the class
+         * @type {Database}
+         * @static
+         */
+        Database.singleton = this;
         this.init(callback);
     }
 
+    /**
+     * Connects to the database
+     * @param {function} callback Runs on completion
+     */
     init(callback) {
         models.init();
         console.log("\tConnecting")
@@ -45,24 +67,42 @@ exports.Database = class Database extends Module {
         });
     }
 
+    /**
+     * Adds a UserGameStats to the database
+     * @param {UserGameStats} stats The UserGameStats to add
+     */
     async addUserGameStats(stats) {
         let stat = new models.UserGameStats(stats);
         stat = await stat.save();
         return stat;
     }
 
+    /**
+     * Adds a GameStats to the database
+     * @param {GameStats} stats The GameStats to add
+     */
     async addGameStats(stats) {
         let stat = new models.GameStats(stats);
         stat = await stat.save();
         return stat;
     }
 
+    /**
+     * Updates the user object with the specified game
+     * Runs when the game has finished
+     * @param {string} userid The ID of the user
+     * @param {string} gameid The ID of the game to add
+     */
     async addGameToUser(userid, gameid) {
         let p = await this.getUserFromGoogleID(userid);
         p.previousGames.push(gameid);
         return await p.save();
     }
 
+    /**
+     * Gets all information about a game
+     * @param {string} gameid The gameid to get
+     */
     async getGameInfo(gameid) {
         let gameData = {
             gameId: gameid
@@ -82,6 +122,12 @@ exports.Database = class Database extends Module {
         })
         return gameData;
     }
+
+    /**
+     * Gets a user from the database with the given googleid
+     * @param {string} id The googleid to get
+     * @returns {(User|undefined)}
+     */
     async getUserFromGoogleID(id) {
         let model = await models.User.find().where("googleid").equals(id).exec();
         if (model.length == 0) {
@@ -90,12 +136,20 @@ exports.Database = class Database extends Module {
         return model[0];
     }
 
+    /**
+     * Adds a user to the database
+     * @param {Object} userObj The user to add
+     */
     async CreateUser(userObj) {
         let usr = new models.User(userObj);
         usr = await usr.save();
         return usr;
     }
 
+    /**
+     * Gets a random question from the database
+     * @deprecated
+     */
     GetRandomQuestion() {
         return questions[Math.floor(Math.random() * questions.length)]
     }

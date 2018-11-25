@@ -4,112 +4,117 @@
  */
 
 var express = require("express");
-var app = express();
-var webpageurl = __dirname + "/webpage/";
-var {Database} = require("./database");
-let auth = require("./auth");
-let model = require("./models");
-let {GameManager} = require("./game");
+
+var { Database } = require("./database");
+let { Module } = require("./module");
+let auth = require("./auth");;
+let { GameManager } = require("./gamemanager");
 let classroom = require("./classroom")
-let http = require("http").Server(app);
-let io = exports.io = require("socket.io")(http);
+
 const nocache = require('nocache');
 
-app.use(nocache());
-app.use(express.static('public'));
+exports.HTTPServer = class HTTPServer extends Module {
+    constructor(callback) {
+        super("HTTPServer");
 
+        /**
+         * The only HTTPserver instance
+         * @static
+         */
+        HTTPServer.singleton = this;
+        this.app = express();
+        this.http = require("http").Server(this.app);
+        this.io = require("socket.io")(this.http);
 
-/**
- * @function
- * @param {Object} req Express request
- * @param {Object} res Express response
- */
-app.get("/", function (req, res) {
-    console.log("[REQUEST] index.html");
-    res.sendFile(webpageurl + "index.html");
-});
+        this.app.use(nocache());
+        this.app.use(express.static('public'));
+    }
 
-app.get("/games/user", async function (req, res) {
-    let usr = await auth.GetUserFromToken(req.query.id);
-    let clasWithGame = [];
-    let classes = usr.classes.toObject();
-    classes.forEach((clas) => {
-        let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
-        if (gam) {
-            let c = clas;
-            c.gameInfo = gam.toJSON();
-            clasWithGame.push(c);
+    setup(){
+        let httpServerInstance = this;
+        this.app.get("/games/user", async function (req, res) {
+            let usr = await auth.GetUserFromToken(req.query.id);
+            let clasWithGame = [];
+            let classes = usr.classes.toObject();
+            classes.forEach((clas) => {
+                let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
+                if (gam) {
+                    let c = clas;
+                    c.gameInfo = gam.toJSON();
+                    clasWithGame.push(c);
+                }
+            })
+            res.json({
+                classesWithGames: clasWithGame
+            })
+        })
+
+        this.app.get("/users/register", async function (req, res) {
+            httpServerInstance.log("[REQUEST] /users/register")
+            if (!VerifyParams(req, ["name"])) {
+                res.status(402).send("Failed to add user. Invalid parameters");
+                return;
+            }
+            let usr = await Database.singleton.CreateUser({
+                name: req.query.name,
+                previousGames: []
+            });
+            res.json(usr.toJSON());
+        });
+
+        this.app.post("/users/login", async function (req, res) {
+            httpServerInstance.log("[REQUEST] /users/login");
+            if (!VerifyParams(req, ["token"])) {
+                res.status(402).send("Failed to sign in. Invalid parameters");
+            }
+            try {
+                let user = await auth.GetUserFromToken(req.query.id, req.query.token, true);
+                res.json(user);
+            } catch (err) {
+                this.log(err);
+                res.status(403).send(err);
+            }
+        });
+
+        this.app.get("/topics/list", async function (req, res) {
+            res.json({})
+        })
+
+        this.app.get("/classes/list", async function (req, res) {
+            classroom.getClasses(req.query.token, true, (body => {
+                res.json(body)
+            }));
+        });
+
+        this.app.get("/games/data", async function (req, res) {
+            let d = await Database.singleton.getGameInfo(req.query.gameid);
+            res.json(d);
+        })
+
+        this.app.post("/games/create", async function (req, res) {
+            httpServerInstance.log("[REQUEST] /games/create")
+            res.json(GameManager.singleton.createGame(req.query.class));
+        });
+
+        return new Promise(function(resolve, reject){
+            httpServerInstance.http.listen("8000", function () {
+                httpServerInstance.log("Server listening on port 8000");
+                resolve();
+            });
+        })
+    }
+
+    /**
+     * This makes sure that a request contains the required query parameters
+     * @param {Request} req The request to check
+     * @param {string[]} params The required parameters
+     */
+    VerifyParams(req, params) {
+        for (let i = 0; i < params.length; i++) {
+            if (!req.query[params[i]]) {
+                return false;
+            }
         }
-    })
-    res.json({
-        classesWithGames: clasWithGame
-    })
-})
-
-app.get("/users/register", async function (req, res) {
-    console.log("[REQUEST] /users/register")
-    if (!VerifyParams(req, ["name"])) {
-        res.status(402).send("Failed to add user. Invalid parameters");
-        return;
+        return true;
     }
-    let usr = await Database.singleton.CreateUser({
-        name: req.query.name,
-        previousGames: []
-    });
-    res.json(usr.toJSON());
-});
-
-app.post("/users/login", async function (req, res) {
-    console.log("[REQUEST] /users/login");
-    if (!VerifyParams(req, ["token"])) {
-        res.status(402).send("Failed to sign in. Invalid parameters");
-    }
-    try {
-        let user = await auth.GetUserFromToken(req.query.id, req.query.token, true);
-        res.json(user);
-    } catch (err) {
-        console.log(err);
-        res.status(403).send(err);
-    }
-});
-
-app.get("/topics/list", async function (req, res) {
-    res.json({})
-})
-
-app.get("/classes/list", async function (req, res) {
-    classroom.getClasses(req.query.token, true, (body => {
-        res.json(body)
-    }));
-});
-
-app.get("/games/data", async function (req, res){
-    let d = await Database.singleton.getGameInfo(req.query.gameid);
-    res.json(d);
-})
-
-app.post("/games/create", async function (req, res) {
-    console.log("[REQUEST] /games/create")
-    res.json(GameManager.singleton.createGame(req.query.class));
-});
-
-/**
- * This makes sure that a request contains the required query parameters
- * @param {Request} req The request to check
- * @param {string[]} params The required parameters
- */
-function VerifyParams(req, params) {
-    for (let i = 0; i < params.length; i++) {
-        if (!req.query[params[i]]) {
-            return false;
-        }
-    }
-    return true;
-}
-
-exports.start = function (callback) {
-    http.listen("8000", function () {
-        console.log("Server listening on port 8000");
-        callback();
-    });
 }
