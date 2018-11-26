@@ -1,4 +1,12 @@
+/**
+ * Administrator dashboard
+ * @extends Scene
+ */
 class AdminDashboard extends Scene{
+    /**
+     * @inheritdoc
+     * @param {undefined} data 
+     */
     generateHtml(data){
         return html`
 <div class="header">

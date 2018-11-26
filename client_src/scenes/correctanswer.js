@@ -1,4 +1,12 @@
+/**
+ * Scene is shown if a student's answer is incorrect
+ * @extends Scene
+ */
 class CorrectAnswer extends Scene {
+    /**
+     * @inheritdoc
+     * @param {undefined} data 
+     */
     generateHtml(score) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);

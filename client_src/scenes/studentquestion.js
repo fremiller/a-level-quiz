@@ -1,3 +1,7 @@
+/**
+ * Student question - shows answer buttons
+ * @extends Scene
+ */
 class StudentQuestion extends Scene {
     generateHtml(question) {
         clearInterval(currentTimer);

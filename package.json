@@ -6,7 +6,8 @@
   "scripts": {
     "test": "nyc --reporter=html mocha",
     "start": "node server.js",
-    "build": "node build.js"
+    "build": "node build.js",
+    "docs": "jsdoc -t './node_modules/jsdoc-one-page' -r -d docs client_src;jsdoc -t './node_modules/jsdoc-one-page' -r -d server_docs src"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "eslint": "^5.9.0",
+    "jsdoc-one-page": "0.0.5",
     "mocha": "^5.2.0",
     "mock-socket": "^8.0.5",
     "node-minify": "^3.6.0"

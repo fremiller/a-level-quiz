@@ -1,3 +1,7 @@
+/**
+ * Student lobbys scene
+ * @extends Scene
+ */
 class StudentLobby extends Scene {
     generateHtml(data) {
         return html`

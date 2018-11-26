@@ -1,3 +1,7 @@
+/**
+ * Student's dashboard
+ * @extends Scene
+ */
 class StudentDashboard extends Scene {
     generateHtml(data) {
         getRunningGames()

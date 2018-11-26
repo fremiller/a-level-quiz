@@ -1,6 +1,14 @@
-class CreateQuestion extends Scene{
-    generateHtml(data){
-        return html`
+/**
+ * Scene is shown to create a scene
+ * @extends Scene
+ */
+class CreateQuestion extends Scene {
+  /**
+   * @inheritdoc
+   * @param {undefined} data 
+   */
+  generateHtml(data) {
+    return html `
         <div class="row">
   <div class="center-box">
     <h1>Create Question</h1>
@@ -24,5 +32,5 @@ class CreateQuestion extends Scene{
     <button class="bigbtn" onclick="creategamesubmit()">Start</button>
   </div>
 </div>`
-    }
+  }
 }

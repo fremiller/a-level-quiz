@@ -1,3 +1,7 @@
+/**
+ * Scene contains player list and start button
+ * @extends Scene
+ */
 class TeacherLobby extends Scene {
   generateHtml(data) {
     let playerlist = "";
