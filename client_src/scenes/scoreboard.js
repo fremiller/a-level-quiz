@@ -1,4 +1,17 @@
+/**
+ * Game scoreboard
+ * @extends Scene
+ */
 class Scoreboard extends Scene {
+  /**
+   * 
+   * @param {Object} data 
+   * @param {Object[]} data.leaderboard The current player leaderboard
+   * @param {string} data.leaderboard.name The player's name
+   * @param {number} data.leaderboard.score The player's score
+   * @param {number} data.leaderboard.type The player's type
+   * @param {string} data.fact Text to display about the question
+   */
   generateHtml(data) {
     let leaderboard = "";
     console.log(data)

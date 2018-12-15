@@ -1,3 +1,7 @@
+/**
+ * Teacher dashboard scene
+ * @extends Scene
+ */
 class TeacherDashboard extends Scene {
     generateHtml(data) {
         return html`

@@ -1,3 +1,7 @@
+/**
+ * Contains a sign in button and welcome text
+ * @extends Scene
+ */
 class SignIn extends Scene {
     generateHtml(data) {
         return html`

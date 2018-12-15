@@ -1,10 +1,18 @@
+/**
+ * Scene is shown when a teacher wants to create a game
+ * @extends Scene
+ */
 class CreateGameScene extends Scene {
+  /**
+   * @inheritdoc
+   * @param {undefined} data 
+   */
   generateHtml(data) {
     let classSelect = ""
     currentUser.classes.forEach(function (clas) {
       classSelect += `<option value=${clas.id}>${clas.name}</option>`
     })
-    return html`
+    return html `
 <div class="row">
   <div class="center-box center-block">
     <h1>Create game</h1>

@@ -243,14 +243,22 @@ function continueQuestion(){
 function revealAnswersToPlayers(){
     socket.emit("revealAnswersToPlayers")
 }let html = String.raw;
-
+/**
+ * Represents a scene which is displayed in the client
+ */
 class Scene {
-    constructor(renderId) {
-        this.renderId = renderId;
+    /**
+     * Creates an empty scene 
+     */
+    constructor() {
         this.currentHtml = "";
-        this.save = false;
     }
 
+    /**
+     * Runs before the scene is rendered.
+     * Set up any global variables
+     * @param {Object} data The data which is passed to the object
+     */
     preRender(data) {
         if (intervalsToClear.length > 0) {
             intervalsToClear.forEach(function (interval) {
@@ -259,26 +267,39 @@ class Scene {
         }
     }
 
+    /**
+     * Runs when the scene enters
+     * Put any animations here
+     * @returns {Promise} Promise which resolves once the scene has entered
+     */
     onEnter() {
         return new Promise(function (res) { res() });
     }
 
+    /**
+     * Generates HTML based on the data given
+     * @param {Object} data Any data which needs to be displayed in html
+     */
     generateHtml(data) {
         this.currentHtml = "<h1>Test</h1>"
         return this.currentHtml;
     }
 
+    /**
+     * Runs when the scene leaves
+     * Put any animations here
+     * @returns {Promise} Promise which resolves once the scene has left
+     */
     onLeave(){
         return new Promise(function(res) {res()});
     }
 
+    /**
+     * Runs once the scene has rendered
+     * @param {Object} data Any additional data the object needs
+     */
     postRender(data) {
 
-    }
-
-    render(renderId, data) {
-        this.generateHtml(data);
-        $("#" + renderId).html(this.currentHtml);
     }
 }
 
@@ -291,7 +312,15 @@ class SceneRenderer {
         new Scene.getSceneById(scene).render(this.renderId, data);
     }
 }
+/**
+ * Administrator dashboard
+ * @extends Scene
+ */
 class AdminDashboard extends Scene{
+    /**
+     * @inheritdoc
+     * @param {undefined} data 
+     */
     generateHtml(data){
         return html`
 <div class="header">
@@ -303,7 +332,15 @@ class AdminDashboard extends Scene{
 </div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
 }
+/**
+ * Scene is shown if a student's answer is incorrect
+ * @extends Scene
+ */
 class CorrectAnswer extends Scene {
+    /**
+     * @inheritdoc
+     * @param {undefined} data 
+     */
     generateHtml(score) {
         changeBackgroundColour("body-green");
         clearInterval(currentTimer);
@@ -315,13 +352,21 @@ class CorrectAnswer extends Scene {
     </div>
 </div>`
     }
-}class CreateGameScene extends Scene {
+}/**
+ * Scene is shown when a teacher wants to create a game
+ * @extends Scene
+ */
+class CreateGameScene extends Scene {
+  /**
+   * @inheritdoc
+   * @param {undefined} data 
+   */
   generateHtml(data) {
     let classSelect = ""
     currentUser.classes.forEach(function (clas) {
       classSelect += `<option value=${clas.id}>${clas.name}</option>`
     })
-    return html`
+    return html `
 <div class="row">
   <div class="center-box center-block">
     <h1>Create game</h1>
@@ -349,9 +394,17 @@ class CorrectAnswer extends Scene {
   </div>
 </div>`
   }
-}class CreateQuestion extends Scene{
-    generateHtml(data){
-        return html`
+}/**
+ * Scene is shown to create a scene
+ * @extends Scene
+ */
+class CreateQuestion extends Scene {
+  /**
+   * @inheritdoc
+   * @param {undefined} data 
+   */
+  generateHtml(data) {
+    return html `
         <div class="row">
   <div class="center-box">
     <h1>Create Question</h1>
@@ -375,8 +428,17 @@ class CorrectAnswer extends Scene {
     <button class="bigbtn" onclick="creategamesubmit()">Start</button>
   </div>
 </div>`
-    }
-}class ErrorScene extends Scene {
+  }
+}/**
+ * Scene is shown when an error needs to be displayed
+ * @extends Scene
+ */
+class ErrorScene extends Scene {
+    /**
+     * @param {Object} data 
+     * @param {string} data.text The text of the error
+     * @param {string} data.continue The scene to redirect to
+     */
     generateHtml(data) {
         return html`
 <div class="row">
@@ -388,7 +450,15 @@ class CorrectAnswer extends Scene {
     </div>
 </div>`;
     }
-}class IncorrectAnswer extends Scene {
+}/**
+ * Scene is shown if the client's answer is incorrect
+ * @extends Scene
+ */
+class IncorrectAnswer extends Scene {
+    /**
+     * @inheritdoc
+     * @param {number} score The player's score 
+     */
     generateHtml(score) {
         changeBackgroundColour("body-red");
         clearInterval(currentTimer);
@@ -400,7 +470,16 @@ class CorrectAnswer extends Scene {
     </div>
 </div>`
     }
-}class LoadingScene extends Scene {
+}/**
+ * Scene is shown when loading
+ * @extends Scene
+ */
+class LoadingScene extends Scene {
+    /**
+     * 
+     * @param {Object} data
+     * @param {string} data.text The text to display while loading
+     */
     generateHtml(data) {
         return html`
         <div class="row">
@@ -418,7 +497,20 @@ class CorrectAnswer extends Scene {
             </div>
         </div>`;
     }
-}class Scoreboard extends Scene {
+}/**
+ * Game scoreboard
+ * @extends Scene
+ */
+class Scoreboard extends Scene {
+  /**
+   * 
+   * @param {Object} data 
+   * @param {Object[]} data.leaderboard The current player leaderboard
+   * @param {string} data.leaderboard.name The player's name
+   * @param {number} data.leaderboard.score The player's score
+   * @param {number} data.leaderboard.type The player's type
+   * @param {string} data.fact Text to display about the question
+   */
   generateHtml(data) {
     let leaderboard = "";
     console.log(data)
@@ -437,7 +529,11 @@ class CorrectAnswer extends Scene {
 <h3>${data.fact ? data.fact : ""}</h3>
 <div class="leaderboard">${leaderboard}</div>`;
   }
-}class SignIn extends Scene {
+}/**
+ * Contains a sign in button and welcome text
+ * @extends Scene
+ */
+class SignIn extends Scene {
     generateHtml(data) {
         return html`
 <div class="row">
@@ -458,7 +554,11 @@ class CorrectAnswer extends Scene {
             });
         }
     }
-}class StudentDashboard extends Scene {
+}/**
+ * Student's dashboard
+ * @extends Scene
+ */
+class StudentDashboard extends Scene {
     generateHtml(data) {
         getRunningGames()
         setInterval(getRunningGames, 5000);
@@ -519,7 +619,11 @@ class StudentLobby extends Scene {
     <h5>Go fullscreen for the best experience</h5><button onclick="toggleFullscreen()">Fullscreen</button>
 </div>`;
     }
-}class StudentQuestion extends Scene {
+}/**
+ * Student question - shows answer buttons
+ * @extends Scene
+ */
+class StudentQuestion extends Scene {
     generateHtml(question) {
         clearInterval(currentTimer);
         let answerBoxes = "";
@@ -539,7 +643,11 @@ class StudentLobby extends Scene {
 </div>
 <div class="answers">${answerBoxes}</div>`;
     }
-}class TeacherDashboard extends Scene {
+}/**
+ * Teacher dashboard scene
+ * @extends Scene
+ */
+class TeacherDashboard extends Scene {
     generateHtml(data) {
         return html`
 <div class="header">
@@ -619,7 +727,11 @@ class StudentLobby extends Scene {
 </div>
 <div id="players">${playerlist}</div>`;
   }
-}class TeacherQuestion extends Scene {
+}/**
+ * Teacher question scene. Shows question and answer options
+ * @extends Scene
+ */
+class TeacherQuestion extends Scene {
     generateHtml(data) {
         clearInterval(currentTimer);
         currentQuestion = data;
@@ -655,7 +767,11 @@ class StudentLobby extends Scene {
             }</p>
 <div class="answers host">${examStyle ? "" : answerBoxes}</div>`;
     }
-}class WaitingForAnswers extends Scene {
+}/**
+ * Scene is shown while the student is waiting for answers
+ * @extends Scene
+ */
+class WaitingForAnswers extends Scene {
     generateHtml(data) {
         clearInterval(currentTimer);
         return html`

@@ -1,3 +1,7 @@
+/**
+ * Scene is shown while the student is waiting for answers
+ * @extends Scene
+ */
 class WaitingForAnswers extends Scene {
     generateHtml(data) {
         clearInterval(currentTimer);

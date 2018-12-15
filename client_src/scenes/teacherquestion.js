@@ -1,3 +1,7 @@
+/**
+ * Teacher question scene. Shows question and answer options
+ * @extends Scene
+ */
 class TeacherQuestion extends Scene {
     generateHtml(data) {
         clearInterval(currentTimer);
