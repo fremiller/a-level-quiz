@@ -155,19 +155,70 @@ button:hover {
 
 .gamejoin {
     width: auto;
-    display: block;
+    display: flex;
+    flex-direction: row;
     background-color: white;
     padding: 10px;
     border-radius: 7px;
     margin-top: 1vh;
 }
 
-.gamejoin h5 {
+h3{
     color: rgb(65, 65, 65);
 }
 
-.gamejoin h6 {
+.gamejoin h3{
+    height: auto;
+    width: auto;
+    font-size: auto;
+    flex: 0 1 auto;
+    line-height: auto;
+}
+
+.gamejoin h3 sup{
+    color: inherit;
+}
+
+.gamejoin div{
+    height: auto;
+    width: auto;
+    flex: 1 1 auto;
+    margin-left: 5px;
+}
+
+.gamejoin div h5 {
+    color: rgb(65, 65, 65);
+}
+
+.gamejoin div h6 {
     color: gray;
+}
+
+.totip:after{
+    content: attr(data-main)
+}
+
+.totip:hover:after{
+    content: attr(data-topic);
+    color: rgb(65, 65, 65);
+}
+
+.good{
+    color: rgb(106, 177, 0);
+}
+
+.bad{
+    color: red;
+}
+
+.gold {
+    color: rgb(175, 149, 0);
+}
+.silver{
+    color: rgb(194, 194, 194);
+}
+.bronze{
+    color: rgb(160, 37, 0);
 }
 
 #pastGames{
@@ -419,6 +470,71 @@ select *{
 
 .answerCount{
     font-weight: 900;
+}
+
+.infoscoreboard{
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    flex: 0 1 auto;
+    margin: 1vh 1vw;
+    border-radius: 5px;
+    padding: 1vh 1vw;
+}
+
+.infoscoreboard h3{
+    height: auto;
+    width: auto;
+    font-size: auto;
+    flex: 0 1 auto;
+    line-height: auto;
+}
+
+.infoscoreboard h3 sup{
+    color: inherit;
+}
+
+.infoscoreboard div{
+    height: auto;
+    width: auto;
+    flex: 0 1 auto;
+    display: flex;
+    flex-direction: row;
+    margin-left: 5px;
+    padding: 2px;
+}
+
+.infoscoreboard div h3{
+    margin-right: 5px;
+}
+
+.infoscoreboard div h5 {
+    color: rgb(65, 65, 65);
+}
+
+.infoscoreboard div h6 {
+    color: gray;
+}
+
+div .vline{
+    width: 1px;
+    height: auto;
+    flex: 0 1 auto;
+    background-color: rgb(189, 189, 189);
+    border: none;
+    margin: 0 5px;
+}
+
+div .hline{
+    width: auto;
+    height: 1px;
+    flex: 0 1 auto;
+    background-color: rgb(189, 189, 189);
+    border: none;
+    margin: 5px 0;
+    padding: 0;
 }
 
 

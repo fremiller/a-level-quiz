@@ -124,6 +124,23 @@ function getUserPastGames() {
         })
     });
 }
+
+function openGameInfo(classId, timestamp){
+    loadScene("loading", {text: "Getting game info"})
+    loadGameInfo(classId, timestamp).then((gameInfo)=>loadScene("teachergameinfo", gameInfo));
+}
+
+function loadGameInfo(classId, timestamp){
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            method: "GET",
+            url: `/games/data?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+            success: function(gameInfo){
+                resolve(gameInfo);
+            }
+        })
+    })
+}
 /**
  * This contains functions for use when the game is actually running
  * This is the only script which is allowed to use socket.io
@@ -454,8 +471,8 @@ class CorrectAnswer extends Scene {
         <div>
             <h5>${currentUser.name}</h5>
             <h6>${
-                currentUser.domain
-                }</h6>
+            currentUser.domain
+            }</h6>
         </div>
     </div>
 </div>
@@ -463,9 +480,32 @@ class CorrectAnswer extends Scene {
 
 </div>
 </div>`;
-        return;
     }
-}class StudentLobby extends Scene {
+
+    postRender() {
+        getUserPastGames().then(function (games) {
+            let pgBox = "";
+            console.log(games);
+            games.forEach(g => {
+                let className = "";
+                currentUser.classes.forEach((clas) => {
+                    if (clas.id == g.classId) {
+                        className = clas.name;
+                    }
+                })
+                let date = new Date(Number.parseInt(g.timestamp));
+                pgBox += html`<div class="gamejoin">
+                <h3 class="gold">1<sup>st</sup></h3>
+    <div><h5>${className}</h5>
+    <h6>${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>
+    <h3 class="totip" data-main="6.4.3" data-topic="Electric Fields"><sup>&nbsp;</sup></h3><sup>&nbsp;</sup></h3><div class="vline"></div><h3 class="good">86%<sup>&nbsp;</sup></h3>
+</div>`
+            });
+            $("#pastGames").html(pgBox);
+        });
+    }
+}
+class StudentLobby extends Scene {
     generateHtml(data) {
         return html`
 <div class="slobby">
@@ -510,28 +550,52 @@ class CorrectAnswer extends Scene {
         <div>
             <h5>${currentUser.name}</h5>
             <h6>${
-                currentUser.domain
-                }</h6>
+            currentUser.domain
+            }</h6>
         </div>
     </div>
 </div><button class="bigbtn" onclick="creategame()">Create Game</button>
 <div id="pastGames">Loading past games...</div>`;
     }
-    postRender(){
-        getUserPastGames().then(function(games){
+
+    postRender() {
+        getUserPastGames().then(function (games) {
             let pgBox = "";
+            console.log(games);
             games.forEach(g => {
                 let className = "";
-                currentUser.classes.forEach((clas)=>{
-                    if(clas.id == g.classId){
+                currentUser.classes.forEach((clas) => {
+                    if (clas.id == g.classId) {
                         className = clas.name;
                     }
                 })
                 let date = new Date(Number.parseInt(g.timestamp));
-                pgBox += html`<div class="gamejoin"><h5>${className}</h5><h6>${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>`
+            pgBox += html`<div class="gamejoin" onclick="openGameInfo('${g.classId}', '${g.timestamp}')">
+                <!-- <h3 class="gold">1<sup>st</sup></h3> -->
+    <div><h5>${className}</h5>
+    <h6>${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>
+    <h3 class="totip" data-main="6.4.3" data-topic="Electric Fields"><sup>&nbsp;</sup></h3><sup>&nbsp;</sup></h3><div class="vline"></div><h3 class="good">86%<sup>&nbsp;</sup></h3>
+</div>`
             });
             $("#pastGames").html(pgBox);
         });
+    }
+}class TeacherGameInfo extends Scene{
+    generateHtml(gameInfo){
+        console.log(gameInfo)
+        let sc = "";
+        gameInfo.players.forEach((p, i)=>{
+            if(i > 0){
+                sc += html`<div class="hline"></div>`
+            }
+            sc += html`<div><h3>${int_to_pos(i)}</h3><h3>${p.details.name}</h3></div>`
+        })
+        return html`<div class="header">
+            <h1>Game info</h1>
+        </div>
+        <div class="infoscoreboard">
+            ${sc}
+        </div>`
     }
 }class TeacherLobby extends Scene {
   generateHtml(data) {
@@ -626,7 +690,8 @@ let scenes = {
   correctanswer: CorrectAnswer,
   incorrectanswer: IncorrectAnswer,
   createquestion: CreateQuestion,
-  admindashboard: AdminDashboard
+  admindashboard: AdminDashboard,
+  teachergameinfo: TeacherGameInfo
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -812,4 +877,23 @@ function shuffle(a) {
     a[j] = x;
   }
   return a;
+}
+
+function int_to_pos(i){
+  return ordinal_suffix_of(i+1)
+}
+
+function ordinal_suffix_of(i) {
+  var j = i % 10,
+      k = i % 100;
+  if (j == 1 && k != 11) {
+      return i + "st";
+  }
+  if (j == 2 && k != 12) {
+      return i + "nd";
+  }
+  if (j == 3 && k != 13) {
+      return i + "rd";
+  }
+  return i + "th";
 }

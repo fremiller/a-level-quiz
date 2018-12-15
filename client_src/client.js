@@ -124,3 +124,20 @@ function getUserPastGames() {
         })
     });
 }
+
+function openGameInfo(classId, timestamp){
+    loadScene("loading", {text: "Getting game info"})
+    loadGameInfo(classId, timestamp).then((gameInfo)=>loadScene("teachergameinfo", gameInfo));
+}
+
+function loadGameInfo(classId, timestamp){
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            method: "GET",
+            url: `/games/data?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+            success: function(gameInfo){
+                resolve(gameInfo);
+            }
+        })
+    })
+}

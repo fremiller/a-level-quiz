@@ -96,7 +96,12 @@ exports.HTTPServer = class HTTPServer extends Module {
         });
 
         this.app.get("/games/data", async function (req, res) {
-            let d = await Database.singleton.getGameInfo(req.query.gameid);
+            /**
+             * Gets all GameUserInfo for a specific game.
+             * Requires a timestamp and classid
+             */
+            let userid = await auth.getUserIDFromToken(req.query.token);
+            let d = await Database.singleton.getGameInfo(req.query.classId, req.query.timestamp);
             res.json(d);
         })
 

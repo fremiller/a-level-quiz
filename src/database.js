@@ -5,11 +5,14 @@
 
 var mongoose = exports.mongoose = require("mongoose");
 var models = exports.models = require("./models");
+let config = require("../quizconfig.json");
 const { Module } = require("./module");
 const {
     exec
 } = require('child_process');
 var initTried = false;
+
+const questions = config.questions;
 
 /**
  * Contains a database connection and helper functions
@@ -99,18 +102,34 @@ exports.Database = class Database extends Module {
         return await p.save();
     }
 
+    async addQuestion(questionObj){
+        let q = new models.Question(questionObj);
+        q = await q.save();
+        return q;
+    }
+
+    async addQuestionsFromConfig(){
+        config.questions.forEach(async (q)=>{
+            await this.addQuestion(q);
+        })
+    }
+
     /**
      * Gets all information about a game
      * @param {string} gameid The gameid to get
      */
     async getGameInfo(classId, timestamp) {
+        console.log(`Class: ${classId} Time: ${timestamp}`)
         let gameData = {
-            gameId: gameid
+            classId: classId,
+            timestamp: timestamp
         };
         let game = await models.GameStats.find({
             classId: classId,
             timestamp: timestamp
         }).exec();
+        console.log("QQ"+game)
+        gameData.questions = game[0].questions;
         let players = await models.UserGameStats.find({
             classId: classId,
             timestamp: timestamp
@@ -120,12 +139,19 @@ exports.Database = class Database extends Module {
                 "error": "No game with id"
             }
         }
-        gameData.players = players;
-        gameData.players.forEach((p) => {
-            p.gameId = undefined;
-            p._id = undefined;
-            p.__v = undefined;
-        })
+        
+        gameData.players = [];
+        for(let i = 0; i < players.length; i++){
+            let p = players[i];
+            let new_p = {};
+            new_p.position = p.position;
+            new_p.questions = p.questions;
+            new_p.userId = p.userId;
+            new_p.details = await this.getUserFromGoogleID(new_p.userId);
+            new_p.classId = p.classId;
+            gameData.players.push(new_p);
+        }
+        
         return gameData;
     }
 
@@ -161,129 +187,16 @@ exports.Database = class Database extends Module {
 
     /**
      * Gets a random question from the database
-     * @deprecated
      */
     GetRandomQuestion() {
-        return questions[Math.floor(Math.random() * questions.length)]
+        return new Promise((resolve, reject)=>{
+            models.Question.count().exec(function (err, count) {
+                var random = Math.floor(Math.random() * count)
+                models.Question.findOne().skip(random).exec(
+                  function (err, result) {
+                    resolve(result.toObject())
+                  })
+              })
+        })
     }
 }
-
-const questions = [
-    {
-        "question": "One million electrons travel between two points in a circuit.\nThe total energy gained by the electrons is 1.6x10<sup>-10</sup>J.\n\nWhat is the potential difference between the two points?",
-        "type": "EXAM",
-        "answers": [
-            "1.6x10<sup>-16</sup>V",
-            "1.6x10<sup>-4</sup>V",
-            "1.0x10<sup>3</sup>V",
-            "1.0x10<sup>9</sup>V"
-        ],
-        "correctAnswer": 2,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 2"
-    },
-    {
-        "question": "Which is <strong>not</strong> a unit of energy?",
-        "type": "EXAM",
-        "timeLimit": 60,
-        "answers": [
-            "kWh",
-            "eV",
-            "J",
-            "W"
-        ],
-        "correctAnswer": 3,
-        "exam": "H556/02 June 2017 Question 3"
-    },
-    {
-        "question": "A progressive wave of amplitude a has intensity <em>I</em>. This wave combines with another wave of amplitude 0.6 <em>a</em> at a point in space. The phase difference between the waves is 180°.\n\n What is the resultant intensity of the combined waves in terms of <em>I</em>",
-        "type": "EXAM",
-        "timeLimit": 60,
-        "answers": [
-            "0.16 <em>I</em>",
-            "0.4 <em>I</em>",
-            "1.6 <em>I</em>",
-            "2.6 <em>I</em>"
-        ],
-        "correctAnswer": 0,
-        "exam": "H556/02 June 2017 Question 5"
-    },
-    {
-        "question": "Stationary waves are produced in a tube closed at one end and open at the other end. The fundamental frequency is 120 Hz.\n\nWhat is a possible frequency for a harmonic for this tube?",
-        "type": "EXAM",
-        "timeLimit": 60,
-        "answers": [
-            "60 Hz",
-            "240 Hz",
-            "360 Hz",
-            "480 Hz"
-        ],
-        "correctAnswer": 2,
-        "exam": "H556/02 June 2017 Question 6"
-    },
-    {
-        "question": "A capacitor discharges through a resistor. At time t = 0, the charge stored by the capacitor is 600 μC. The capacitor loses 5.0 % of its charge every second.\n\nWhat is the charge left on the capacitor at time t = 4.0 s?",
-        "type": "EXAM",
-        "answers": [
-            "111 μC",
-            "120 μC",
-            "480 μC",
-            "489 μC"
-        ],
-        "correctAnswer": 3,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 8"
-    },
-    {
-        "question": "Which statement is correct?",
-        "type": "EXAM",
-        "answers": [
-            "Hadrons are made up of protons and neutrons.",
-            "A positron and a proton are examples of leptons.",
-            "The positron and the electron have the same mass.",
-            "The weak nuclear force is responsible for alpha decay."
-        ],
-        "correctAnswer": 2,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 10"
-    },
-    {
-        "question": "An electron moves in a circle of radius 2.0 cm in a uniform magnetic field of flux density 170 mT.\n\nWhat is the momentum of this electron?",
-        "type": "EXAM",
-        "answers": [
-            "3.4 × 10<sup>−3</sup>kgms<sup>−1</sup>",
-            "5.4 × 10<sup>−17</sup>kgms<sup>−1</sup>",
-            "1.4 × 10<sup>−18</sup>kgms<sup>−1</sup>",
-            "5.4 × 10<sup>−22</sup>kgms<sup>−1</sup>"
-        ],
-        "correctAnswer": 3,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 11"
-    },
-    {
-        "question": "A beam of charged particles is not deflected when it passes through a region where both electric and magnetic fields are present.\n\nWhich statement is <strong>not</strong> correct?",
-        "type": "EXAM",
-        "answers": [
-            "All the particles have the same speed.",
-            "The resultant force on each particle is zero.",
-            "The magnetic force is equal to the electric force on each particle.",
-            "The magnetic field and the electric field are in the same direction."
-        ],
-        "correctAnswer": 0,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 13"
-    },
-    {
-        "question": "There are four important attenuation mechanisms by which X-ray photons may interact when they pass through matter.\n\nIn which mechanism is the X-ray photon scattered with a longer wavelength?",
-        "type": "EXAM",
-        "answers": [
-            "simple scattering",
-            "Compton effect",
-            "pair production",
-            "photoelectric effect"
-        ],
-        "correctAnswer": 1,
-        "timeLimit": 60,
-        "exam": "H556/02 June 2017 Question 14"
-    }
-]

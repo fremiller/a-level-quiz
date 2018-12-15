@@ -2,6 +2,7 @@ const {
     OAuth2Client
 } = require('google-auth-library');
 let {Database} = require("./database");
+let config = require("../quizconfig.json");
 let models = require("./models")
 const CLIENT_ID = "628238058270-ea37oolom6rtkfhkdulour1ckqe52v3h.apps.googleusercontent.com";
 let client = new OAuth2Client();
@@ -12,10 +13,7 @@ exports.getUserIDFromToken = exports.GetUserIDFromToken = async function (token)
     return user.googleid;
 }
 
-const Testers = [
-    "fred.miller097@gmail.com",
-    "fredfishgames@gmail.com"
-]
+const Testers = config.testers;
 
 const getUserFromToken = exports.GetUserFromToken = async function (token, code, isSignIn) {
     let ticket = await client.verifyIdToken({
@@ -24,7 +22,7 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
     })
     let payload = ticket.getPayload();
     let userid = payload['sub'];
-    if ((payload.hd != "orleanspark.school" || payload.name == "Karim Nouda") && Testers.indexOf(payload.email) == -1){
+    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1){
         throw "Go away"
     }
 

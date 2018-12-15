@@ -221,10 +221,15 @@ exports.Game = class Game {
             await Database.singleton.addUserGameStats(userGameStats);
             await Database.singleton.addGameToUser(player.googleid, this.code, time)
         });
+        let questionIds = [];
+        this.pastQuestions.forEach((q)=>{
+            questionIds.push(q._id);
+        })
         await Database.singleton.addGameStats({
             timestamp: time,
             classId: this.code,
-            players: playerids
+            players: playerids,
+            questions: questionIds
         });
         console.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
     }
