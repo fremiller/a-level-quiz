@@ -129,7 +129,7 @@ exports.Database = class Database extends Module {
             timestamp: timestamp
         }).exec();
         console.log("QQ"+game)
-        gameData.questions = game[0].questions;
+
         let players = await models.UserGameStats.find({
             classId: classId,
             timestamp: timestamp
@@ -151,7 +151,14 @@ exports.Database = class Database extends Module {
             new_p.classId = p.classId;
             gameData.players.push(new_p);
         }
-        
+
+        let qids = game[0].questions;
+        let questions = [];
+        for(let i = 0; i < qids.length; i++){
+            let q = await this.GetQuestionById(qids[i]);
+            questions.push(q);
+        }
+        gameData.questions = questions;
         return gameData;
     }
 
@@ -197,6 +204,14 @@ exports.Database = class Database extends Module {
                     resolve(result.toObject())
                   })
               })
+        })
+    }
+
+    GetQuestionById(_qid){
+        return new Promise((resolve, reject)=>{
+            models.Question.findById(_qid, function(err, question){
+                resolve(question);
+            })
         })
     }
 }

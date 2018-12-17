@@ -161,6 +161,8 @@ button:hover {
     padding: 10px;
     border-radius: 7px;
     margin-top: 1vh;
+    transition-duration: 0.2s;
+    transition-property: background-color;
 }
 
 h3{
@@ -186,6 +188,10 @@ h3{
     margin-left: 5px;
 }
 
+.gamejoin:hover{
+    background-color: #d4d4d4;
+}
+
 .gamejoin div h5 {
     color: rgb(65, 65, 65);
 }
@@ -201,24 +207,6 @@ h3{
 .totip:hover:after{
     content: attr(data-topic);
     color: rgb(65, 65, 65);
-}
-
-.good{
-    color: rgb(106, 177, 0);
-}
-
-.bad{
-    color: red;
-}
-
-.gold {
-    color: rgb(175, 149, 0);
-}
-.silver{
-    color: rgb(194, 194, 194);
-}
-.bronze{
-    color: rgb(160, 37, 0);
 }
 
 #pastGames{
@@ -318,6 +306,15 @@ select *{
     color: inherit;
 }
 
+.header .back{
+    color: white;
+    transition-property: color;
+    transition-duration: 0.2s;
+}
+
+.header .back:hover{
+    color: #d4d4d4;
+}
 
 .exam.questiontitle span.bold{
     font-weight: 800;
@@ -472,7 +469,7 @@ select *{
     font-weight: 900;
 }
 
-.infoscoreboard{
+.datalist{
     background-color: white;
     display: flex;
     flex-direction: column;
@@ -481,40 +478,70 @@ select *{
     flex: 0 1 auto;
     margin: 1vh 1vw;
     border-radius: 5px;
-    padding: 1vh 1vw;
+    padding: 1vh 0;
 }
 
-.infoscoreboard h3{
+.datalist::before{
+    content: attr(data-list-title);
+    color: #2e2e2e;
+    margin-left: 2vw;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 0.5vh;
+}
+
+.datalist h3{
     height: auto;
     width: auto;
     font-size: auto;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     line-height: auto;
+    color: inherit, #2e2e2e;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
-.infoscoreboard h3 sup{
+.datalist h3 em{
     color: inherit;
 }
 
-.infoscoreboard div{
+.datalist h3.title{
+    flex: 0 2 auto;
+}
+
+.datalist h3 sup{
+    color: inherit;
+}
+
+.datalist div{
     height: auto;
     width: auto;
     flex: 0 1 auto;
     display: flex;
     flex-direction: row;
-    margin-left: 5px;
-    padding: 2px;
+    margin: 0;
+    padding: 5px;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    transition-duration: 0.2s;
+    transition-property: background-color;
 }
 
-.infoscoreboard div h3{
+.datalist div:hover{
+    background-color: #d4d4d4;
+}
+
+.datalist div h3{
     margin-right: 5px;
+    font-weight: 500;
 }
 
-.infoscoreboard div h5 {
+.datalist div h5 {
     color: rgb(65, 65, 65);
 }
 
-.infoscoreboard div h6 {
+.datalist div h6 {
     color: gray;
 }
 
@@ -525,6 +552,7 @@ div .vline{
     background-color: rgb(189, 189, 189);
     border: none;
     margin: 0 5px;
+    padding: 0;
 }
 
 div .hline{
@@ -535,6 +563,28 @@ div .hline{
     border: none;
     margin: 5px 0;
     padding: 0;
+}
+
+.good{
+    color: rgb(106, 177, 0);
+}
+
+.okay{
+    color: yellow;
+}
+
+.bad{
+    color: red;
+}
+
+.gold {
+    color: rgb(175, 149, 0);
+}
+.silver{
+    color: rgb(194, 194, 194);
+}
+.bronze{
+    color: rgb(160, 37, 0);
 }
 
 
