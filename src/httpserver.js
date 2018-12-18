@@ -10,6 +10,7 @@ let { Module } = require("./module");
 let auth = require("./auth");;
 let { GameManager } = require("./gamemanager");
 let classroom = require("./classroom")
+let {Admin} = require("./admin");
 
 const nocache = require('nocache');
 
@@ -58,6 +59,21 @@ exports.HTTPServer = class HTTPServer extends Module {
             })
         })
 
+        this.app.get("/admin/status", async function(req, res){
+            if(!auth.VerifyAdmin(req.query.token)){
+                httpServerInstance.log("User not admin")
+                res.json(403, {
+                    "message": "go away"
+                });
+                return;
+            }
+            res.json({
+                "console": Admin.singleton.log,
+                "status": "Online",
+                "users": 1000
+            })
+        })
+
         this.app.get("/users/register", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/register")
             if (!httpServerInstance.VerifyParams(req, ["name"])) {
@@ -80,7 +96,7 @@ exports.HTTPServer = class HTTPServer extends Module {
                 let user = await auth.GetUserFromToken(req.query.id, req.query.token, true);
                 res.json(user);
             } catch (err) {
-                this.log(err);
+                httpServerInstance.log(err);
                 res.status(403).send(err);
             }
         });

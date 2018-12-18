@@ -1,11 +1,13 @@
 var { Database } = require("./src/database");
 var { HTTPServer } = require("./src/httpserver");
 var { GameManager } = require("./src/gamemanager");
+var {Admin} = require("./src/admin");
 
 /**
  * Starts the server
  */
 function init() {
+    new Admin();
     console.log("A Level Quiz server");
     console.log("By Freddie Miller");
     console.log("Version 0.0.1");
@@ -18,7 +20,6 @@ function init() {
         HTTPServer.singleton.setup();
         new GameManager();
         console.log("Ready");
-
     });
 }
 

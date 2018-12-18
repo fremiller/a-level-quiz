@@ -3,6 +3,9 @@
         "fred.miller097@gmail.com",
         "fredfishgames@gmail.com"
     ],
+    "admins":[
+        "fred.miller097@gmail.com"
+    ],
     "authorizedDomains": [
         "orleanspark.school"
     ],

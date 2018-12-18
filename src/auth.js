@@ -1,7 +1,9 @@
 const {
     OAuth2Client
 } = require('google-auth-library');
-let {Database} = require("./database");
+let {
+    Database
+} = require("./database");
 let config = require("../quizconfig.json");
 let models = require("./models")
 const CLIENT_ID = "628238058270-ea37oolom6rtkfhkdulour1ckqe52v3h.apps.googleusercontent.com";
@@ -13,6 +15,19 @@ exports.getUserIDFromToken = exports.GetUserIDFromToken = async function (token)
     return user.googleid;
 }
 
+exports.VerifyAdmin = async function (token) {
+    let ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: CLIENT_ID
+    })
+    let payload = ticket.getPayload();
+    let userid = payload['sub'];
+    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
+        return false;
+    }
+    return config.admins.indexOf(payload.email) != -1;
+}
+
 const Testers = config.testers;
 
 const getUserFromToken = exports.GetUserFromToken = async function (token, code, isSignIn) {
@@ -22,7 +37,7 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
     })
     let payload = ticket.getPayload();
     let userid = payload['sub'];
-    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1){
+    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
         throw "Go away"
     }
 
@@ -41,20 +56,24 @@ const getUserFromToken = exports.GetUserFromToken = async function (token, code,
             user.userType = payload.email.match(/^[0-9]{2}.+/) ? models.UserType.STUDENT : models.UserType.TEACHER;
         } else {
             if (payload.email == "fred.miller097@gmail.com") {
-                user.userType = models.UserType.TEACHER;
+                user.userType = models.UserType.ADMIN;
             }
         }
         user.profileImage = payload.picture;
         let classData = JSON.parse(await classroom.getClasses(code, user.userType == models.UserType.TEACHER))
         let clasids = [];
-        classData.courses.forEach((course) => {
-            if (course.courseState != "ARCHIVED") {
-                clasids.push({
-                    id: course.id,
-                    name: course.name
+        if (classData) {
+            if (classData.courses) {
+                classData.courses.forEach((course) => {
+                    if (course.courseState != "ARCHIVED") {
+                        clasids.push({
+                            id: course.id,
+                            name: course.name
+                        })
+                    }
                 })
             }
-        })
+        }
         user.classes = clasids;
         user.save();
     }

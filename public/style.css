@@ -545,6 +545,19 @@ select *{
     color: gray;
 }
 
+.console{
+    background-color: #272727;
+    border-radius: 5px;
+    font-family: monospace;
+    flex: 1 1 auto;
+    margin: 1vh 1vw;
+    padding: 1vh 1vw;
+}
+
+.status{
+    margin: 1vw 1vw;
+}
+
 div .vline{
     width: 1px;
     height: auto;

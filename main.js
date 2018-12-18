@@ -42,7 +42,7 @@ function onSignIn(googleUser) {
             // Sets the currentUser
             currentUser = response;
             // Loads the appropriate dashboard scene
-            loadScene(currentUser.userType == 0 ? "studentdashboard" : "teacherdashboard");
+            loadScene(currentUser.userType == 0 ? "studentdashboard" : currentUser.userType == 1 ?"teacherdashboard":"admindashboard");
 
         },
         error: function (err) {
@@ -123,6 +123,30 @@ function getUserPastGames() {
             }
         })
     });
+}
+
+function adminStateDisplay(){
+    getAdminState().then(function(state){
+        console.log(state);
+        $("#adminconsole").html(state.console.replace(/\n/g, "<br>"));
+        $("#adminstatus").html(state.status)
+    })
+}
+
+function getAdminState(){
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            method: "GET",
+            url: "/admin/status?token="+GOOGLE_TOKEN,
+            success: function(state){
+                resolve(state);
+            },
+            error: function(err){
+                console.error(err);
+                reject(err);
+            }
+        })
+    })
 }
 
 function openGameInfo(classId, timestamp){
@@ -317,6 +341,9 @@ class SceneRenderer {
  * @extends Scene
  */
 class AdminDashboard extends Scene{
+    preRender(data){
+        this.stateInterval = setInterval(adminStateDisplay, 1000);
+    }
     /**
      * @inheritdoc
      * @param {undefined} data 
@@ -324,12 +351,14 @@ class AdminDashboard extends Scene{
     generateHtml(data){
         return html`
 <div class="header">
-    <h1>Admin Dashboard</h1>
+    <h1>Dashboard</h1>
     <div class="headeruserdetails"><img src="${
             currentUser.profileImage
             }">
     </div>
-</div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    
+</div><div id="adminstatus" class="status"></div>
+    <div id="adminconsole" class="console"></div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
 }
 /**

@@ -42,7 +42,7 @@ function onSignIn(googleUser) {
             // Sets the currentUser
             currentUser = response;
             // Loads the appropriate dashboard scene
-            loadScene(currentUser.userType == 0 ? "studentdashboard" : "teacherdashboard");
+            loadScene(currentUser.userType == 0 ? "studentdashboard" : currentUser.userType == 1 ?"teacherdashboard":"admindashboard");
 
         },
         error: function (err) {
@@ -123,6 +123,30 @@ function getUserPastGames() {
             }
         })
     });
+}
+
+function adminStateDisplay(){
+    getAdminState().then(function(state){
+        console.log(state);
+        $("#adminconsole").html(state.console.replace(/\n/g, "<br>"));
+        $("#adminstatus").html(state.status)
+    })
+}
+
+function getAdminState(){
+    return new Promise(function(resolve, reject){
+        $.ajax({
+            method: "GET",
+            url: "/admin/status?token="+GOOGLE_TOKEN,
+            success: function(state){
+                resolve(state);
+            },
+            error: function(err){
+                console.error(err);
+                reject(err);
+            }
+        })
+    })
 }
 
 function openGameInfo(classId, timestamp){
