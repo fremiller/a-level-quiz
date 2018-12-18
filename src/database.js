@@ -47,7 +47,7 @@ exports.Database = class Database extends Module {
         if (!initTried) {
             db.once('open', function () {
                 console.log("\r\tConnected");
-                Database.singleton.addQuestionsFromConfig();
+                //Database.singleton.addQuestionsFromConfig();
                 callback();
             });
         }
