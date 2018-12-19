@@ -129,7 +129,16 @@ function adminStateDisplay(){
     getAdminState().then(function(state){
         console.log(state);
         $("#adminconsole").html(state.console.replace(/\n/g, "<br>"));
-        $("#adminstatus").html(state.status)
+        $("#adminstatus").html(state.status);
+        let gl = "";
+        state.games.forEach((g)=>{
+            gl += `<div><h3>${g.status}</h3><h3>g.players</h3></div>`
+        })
+        if(state.games.length == 0){
+            gl = `<div><h3>No running games</h3></div>`
+        }
+        $("#runningGamesList").attr("data-list-title", "Running Games "+state.games.length);
+        $("#runningGamesList").html(gl);
     })
 }
 
@@ -340,16 +349,16 @@ class SceneRenderer {
  * Administrator dashboard
  * @extends Scene
  */
-class AdminDashboard extends Scene{
-    preRender(data){
+class AdminDashboard extends Scene {
+    preRender(data) {
         this.stateInterval = setInterval(adminStateDisplay, 1000);
     }
     /**
      * @inheritdoc
      * @param {undefined} data 
      */
-    generateHtml(data){
-        return html`
+    generateHtml(data) {
+        return html `
 <div class="header">
     <h1>Dashboard</h1>
     <div class="headeruserdetails"><img src="${
@@ -358,10 +367,15 @@ class AdminDashboard extends Scene{
     </div>
     
 </div><div id="adminstatus" class="status"></div>
-    <div id="adminconsole" class="console"></div><button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    <div class="adminrow">
+    <div id="adminconsole" class="console">
+
+    </div>
+    <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
+    </div>
+    <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
-}
-/**
+}/**
  * Scene is shown if a student's answer is incorrect
  * @extends Scene
  */

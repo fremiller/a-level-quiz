@@ -550,12 +550,24 @@ select *{
     border-radius: 5px;
     font-family: monospace;
     flex: 1 1 auto;
-    margin: 1vh 1vw;
     padding: 1vh 1vw;
 }
 
 .status{
     margin: 1vw 1vw;
+}
+
+.adminrow{
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    margin: 1vh 1vw;
+}
+
+#runningGamesList{
+    flex: 1 1 auto;
+    margin: 0;
+    margin-left: 1vw;
 }
 
 div .vline{

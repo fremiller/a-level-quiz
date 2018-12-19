@@ -70,7 +70,8 @@ exports.HTTPServer = class HTTPServer extends Module {
             res.json({
                 "console": Admin.singleton.log,
                 "status": "Online",
-                "users": 1000
+                "users": 1000,
+                "games": Admin.singleton.getRunningGames()
             })
         })
 

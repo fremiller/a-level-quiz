@@ -1,4 +1,10 @@
+/**
+ * Contains Admin class
+ * @module src/admin
+ */
+
 let {Module} = require("module");
+let {GameManager} = require("./gamemanager.js");
 let pm2 = require("pm2");
 
 exports.Admin = class Admin extends Module{
@@ -16,5 +22,21 @@ exports.Admin = class Admin extends Module{
                 })
             });
         })
+    }
+
+    getRunningGames(){
+        let games = [];
+        for (var key in GameManager.singleton.games) {
+            // check if the property/key is defined in the object itself, not in parent
+            if (dictionary.hasOwnProperty(key)) {           
+                let g = dictionary[key];
+                games.push({
+                    id: key,
+                    players: g.players.length,
+                    status: g.state,
+                })
+            }
+        }
+        return games;
     }
 }
