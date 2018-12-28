@@ -128,7 +128,7 @@ function getUserPastGames() {
 function adminStateDisplay(){
     getAdminState().then(function(state){
         console.log(state);
-        $("#adminconsole").html(state.console.replace(/\n/g, "<br>"));
+        $("#adminconsole").html(state.console.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
         $("#adminstatus").html(state.status);
         let gl = "";
         state.games.forEach((g)=>{

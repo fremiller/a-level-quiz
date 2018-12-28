@@ -20,6 +20,11 @@ class AdminDashboard extends Scene {
     </div>
     
 </div><div id="adminstatus" class="status"></div>
+            <div class="gitstatus">
+                <p><span>1231542</span> by fishfred</p>
+                <h3>Added git status</h3>
+                <div class="pullbutton">Pull</div>
+            </div>
     <div class="adminrow">
     <div id="adminconsole" class="console">
 
@@ -27,5 +32,12 @@ class AdminDashboard extends Scene {
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
     <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    }
+
+    onLeave(){
+        clearInterval(this.stateInterval);
+        return new Promise(function(res){
+            res();
+        })
     }
 }

@@ -18,7 +18,8 @@ let scenes = {
   incorrectanswer: IncorrectAnswer,
   createquestion: CreateQuestion,
   admindashboard: AdminDashboard,
-  teachergameinfo: TeacherGameInfo
+  teachergameinfo: TeacherGameInfo,
+  finish: Finish
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -29,11 +30,14 @@ let currentScene = undefined;
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
-function loadScene(tag, data) {
+async function loadScene(tag, data) {
+  if(currentScene){
+    await currentScene.onLeave();
+  }
   changeBackgroundColour("body-blue");
   currentScene = new scenes[tag]("#scene");
   currentScene.preRender();
-  currentScene.onEnter();
+  await currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
 }

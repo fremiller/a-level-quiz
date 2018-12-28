@@ -612,6 +612,69 @@ div .hline{
     color: rgb(160, 37, 0);
 }
 
+.feedbackButtons{
+    display:flex;
+    width: min-content;
+    flex-direction: row;
+    background-color: white;
+    padding: 5px;
+    border-radius: 3px;
+    margin: 0 auto;
+}
+
+.feedbackButtons div{
+    background-color: #2e2e2e;
+    margin: 0;
+    margin-left: 2px;
+    font-size: 3vh;
+    width: 4ch;
+    height: 4ch;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+textarea{
+    resize: none;
+    color: black;
+    border-radius: 3px;
+    padding: 3px;
+}
+
+.gitstatus{
+    display: block;
+    background-color: white;
+    margin: 1vh 1vw;
+    padding: 1vh 1vw;
+    border-radius: 5px;
+    width: max-content;
+}
+
+.gitstatus::before{
+    content: "Source Control";
+    color: black;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.gitstatus h3{
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.gitstatus p{
+    color: black;
+}
+
+.gitstatus p span{
+    background-color: #757575;
+    border-radius: 3px;
+    padding: 3px;
+    color: white;
+}
+
 
 @media only screen and (min-width: 768px) {
     #fullscreenBox{

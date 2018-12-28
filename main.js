@@ -128,7 +128,7 @@ function getUserPastGames() {
 function adminStateDisplay(){
     getAdminState().then(function(state){
         console.log(state);
-        $("#adminconsole").html(state.console.replace(/\n/g, "<br>"));
+        $("#adminconsole").html(state.console.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
         $("#adminstatus").html(state.status);
         let gl = "";
         state.games.forEach((g)=>{
@@ -367,6 +367,11 @@ class AdminDashboard extends Scene {
     </div>
     
 </div><div id="adminstatus" class="status"></div>
+            <div class="gitstatus">
+                <p><span>1231542</span> by fishfred</p>
+                <h3>Added git status</h3>
+                <div class="pullbutton">Pull</div>
+            </div>
     <div class="adminrow">
     <div id="adminconsole" class="console">
 
@@ -374,6 +379,13 @@ class AdminDashboard extends Scene {
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
     <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    }
+
+    onLeave(){
+        clearInterval(this.stateInterval);
+        return new Promise(function(res){
+            res();
+        })
     }
 }/**
  * Scene is shown if a student's answer is incorrect
@@ -492,6 +504,29 @@ class ErrorScene extends Scene {
             try again</p>`}
     </div>
 </div>`;
+    }
+}/**
+ * Scene is shown once the game has finished
+ * @extends Scene
+ */
+class Finish extends Scene {
+    generateHtml(data) {
+        return html`
+        <div class="row">
+            <div class="center-box center-block animated slideInUp">
+                <h3>Thanks for playing</h3>
+                <p>How would you rate this game?</p>
+                <div class="feedbackButtons">
+                    <div><p>1</p></div>
+                    <div><p>2</p></div>
+                    <div><p>3</p></div>
+                    <div><p>4</p></div>
+                    <div><p>5</p></div>
+                </div>
+                <p>Do you have any feedback?</p>
+                <textarea></textarea>
+            </div>
+        </div>`;
     }
 }/**
  * Scene is shown if the client's answer is incorrect
@@ -883,7 +918,8 @@ let scenes = {
   incorrectanswer: IncorrectAnswer,
   createquestion: CreateQuestion,
   admindashboard: AdminDashboard,
-  teachergameinfo: TeacherGameInfo
+  teachergameinfo: TeacherGameInfo,
+  finish: Finish
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -894,11 +930,14 @@ let currentScene = undefined;
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
-function loadScene(tag, data) {
+async function loadScene(tag, data) {
+  if(currentScene){
+    await currentScene.onLeave();
+  }
   changeBackgroundColour("body-blue");
   currentScene = new scenes[tag]("#scene");
   currentScene.preRender();
-  currentScene.onEnter();
+  await currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
 }
