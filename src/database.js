@@ -65,7 +65,7 @@ exports.Database = class Database extends Module {
                             throw "Unable to start service:\n" + err.message
                         }
                     }
-                    setTimeout(init, 1000, callback);
+                    setTimeout(this.init, 1000, callback);
                 })
             }
         });

@@ -31,6 +31,7 @@ class AdminDashboard extends Scene {
     </div>
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
+    <div id="testAccountList" class="datalist" data-list-title="Test Accounts"></div>
     <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
 

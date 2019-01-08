@@ -60,19 +60,25 @@ exports.HTTPServer = class HTTPServer extends Module {
         })
 
         this.app.get("/admin/status", async function(req, res){
-            if(!auth.VerifyAdmin(req.query.token)){
+            if(!await auth.VerifyAdmin(req.query.token)){
                 httpServerInstance.log("User not admin")
                 res.json(403, {
                     "message": "go away"
                 });
                 return;
             }
-            res.json({
-                "console": Admin.singleton.log,
-                "status": "Online",
-                "users": 1000,
-                "games": Admin.singleton.getRunningGames()
-            })
+            res.json(Admin.singleton.getAdminState())
+        })
+
+        this.app.post("/admin/accounts/create", async function(req, res){
+            if(!await auth.VerifyAdmin(req.query.token)){
+                httpServerInstance.log("User not admin")
+                res.json(403, {
+                    "message": "go away"
+                });
+                return;
+            }
+            Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
         })
 
         this.app.get("/users/register", async function (req, res) {

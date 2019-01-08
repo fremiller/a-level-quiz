@@ -132,13 +132,29 @@ function adminStateDisplay(){
         $("#adminstatus").html(state.status);
         let gl = "";
         state.games.forEach((g)=>{
-            gl += `<div><h3>${g.status}</h3><h3>g.players</h3></div>`
+            gl += `<div><h3>${g.status}</h3><h3>g.players</h3></div>`;
         })
         if(state.games.length == 0){
-            gl = `<div><h3>No running games</h3></div>`
+            gl = `<div><h3>No running games</h3></div>`;
         }
         $("#runningGamesList").attr("data-list-title", "Running Games "+state.games.length);
         $("#runningGamesList").html(gl);
+        let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
+        state.testAccounts.forEach((acc)=>{
+        al += `<div><h3>${acc.name}</h3><h3>${acc.userType == 0?"TEACHER":"STUDENT"}</h3><button class="btn-delete">Delete</button></div>`
+        })
+        $("#testAccountList").html(al);
+    })
+}
+
+/**
+ * Tells the server to create a test account
+ * @param {boolean} isTeacher Whether the account should be a teacher
+ */
+function createTestAccount(isTeacher){
+    $.ajax({
+        method: "POST",
+        url: `/admin/accounts/create?isTeacher="+isTeacher+"&token=${GOOGLE_TOKEN}`
     })
 }
 
@@ -378,6 +394,7 @@ class AdminDashboard extends Scene {
     </div>
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
+    <div id="testAccountList" class="datalist" data-list-title="Test Accounts"></div>
     <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
     }
 

@@ -5,6 +5,7 @@
 
 let { Module } = require("module");
 let { GameManager } = require("./gamemanager.js");
+let Auth = require("./auth");
 let clogold = console.log;
 
 exports.Admin = class Admin extends Module {
@@ -33,5 +34,23 @@ exports.Admin = class Admin extends Module {
             }
         }
         return games;
+    }
+
+    getTestAccounts(){
+        return Auth.testAccounts
+    }
+
+    getAdminState(){
+        return {
+            "console": this.log,
+            "status": "Online",
+            "users": 1000,
+            "games": this.getRunningGames(),
+            "testAccounts": this.getTestAccounts()
+        }
+    }
+
+    makeTestAccount(isTeacher){
+        Auth.generateTestAccount(isTeacher);
     }
 }

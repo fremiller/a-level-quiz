@@ -479,6 +479,8 @@ select *{
     margin: 1vh 1vw;
     border-radius: 5px;
     padding: 1vh 0;
+    overflow-y: scroll; 
+    flex-
 }
 
 .datalist::before{
@@ -514,8 +516,23 @@ select *{
     color: inherit;
 }
 
+
+.datalist button{
+    height: 3vh;
+    width: min-content; 
+    margin: 0;
+    border-radius: 5px;
+    border: 1px rgba(0, 0, 0, 0.1) solid;
+    font-size: 1.5vh;
+    white-space: nowrap;
+}
+
+.btn-delete{
+    background-color: rgb(248, 26, 26);
+}
+
+
 .datalist div{
-    height: auto;
     width: auto;
     flex: 0 1 auto;
     display: flex;
@@ -526,6 +543,7 @@ select *{
     padding-right: 1vw;
     transition-duration: 0.2s;
     transition-property: background-color;
+    min-height: min-content; 
 }
 
 .datalist div:hover{
@@ -634,6 +652,11 @@ div .hline{
     flex-direction: row;
     align-items: center;
     justify-content: center;
+}
+
+#adminconsole{
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
 
 textarea{
