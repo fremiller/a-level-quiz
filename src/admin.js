@@ -51,6 +51,12 @@ exports.Admin = class Admin extends Module {
     }
 
     makeTestAccount(isTeacher){
+        console.log(`Creating ${isTeacher?"teacher":"student"} account`);
         Auth.generateTestAccount(isTeacher);
+    }
+
+    deleteTestAccount(index){
+        console.log(`Deleting test account ${index}`);
+        Auth.deleteTestAccount(index);
     }
 }

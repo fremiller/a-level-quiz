@@ -81,6 +81,17 @@ exports.HTTPServer = class HTTPServer extends Module {
             Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
         })
 
+        this.app.post("/admin/accounts/delete", async function(req, res){
+            if(!await auth.VerifyAdmin(req.query.token)){
+                httpServerInstance.log("User not admin")
+                res.json(403, {
+                    "message": "go away"
+                });
+                return;
+            }
+            Admin.singleton.deleteTestAccount(req.query.index);
+        })
+
         this.app.get("/users/register", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/register")
             if (!httpServerInstance.VerifyParams(req, ["name"])) {

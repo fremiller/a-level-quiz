@@ -4,6 +4,12 @@ const {
 var request = require("request");
 
 exports.getClasses = function (token, isTeacher) {
+    if(token.startsWith("TEST_")){
+        return new Promise((res, rej)=>{
+            resolve('{"courses":[{id:"TEST_CLASS",name:"Test Class}]}')
+        })
+        
+    }
     let p = new Promise((resolve, reject) => {
         var options = {
             method: 'GET',

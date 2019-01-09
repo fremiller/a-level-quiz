@@ -43,6 +43,10 @@ exports.generateTestAccount = function generateTestAccount(isTeacher){
     });
 }
 
+exports.deleteTestAccount = function deleteTestAccount(index){
+    testAccounts.splice(index, 1)
+}
+
 const findTestAccount = function findTestAccount(token){
     let result = undefined;
     testAccounts.forEach((acc)=>{

@@ -140,8 +140,8 @@ function adminStateDisplay(){
         $("#runningGamesList").attr("data-list-title", "Running Games "+state.games.length);
         $("#runningGamesList").html(gl);
         let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
-        state.testAccounts.forEach((acc)=>{
-        al += `<div><h3>${acc.name}</h3><h3>${acc.userType == 0?"TEACHER":"STUDENT"}</h3><button class="btn-delete">Delete</button></div>`
+        state.testAccounts.forEach((acc, i)=>{
+        al += `<div><h3>${acc.name}</h3><h3>${acc.userType == 0?"TEACHER":"STUDENT"}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
         })
         $("#testAccountList").html(al);
     })
@@ -154,7 +154,14 @@ function adminStateDisplay(){
 function createTestAccount(isTeacher){
     $.ajax({
         method: "POST",
-        url: `/admin/accounts/create?isTeacher="+isTeacher+"&token=${GOOGLE_TOKEN}`
+        url: `/admin/accounts/create?isTeacher=${isTeacher}&token=${GOOGLE_TOKEN}`
+    })
+}
+
+function deleteTestAccount(index){
+    $.ajax({
+        method: "POST",
+        url: `/admin/accounts/delete?token=${GOOGLE_TOKEN}&index=${index}`
     })
 }
 
