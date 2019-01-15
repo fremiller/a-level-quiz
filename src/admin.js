@@ -16,7 +16,7 @@ exports.Admin = class Admin extends Module {
         
         console.log = (message)=>{
             Admin.singleton.log += message + "\r\n";
-            clogold(message);
+                clogold(message);
         }
     }
 

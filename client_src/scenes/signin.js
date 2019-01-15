@@ -16,11 +16,22 @@ class SignIn extends Scene {
 </div>`;
     }
     postRender(data) {
-        if (gapi) {
-            gapi.signin2.render("g-signin", {
-                scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
-                onsuccess: onSignIn
-            });
+        const urlParams = new URLSearchParams(window.location.search);
+        const testToken = urlParams.get('test');
+        console.log(testToken)
+        if (testToken) {
+            onSignIn({
+                isTest: true,
+                token: testToken
+            })
+        }
+        else {
+            if (gapi) {
+                gapi.signin2.render("g-signin", {
+                    scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
+                    onsuccess: onSignIn
+                });
+            }
         }
     }
 }

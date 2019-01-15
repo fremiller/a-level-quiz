@@ -16,7 +16,6 @@ let currentGame = undefined;
 //  The Google access token of the current user
 let GOOGLE_TOKEN = undefined;
 let ACCESS_TOKEN = undefined;
-
 let classroom_data = {};
 
 /**
@@ -24,25 +23,30 @@ let classroom_data = {};
  * @param {*} googleUser 
  */
 function onSignIn(googleUser) {
-    // Useful data for your client-side scripts:
-    var profile = googleUser.getBasicProfile();
-    // The ID token you need to pass to your backend:
-    var id_token = googleUser.getAuthResponse().id_token;
-    var access_token = googleUser.getAuthResponse().access_token;
-    // Stores the token for later authentication with socket.io
-    GOOGLE_TOKEN = id_token;
-    GOOGLE_ACCESS_TOKEN = access_token;
-    // Shows the loading screen while we're sending the token to the server
-    loadScene("loading", { text: "Logging in" });
+    console.log(googleUser);
+    if (googleUser.isTest) {
+        GOOGLE_TOKEN = googleUser.token;
+        GOOGLE_ACCESS_TOKEN = googleUser.token;
+        loadScene("loading", { text: "Logging in with test user" });
+    } else {
+        // Useful data for your client-side scripts:
+        var profile = googleUser.getBasicProfile();
+        // The ID token you need to pass to your backend:
+        GOOGLE_TOKEN = googleUser.getAuthResponse().id_token;
+        GOOGLE_ACCESS_TOKEN = googleUser.getAuthResponse().access_token;
+        // Shows the loading screen while we're sending the token to the server
+        loadScene("loading", { text: "Logging in" });
+    }
     // Sends a POST request to the server with the token
     $.ajax({
         method: "POST",
-        url: `/users/login/?id=${id_token}&token=${access_token}`,
+        url: `/users/login/?id=${GOOGLE_TOKEN}&token=${GOOGLE_ACCESS_TOKEN}`,
         success: function (response) {
+            console.log(response)
             // Sets the currentUser
             currentUser = response;
             // Loads the appropriate dashboard scene
-            loadScene(currentUser.userType == 0 ? "studentdashboard" : currentUser.userType == 1 ?"teacherdashboard":"admindashboard");
+            loadScene(currentUser.userType == 0 ? "studentdashboard" : currentUser.userType == 1 ? "teacherdashboard" : "admindashboard");
 
         },
         error: function (err) {
@@ -125,23 +129,23 @@ function getUserPastGames() {
     });
 }
 
-function adminStateDisplay(){
-    getAdminState().then(function(state){
+function adminStateDisplay() {
+    getAdminState().then(function (state) {
         console.log(state);
         $("#adminconsole").html(state.console.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
         $("#adminstatus").html(state.status);
         let gl = "";
-        state.games.forEach((g)=>{
-            gl += `<div><h3>${g.status}</h3><h3>g.players</h3></div>`;
+        state.games.forEach((g) => {
+            gl += `<div class="clickable"><h3>${g.status}</h3><h3>g.players</h3></div>`;
         })
-        if(state.games.length == 0){
+        if (state.games.length == 0) {
             gl = `<div><h3>No running games</h3></div>`;
         }
-        $("#runningGamesList").attr("data-list-title", "Running Games "+state.games.length);
+        $("#runningGamesList").attr("data-list-title", "Running Games " + state.games.length);
         $("#runningGamesList").html(gl);
         let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
-        state.testAccounts.forEach((acc, i)=>{
-        al += `<div><h3>${acc.name}</h3><h3>${acc.userType == 0?"TEACHER":"STUDENT"}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
+        state.testAccounts.forEach((acc, i) => {
+            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 0 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
         })
         $("#testAccountList").html(al);
     })
@@ -151,29 +155,29 @@ function adminStateDisplay(){
  * Tells the server to create a test account
  * @param {boolean} isTeacher Whether the account should be a teacher
  */
-function createTestAccount(isTeacher){
+function createTestAccount(isTeacher) {
     $.ajax({
         method: "POST",
         url: `/admin/accounts/create?isTeacher=${isTeacher}&token=${GOOGLE_TOKEN}`
     })
 }
 
-function deleteTestAccount(index){
+function deleteTestAccount(index) {
     $.ajax({
         method: "POST",
         url: `/admin/accounts/delete?token=${GOOGLE_TOKEN}&index=${index}`
     })
 }
 
-function getAdminState(){
-    return new Promise(function(resolve, reject){
+function getAdminState() {
+    return new Promise(function (resolve, reject) {
         $.ajax({
             method: "GET",
-            url: "/admin/status?token="+GOOGLE_TOKEN,
-            success: function(state){
+            url: "/admin/status?token=" + GOOGLE_TOKEN,
+            success: function (state) {
                 resolve(state);
             },
-            error: function(err){
+            error: function (err) {
                 console.error(err);
                 reject(err);
             }
@@ -181,17 +185,17 @@ function getAdminState(){
     })
 }
 
-function openGameInfo(classId, timestamp){
-    loadScene("loading", {text: "Getting game info"})
-    loadGameInfo(classId, timestamp).then((gameInfo)=>loadScene("teachergameinfo", gameInfo));
+function openGameInfo(classId, timestamp) {
+    loadScene("loading", { text: "Getting game info" })
+    loadGameInfo(classId, timestamp).then((gameInfo) => loadScene("teachergameinfo", gameInfo));
 }
 
-function loadGameInfo(classId, timestamp){
-    return new Promise(function(resolve, reject){
+function loadGameInfo(classId, timestamp) {
+    return new Promise(function (resolve, reject) {
         $.ajax({
             method: "GET",
             url: `/games/data?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
-            success: function(gameInfo){
+            success: function (gameInfo) {
                 resolve(gameInfo);
             }
         })
@@ -649,11 +653,22 @@ class SignIn extends Scene {
 </div>`;
     }
     postRender(data) {
-        if (gapi) {
-            gapi.signin2.render("g-signin", {
-                scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
-                onsuccess: onSignIn
-            });
+        const urlParams = new URLSearchParams(window.location.search);
+        const testToken = urlParams.get('test');
+        console.log(testToken)
+        if (testToken) {
+            onSignIn({
+                isTest: true,
+                token: testToken
+            })
+        }
+        else {
+            if (gapi) {
+                gapi.signin2.render("g-signin", {
+                    scope: "profile email https://www.googleapis.com/auth/classroom.courses.readonly",
+                    onsuccess: onSignIn
+                });
+            }
         }
     }
 }/**

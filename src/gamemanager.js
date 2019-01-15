@@ -83,6 +83,7 @@ exports.GameManager = class GameManager extends Module {
                 socket.on("finishGame", function () {
                     game.finishGame(game);
                 })
+                //TODO: Fix this for test accounts
                 game.setHost(user.toJSON(), socket)
             } else {
                 socket.on("submitAnswer", function (id) {

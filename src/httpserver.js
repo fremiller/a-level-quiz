@@ -45,7 +45,13 @@ exports.HTTPServer = class HTTPServer extends Module {
         this.app.get("/games/user", async function (req, res) {
             let usr = await auth.GetUserFromToken(req.query.id);
             let clasWithGame = [];
-            let classes = usr.classes.toObject();
+            let classes;
+            if(usr.classes.toObject){
+                classes = usr.classes.toObject();
+            }
+            else{
+                classes = usr.classes;
+            }
             classes.forEach((clas) => {
                 let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
                 if (gam) {

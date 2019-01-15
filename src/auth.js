@@ -50,11 +50,11 @@ exports.deleteTestAccount = function deleteTestAccount(index){
 const findTestAccount = function findTestAccount(token){
     let result = undefined;
     testAccounts.forEach((acc)=>{
-        if(acc.id == token){
+        if(acc.googleid == token){
             result = acc;
         }
     })
-    return acc;
+    return result;
 }
 
 const Testers = config.testers;
