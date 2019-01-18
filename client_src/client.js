@@ -136,7 +136,7 @@ function adminStateDisplay() {
         $("#adminstatus").html(state.status);
         let gl = "";
         state.games.forEach((g) => {
-            gl += `<div class="clickable"><h3>${g.status}</h3><h3>g.players</h3></div>`;
+            gl += `<div class="clickable"><h3>${g.status}</h3><h3>${g.players}</h3></div>`;
         })
         if (state.games.length == 0) {
             gl = `<div><h3>No running games</h3></div>`;
