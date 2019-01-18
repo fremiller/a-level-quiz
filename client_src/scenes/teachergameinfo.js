@@ -8,6 +8,7 @@ class TeacherGameInfo extends Scene{
             if(i > 0){
                 sc += html`<div class="hline"></div>`
             }
+            console.log(p)
             sc += html`<div><h3>${i + 1}</h3><div class="vline"></div><h3>${p.details.name}</h3></div>`
         })
         
