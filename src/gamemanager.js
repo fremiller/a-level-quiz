@@ -53,7 +53,7 @@ exports.GameManager = class GameManager extends Module {
         gm.log("[INFO][GAME] Getting user")
         let user = await auth.GetUserFromToken(token);
         gm.log("[INFO][GAME] Getting game")
-        let game = gm.getGameByCode(code, user.domain);
+        let game = gm.getGameByCode(code, "default");
         if (!game) {
             gm.log("[ERROR][GAME] Invalid Game Code")
             socket.emit("displayError", {
@@ -83,7 +83,9 @@ exports.GameManager = class GameManager extends Module {
                 socket.on("finishGame", function () {
                     game.finishGame(game);
                 })
-                //TODO: Fix this for test accounts
+                if(!user.toJSON){
+                    user.toJSON = () => user;
+                }
                 game.setHost(user.toJSON(), socket)
             } else {
                 socket.on("submitAnswer", function (id) {

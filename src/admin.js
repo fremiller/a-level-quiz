@@ -22,15 +22,17 @@ exports.Admin = class Admin extends Module {
 
     getRunningGames() {
         let games = [];
-        for (var key in GameManager.singleton.games) {
-            // check if the property/key is defined in the object itself, not in parent
-            if (dictionary.hasOwnProperty(key)) {
-                let g = dictionary[key];
+        for (var key in GameManager.singleton.games.none) {
+            if (GameManager.singleton.games.none.hasOwnProperty(key)) {
+                let g = GameManager.singleton.games.none[key];
+                let state = g.state;
+                let id = g.code
+                let players = g.players.length;
                 games.push({
-                    id: key,
-                    players: g.players.length,
-                    status: g.state,
-                })
+                    id: id,
+                    players: players,
+                    status: state,
+                });
             }
         }
         return games;

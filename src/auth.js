@@ -39,7 +39,8 @@ exports.generateTestAccount = function generateTestAccount(isTeacher){
         classes: [{
             name: "Testers Class",
             id: "TEST_CLASS"
-        }]
+        }],
+        domain: "orleanspark.school"
     });
 }
 
