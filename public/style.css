@@ -368,7 +368,7 @@ select *{
     height: 45vh;
     font-size: 3vh;
     margin: 0;
-    
+    user-select: none;
     color: white;
     text-align: center;
     border-radius: 5px;
