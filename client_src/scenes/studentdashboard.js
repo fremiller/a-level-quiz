@@ -38,7 +38,7 @@ class StudentDashboard extends Scene {
                     }
                 })
                 let date = new Date(Number.parseInt(g.timestamp));
-                pgBox += html`<div class="gamejoin">
+                pgBox += html`<div class="gamejoin flex">
                 <h3 class="gold">1<sup>st</sup></h3>
     <div><h5>${className}</h5>
     <h6>${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>

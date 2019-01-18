@@ -155,7 +155,6 @@ button:hover {
 
 .gamejoin {
     width: auto;
-    display: flex;
     flex-direction: row;
     background-color: white;
     padding: 10px;
@@ -163,6 +162,10 @@ button:hover {
     margin-top: 1vh;
     transition-duration: 0.2s;
     transition-property: background-color;
+}
+
+.flex{
+    display: flex;
 }
 
 h3{
@@ -181,7 +184,7 @@ h3{
     color: inherit;
 }
 
-.gamejoin div{
+.gamejoin{
     height: auto;
     width: auto;
     flex: 1 1 auto;
@@ -192,11 +195,11 @@ h3{
     background-color: #d4d4d4;
 }
 
-.gamejoin div h5 {
+.gamejoin h5 {
     color: rgb(65, 65, 65);
 }
 
-.gamejoin div h6 {
+.gamejoin h6 {
     color: gray;
 }
 

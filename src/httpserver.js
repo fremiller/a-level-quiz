@@ -73,7 +73,8 @@ exports.HTTPServer = class HTTPServer extends Module {
                 });
                 return;
             }
-            res.json(Admin.singleton.getAdminState())
+            let AS = Admin.singleton.getAdminState()
+            res.json(AS)
         })
 
         this.app.post("/admin/accounts/create", async function(req, res){

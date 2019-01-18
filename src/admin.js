@@ -39,7 +39,18 @@ exports.Admin = class Admin extends Module {
     }
 
     getTestAccounts(){
-        return Auth.testAccounts
+        let TA = [];
+        Auth.testAccounts.forEach((acc)=>{
+            let E = {
+                domain: acc.domain,
+                googleid: acc.googleid,
+                name: acc.name,
+                profileImage: acc.profileImage,
+                userType: acc.userType
+            };
+            TA.push(E);
+        })
+        return TA
     }
 
     getAdminState(){

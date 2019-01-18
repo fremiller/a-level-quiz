@@ -7,7 +7,7 @@
     "test": "nyc --reporter=html mocha",
     "start": "node server.js",
     "build": "node build.js",
-    "docs": "jsdoc -t './node_modules/jsdoc-one-page' -r -d docs client_src;jsdoc -t './node_modules/jsdoc-one-page' -r -d server_docs src"
+    "docs": "jsdoc client_src models -t './node_modules/jsdoc-one-page' -r -d docs;jsdoc src models -t './node_modules/jsdoc-one-page' -r -d server_docs"
   },
   "repository": {
     "type": "git",

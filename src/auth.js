@@ -40,7 +40,17 @@ exports.generateTestAccount = function generateTestAccount(isTeacher){
             name: "Testers Class",
             id: "TEST_CLASS"
         }],
-        domain: "orleanspark.school"
+        domain: "orleanspark.school",
+        toJSON: function(){
+            return {
+                name: this.name,
+                googleid: this.googleid,
+                profileImage: this.profileImage,
+                userType: this.userType,
+                classes: this.classes,
+                domain: this.domain
+            }
+        }
     });
 }
 

@@ -145,7 +145,7 @@ function adminStateDisplay() {
         $("#runningGamesList").html(gl);
         let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
         state.testAccounts.forEach((acc, i) => {
-            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 0 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
+            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 1 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
         })
         $("#testAccountList").html(al);
     })
@@ -711,7 +711,7 @@ class StudentDashboard extends Scene {
                     }
                 })
                 let date = new Date(Number.parseInt(g.timestamp));
-                pgBox += html`<div class="gamejoin">
+                pgBox += html`<div class="gamejoin flex">
                 <h3 class="gold">1<sup>st</sup></h3>
     <div><h5>${className}</h5>
     <h6>${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>
@@ -1015,7 +1015,7 @@ function changeBackgroundColour(c) {
 function showRunningGames(games) {
   let g = "";
   games.forEach((gam) => {
-    g += `<div class="gamejoin" onclick="connectToGame(${gam.id})"><h6>Found game</h6><h5>${gam.name}<h5></div>`
+    g += `<div class="gamejoin" onclick="connectToGame('${gam.id}')"><h6>Found game</h6><h5>${gam.name}<h5></div>`
   })
   if (g == "") {
     g = "<h5>Searching for games...</h5>"

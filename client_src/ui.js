@@ -76,7 +76,7 @@ function changeBackgroundColour(c) {
 function showRunningGames(games) {
   let g = "";
   games.forEach((gam) => {
-    g += `<div class="gamejoin" onclick="connectToGame(${gam.id})"><h6>Found game</h6><h5>${gam.name}<h5></div>`
+    g += `<div class="gamejoin" onclick="connectToGame('${gam.id}')"><h6>Found game</h6><h5>${gam.name}<h5></div>`
   })
   if (g == "") {
     g = "<h5>Searching for games...</h5>"

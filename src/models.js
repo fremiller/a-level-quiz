@@ -1,109 +1,31 @@
 var mongoose = require("./database").mongoose;
-/**
- * @var UserGameStats
- * 
- * This is a structure used in the User and GameStats object
- * to store the performance of one user in one game.
- * 
- * 
- * @property {string} gameId - The ID of the game which can be used to find other players in the game
- * @property {string} timeStamp - The time when the game finished
- * @property {number} score - The score that the user got
- * @property {number} percentageCorrect - What percentage of questions the user got correct
- * @property {number} position - What position the player came in the leaderboard
- * @property {string} userId - The ID of the user which can be used to get details of the user
- */
-var UserGameStatsSchema = {
-    classId: String,
-    timestamp: String,
-    position: Number,
-    userId: String,
-    questions: [Number]
+
+var SchemaNames = [
+    "GameStats",
+    "Question",
+    "User",
+    "UserGameStats"
+]
+
+var schemas = {
+    
 }
 
-/**
- * 
- * This is a structure stored by itself. It stores the IDs of all the players
- * in the game which can be used to find statistics about each player.
- * 
- * @property {string} gameId The ID of the game
- * @property {string[]} players A list of player IDs which can be used to find players
- * @property {string} timeStamp The time that the game finished
- */
-var GameStatsSchema = {
-    classId: String,
-    timestamp: String,
-    players: [String],
-    questions: [String]
-}
-/**
- * 
- *  This is an enum which is used in the user object to store the type of the user
- *  @enum {number}
- */
-let UserType = exports.UserType = {
-    /** The user is a student */
-    "STUDENT": 0,
-    /** The user is a teacher */
-    "TEACHER": 1,
-    /** The user is an administrator */
-    "ADMIN": 2
-}
-
-/**
- * User
- * 
- * @property {string} name The user's real name
- * @property {string} googleid The GoogleId of the user
- * @property {string[]} previousGames The IDs of the previous games that the user has played
- * @property {string} domain The school domain that the user signed up with
- * @property {string} profileImage The URL to the profile image of the user
- * @property {number} userType The type of the user
- * @property {object[]} classes All the google classroom classes the user belongs to
- * @property {string} classes.name The name of the class
- * @property {string} classes.id The Google Classroom ID of the class
- */
-var UserSchema = {
-    name: String,
-    googleid: String,
-    previousGames: [String],
-    domain: String,
-    profileImage: String,
-    userType: Number,
-    classes: [{
-        name: String,
-        id: String
-    }]
-}
-
-/**
- * Question
- * @property {string} question The content of the question
- * @property {string} type The type of the question (always EXAM)
- * @property {string} timeLimit The question's time limit
- * @property {string[]} answers All possible answers to the question
- * @property {number} correctAnswer The correct answer to the question
- * @property {string} exam The exam that the question was from (if applicible)
- */
-var QuestionSchema = {
-    question: String,
-    type: String,
-    timeLimit: Number,
-    answers: [String],
-    correctAnswer: Number,
-    exam: String,
-}
+SchemaNames.forEach((name)=>{
+    schemas[name] = require("../models/"+name).Schema
+})
 
 /**
  * This function initialises all the models for the database object to use
  */
 exports.init = function() {
     console.log("[MODELS] Initialising User Model");
-    exports.User = mongoose.model("User", UserSchema);
+    exports.User = mongoose.model("User", schemas.User);
     console.log("[MODELS] Initialising UserGameStats Model");
-    exports.UserGameStats = mongoose.model("UserGameStats", UserGameStatsSchema);
+    exports.UserGameStats = mongoose.model("UserGameStats", schemas.UserGameStats);
     console.log("[MODELS] Initialising GameStats Model");
-    exports.GameStats = mongoose.model("GameStats", GameStatsSchema);
+    exports.GameStats = mongoose.model("GameStats", schemas.GameStats);
     console.log("[MODELS] Initialising Question model")
-    exports.Question = mongoose.model("Questions", QuestionSchema);
+    exports.Question = mongoose.model("Questions", schemas.Question);
+    exports.UserType = require("../models/UserType").UserType
 }
