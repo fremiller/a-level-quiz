@@ -1,27 +1,34 @@
+"use strict";
 /**
  * HTTP server module
  * @module src/httpserver
  */
-
-var express = require("express");
-
-var { Database } = require("./database");
-let { Module } = require("./module");
-let auth = require("./auth");;
-let { GameManager } = require("./gamemanager");
-let classroom = require("./classroom")
-let {Admin} = require("./admin");
-
-const nocache = require('nocache');
-
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = require("express");
+const database_1 = require("./database");
+const module_1 = require("./module");
+const auth = require("./auth");
+const gamemanager_1 = require("./gamemanager");
+const classroom = require("./classroom");
+const admin_1 = require("./admin");
+const socketio = require("socket.io");
+const nocache = require("nocache");
+const http = require("http");
 /**
  * Manages all http communication
  * @extends Module
  */
-exports.HTTPServer = class HTTPServer extends Module {
+class HTTPServer extends module_1.Module {
     constructor() {
         super("HTTPServer");
-
         /**
          * The only HTTPserver instance
          * @static
@@ -29,142 +36,151 @@ exports.HTTPServer = class HTTPServer extends Module {
          */
         HTTPServer.singleton = this;
         this.app = express();
-        this.http = require("http").Server(this.app);
-        this.io = require("socket.io")(this.http);
-
+        this.http = new http.Server(this.app);
+        this.io = socketio(this.http);
         this.app.use(nocache());
         this.app.use(express.static('public'));
     }
-
     /**
      * Adds all HTTP routes and starts the server
      * @returns {Promise} Resolves when the HTTP server is listening
      */
-    setup(){
+    setup() {
         let httpServerInstance = this;
-        this.app.get("/games/user", async function (req, res) {
-            let usr = await auth.GetUserFromToken(req.query.id);
-            let clasWithGame = [];
-            let classes;
-            if(usr.classes.toObject){
-                classes = usr.classes.toObject();
-            }
-            else{
-                classes = usr.classes;
-            }
-            classes.forEach((clas) => {
-                let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
-                if (gam) {
-                    let c = clas;
-                    c.gameInfo = gam.toJSON();
-                    clasWithGame.push(c);
+        this.app.get("/games/user", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let usr = yield auth.getUserFromToken(req.query.id);
+                let clasWithGame = [];
+                let classes;
+                if (usr.classes.toObject) {
+                    classes = usr.classes.toObject();
                 }
-            })
-            res.json({
-                classesWithGames: clasWithGame
-            })
-        })
-
-        this.app.get("/admin/status", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json(403, {
-                    "message": "go away"
+                else {
+                    classes = usr.classes;
+                }
+                classes.forEach((clas) => {
+                    let gam = gamemanager_1.GameManager.singleton.getGameByCode(clas.id, usr.domain);
+                    if (gam) {
+                        let c = clas;
+                        c.gameInfo = gam.toJSON();
+                        clasWithGame.push(c);
+                    }
                 });
-                return;
-            }
-            let AS = Admin.singleton.getAdminState()
-            res.json(AS)
-        })
-
-        this.app.post("/admin/accounts/create", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json(403, {
-                    "message": "go away"
+                res.json({
+                    classesWithGames: clasWithGame
                 });
-                return;
-            }
-            Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
-        })
-
-        this.app.post("/admin/accounts/delete", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json(403, {
-                    "message": "go away"
-                });
-                return;
-            }
-            Admin.singleton.deleteTestAccount(req.query.index);
-        })
-
-        this.app.get("/users/register", async function (req, res) {
-            httpServerInstance.log("[REQUEST] /users/register")
-            if (!httpServerInstance.VerifyParams(req, ["name"])) {
-                res.status(402).send("Failed to add user. Invalid parameters");
-                return;
-            }
-            let usr = await Database.singleton.CreateUser({
-                name: req.query.name,
-                previousGames: []
             });
-            res.json(usr.toJSON());
         });
-
-        this.app.post("/users/login", async function (req, res) {
-            httpServerInstance.log("[REQUEST] /users/login");
-            if (!httpServerInstance.VerifyParams(req, ["token"])) {
-                res.status(402).send("Failed to sign in. Invalid parameters");
-            }
-            try {
-                let user = await auth.GetUserFromToken(req.query.id, req.query.token, true);
-                res.json(user);
-            } catch (err) {
-                httpServerInstance.log(err);
-                res.status(403).send(err);
-            }
+        this.app.get("/admin/status", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!(yield auth.VerifyAdmin(req.query.token))) {
+                    httpServerInstance.log("User not admin");
+                    res.json({
+                        "message": "go away"
+                    });
+                    return;
+                }
+                let AS = admin_1.Admin.singleton.getAdminState();
+                res.json(AS);
+            });
         });
-
-        this.app.get("/topics/list", async function (req, res) {
-            res.json({})
+        this.app.post("/admin/accounts/create", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!(yield auth.VerifyAdmin(req.query.token))) {
+                    httpServerInstance.log("User not admin");
+                    res.json({
+                        "message": "go away"
+                    });
+                    return;
+                }
+                admin_1.Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
+            });
         });
-
-        this.app.get("/classes/list", async function (req, res) {
-            classroom.getClasses(req.query.token, true, (body => {
-                res.json(body)
-            }));
+        this.app.post("/admin/accounts/delete", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!(yield auth.VerifyAdmin(req.query.token))) {
+                    httpServerInstance.log("User not admin");
+                    res.json({
+                        "message": "go away"
+                    });
+                    return;
+                }
+                admin_1.Admin.singleton.deleteTestAccount(req.query.index);
+            });
         });
-
-        this.app.get("/games/data", async function (req, res) {
-            /**
-             * Gets all GameUserInfo for a specific game.
-             * Requires a timestamp and classid
-             */
-            let userid = await auth.getUserIDFromToken(req.query.token);
-            let d = await Database.singleton.getGameInfo(req.query.classId, req.query.timestamp);
-            res.json(d);
-        })
-
-        this.app.get("/games/me", async function(req, res){
-            let userid = await auth.getUserIDFromToken(req.query.token);
-            console.log(userid);
-            res.json(await Database.singleton.getUserPastGames(userid));
-        })
-
-        this.app.post("/games/create", async function (req, res) {
-            httpServerInstance.log("[REQUEST] /games/create")
-            res.json(GameManager.singleton.createGame(req.query.class));
+        this.app.get("/users/register", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                httpServerInstance.log("[REQUEST] /users/register");
+                if (!httpServerInstance.VerifyParams(req, ["name"])) {
+                    res.status(402).send("Failed to add user. Invalid parameters");
+                    return;
+                }
+                let usr = yield database_1.Database.singleton.CreateUser({
+                    name: req.query.name,
+                    previousGames: []
+                });
+                res.json(usr.toJSON());
+            });
         });
-
-        return new Promise(function(resolve, reject){
+        this.app.post("/users/login", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                httpServerInstance.log("[REQUEST] /users/login");
+                if (!httpServerInstance.VerifyParams(req, ["token"])) {
+                    res.status(402).send("Failed to sign in. Invalid parameters");
+                }
+                try {
+                    let user = yield auth.getUserFromToken(req.query.id, req.query.token, true);
+                    res.json(user);
+                }
+                catch (err) {
+                    httpServerInstance.log(err);
+                    res.status(403).send(err);
+                }
+            });
+        });
+        this.app.get("/topics/list", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                res.json({});
+            });
+        });
+        this.app.get("/classes/list", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                classroom.getClasses(req.query.token, true).then(body => {
+                    res.json(body);
+                });
+            });
+        });
+        this.app.get("/games/data", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                /**
+                 * Gets all GameUserInfo for a specific game.
+                 * Requires a timestamp and classid
+                 */
+                let userid = yield auth.getUserIDFromToken(req.query.token);
+                let d = yield database_1.Database.singleton.getGameInfo(req.query.classId, req.query.timestamp);
+                res.json(d);
+            });
+        });
+        this.app.get("/games/me", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let userid = yield auth.getUserIDFromToken(req.query.token);
+                console.log(userid);
+                res.json(yield database_1.Database.singleton.getUserPastGames(userid));
+            });
+        });
+        this.app.post("/games/create", function (req, res) {
+            return __awaiter(this, void 0, void 0, function* () {
+                httpServerInstance.log("[REQUEST] /games/create");
+                res.json(gamemanager_1.GameManager.singleton.createGame(req.query.class));
+            });
+        });
+        return new Promise(function (resolve, reject) {
             httpServerInstance.http.listen("8000", function () {
                 httpServerInstance.log("Server listening on port 8000");
                 resolve();
             });
-        })
+        });
     }
-
     /**
      * This makes sure that a request contains the required query parameters
      * @param {Request} req The request to check
@@ -179,3 +195,5 @@ exports.HTTPServer = class HTTPServer extends Module {
         return true;
     }
 }
+exports.HTTPServer = HTTPServer;
+//# sourceMappingURL=httpserver.js.map

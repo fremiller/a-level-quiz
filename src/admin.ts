@@ -1,30 +1,32 @@
-"use strict";
 /**
  * Contains Admin class
  * @module src/admin
  */
-Object.defineProperty(exports, "__esModule", { value: true });
+
 let { Module } = require("module");
 let { GameManager } = require("./gamemanager.js");
 let Auth = require("./auth");
 let clogold = console.log;
-class Admin extends Module {
+
+export class Admin extends Module {
     constructor() {
         super("Admin");
         Admin.singleton = this;
         this.log = "";
-        console.log = (message) => {
+        
+        console.log = (message)=>{
             Admin.singleton.log += message + "\r\n";
-            clogold(message);
-        };
+                clogold(message);
+        }
     }
+
     getRunningGames() {
         let games = [];
         for (var key in GameManager.singleton.games.none) {
             if (GameManager.singleton.games.none.hasOwnProperty(key)) {
                 let g = GameManager.singleton.games.none[key];
                 let state = g.state;
-                let id = g.code;
+                let id = g.code
                 let players = g.players.length;
                 games.push({
                     id: id,
@@ -35,9 +37,10 @@ class Admin extends Module {
         }
         return games;
     }
-    getTestAccounts() {
+
+    getTestAccounts(){
         let TA = [];
-        Auth.testAccounts.forEach((acc) => {
+        Auth.testAccounts.forEach((acc)=>{
             let E = {
                 domain: acc.domain,
                 googleid: acc.googleid,
@@ -46,26 +49,27 @@ class Admin extends Module {
                 userType: acc.userType
             };
             TA.push(E);
-        });
-        return TA;
+        })
+        return TA
     }
-    getAdminState() {
+
+    getAdminState(){
         return {
             "console": this.log,
             "status": "Online",
             "users": 1000,
             "games": this.getRunningGames(),
             "testAccounts": this.getTestAccounts()
-        };
+        }
     }
-    makeTestAccount(isTeacher) {
-        console.log(`Creating ${isTeacher ? "teacher" : "student"} account`);
+
+    makeTestAccount(isTeacher){
+        console.log(`Creating ${isTeacher?"teacher":"student"} account`);
         Auth.generateTestAccount(isTeacher);
     }
-    deleteTestAccount(index) {
+
+    deleteTestAccount(index){
         console.log(`Deleting test account ${index}`);
         Auth.deleteTestAccount(index);
     }
 }
-exports.Admin = Admin;
-//# sourceMappingURL=admin.js.map
