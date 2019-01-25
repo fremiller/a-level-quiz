@@ -3,10 +3,11 @@
  * @module src/gamemanager
  */
 
-import {HTTPServer} from "./httpserver";
+import { HTTPServer } from "./httpserver";
 import * as auth from "./auth";
-import {Module} from "./module";
-import {Game} from "./game";
+import { Module } from "./module";
+import { Game } from "./game";
+import { IUser } from "./models";
 
 /** 
  * Class which manages all games
@@ -39,12 +40,14 @@ export class GameManager extends Module {
      * Sets up all socket.io events for the user
      * @param {Socket} socket 
      */
-    async onConnection(socket) {
+    async onConnection(socket: SocketIO.Socket) {
         const gm = GameManager.singleton;
         gm.log("[GAME] New socket connection")
         let code = socket.request._query.code;
         let token = socket.request._query.token;
-        if (!code || !token) {
+        let createGame = socket.request._query.createGame;
+
+        if ((!code || !token) && !createGame) {
             gm.log("[ERROR][GAME] Invalid Join Parameters")
             socket.emit("displayError", {
                 "text": "Invalid Parameters"
@@ -54,53 +57,20 @@ export class GameManager extends Module {
         gm.log("[INFO][GAME] Getting user")
         let user = await auth.getUserFromToken(token);
         gm.log("[INFO][GAME] Getting game")
-        let game = gm.getGameByCode(code, "default");
-        if (!game) {
-            gm.log("[ERROR][GAME] Invalid Game Code")
-            socket.emit("displayError", {
-                "text": "Invalid game code"
-            });
-            return;
+        if (createGame) {
+            gm.createGame(code, user, socket)
         }
-        if (game.state == "LOBBY") {
-            gm.log("[INFO][GAME] Joining game by code")
-            socket.join(code);
-            if (game.players.length == 0) {
-                gm.log("[INFO][GAME] First Game User")
-                // We are the first player (the owner of the game)
-                socket.on("startgame", function () {
-                    gm.log("[INFO][GAME] Starting game " + game.code)
-                    game.startGame();
-                })
-                socket.on("revealAnswersToPlayers", function () {
-                    game.revealAnswersToPlayers();
-                })
-                socket.on("lobbyContinue", function () {
-                    game.sendQuestion();
-                })
-                socket.on("continueQuestion", function () {
-                    game.showScoreboard(game);
-                })
-                socket.on("finishGame", function () {
-                    game.finishGame(game);
-                })
-                game.setHost(user.toJSON(), socket)
-            } else {
-                socket.on("submitAnswer", function (id) {
-                    game.submitAnswer(user.googleid, id, socket)
-                    socket.emit("hideAnswers")
-                })
+        else {
+            let game = gm.getGameByCode(code);
+            if (!game) {
+                gm.log("[ERROR][GAME] Invalid Game Code")
+                socket.emit("displayError", {
+                    "text": "Invalid game code"
+                });
+                return;
             }
-            socket.on("disconnect", function () {
-                game.leave(socket);
-                game.broadcastLobbyStatus();
-            })
-            game.join(user.toJSON(), socket);
-            game.broadcastLobbyStatus();
-        } else {
-            socket.emit("displayError", {
-                "text": "Game already started"
-            });
+            console.log(`${user.name} is joining ${code}`)
+            game.joinGame(user, socket);
         }
     }
     /**
@@ -108,7 +78,7 @@ export class GameManager extends Module {
    * @param {string} domain domain the class is in
    * @param {string} classid The classID of the class
    */
-    isGame(domain, classid) {
+    isGame(classid: string) {
         let g = this.games[classid];
         return g ? g.code : undefined;
     }
@@ -118,7 +88,7 @@ export class GameManager extends Module {
      * @param {string} code The classID of the game
      * @param {string} domain The domain of the class
      */
-    getGameByCode(code, domain) {
+    getGameByCode(code: string): Game {
         return this.games[code];
     }
 
@@ -127,13 +97,13 @@ export class GameManager extends Module {
      * @param {string} classid The ClassID of the class
      * @param {string} domain The Domain of the class
      */
-    createGame(classid:string, domain?:string) {
-        let game = new Game(classid, "none");
+    createGame(classid: string, host: IUser, hostSocket: SocketIO.Socket): Game {
+        let game = new Game(classid, {}, host, hostSocket);
         this.games[classid] = game;
-        return game.toJSON();
+        return game;
     }
 
-    deleteGame(classid: string){
+    deleteGame(classid: string) {
         this.games[classid] = undefined;
     }
 }

@@ -6,24 +6,24 @@
 import * as mongoose from "mongoose";
 import * as models from "./models";
 let config = require("../quizconfig.json");
-import {Module} from "./module";
-import {exec} from "child_process";
+import { Module } from "./module";
+import { exec } from "child_process";
 var initTried = false;
 
 const questions = config.questions;
 
-export interface IGameData{
+export interface IGameData {
     classId: string,
     timestamp: string,
     players: IUserGameStatsData[]
     questions: models.IQuestionDocument[]
 }
 
-export interface IUserGameStatsData extends models.IUserGameStats{
+export interface IUserGameStatsData extends models.IUserGameStats {
     details: models.IUser
 }
 
-export interface QuestionData extends models.IQuestion{
+export interface QuestionData extends models.IQuestion {
     userAnswers: number[]
 }
 
@@ -37,7 +37,7 @@ export class Database extends Module {
      */
 
     static singleton: Database;
-    constructor(callback){
+    constructor(callback) {
         super("Database");
         /**
          * The reference to the only instance of the class
@@ -118,19 +118,19 @@ export class Database extends Module {
         return await p.save();
     }
 
-    async addQuestion(questionObj){
+    async addQuestion(questionObj) {
         let q = new models.Question(questionObj);
         q = await q.save();
         return q;
     }
 
-    async addQuestionsFromConfig(){
-        config.questions.forEach(async (q)=>{
+    async addQuestionsFromConfig() {
+        config.questions.forEach(async (q) => {
             await this.addQuestion(q);
         })
     }
 
-    async getUserPastGames(userid){
+    async getUserPastGames(userid) {
         let games = await models.UserGameStats.find({
             userId: userid
         }).exec();
@@ -163,25 +163,27 @@ export class Database extends Module {
     /**
      * Gets a random question from the database
      */
-    GetRandomQuestion() : Promise<models.IQuestionDocument>{
-        return new Promise((resolve, reject)=>{
+    GetRandomQuestion(): Promise<models.IQuestionDocument> {
+        return new Promise((resolve, reject) => {
             models.Question.count({}).exec(function (err, count) {
                 var random = Math.floor(Math.random() * count)
                 models.Question.findOne().skip(random).exec(
-                  function (err, result) {
-                    resolve(result.toObject())
-                  })
-              })
+                    function (err, result) {
+                        if (result) {
+                            resolve(result.toObject())
+                        }
+                    })
+            })
         })
     }
 
-    async getGameInfo(classId:string, timestamp:string) {
+    async getGameInfo(classId: string, timestamp: string) {
         console.log(`Class: ${classId} Time: ${timestamp}`)
         let game = await models.GameStats.find({
             classId: classId,
             timestamp: timestamp
         }).exec();
-        console.log("QQ"+game)
+        console.log("QQ" + game)
 
         let players = await models.UserGameStats.find({
             classId: classId,
@@ -192,28 +194,28 @@ export class Database extends Module {
                 "error": "No game with id"
             }
         }
-        
-        let pJ:IUserGameStatsData[] = []
-        for(let i = 0; i < players.length; i++){
+
+        let pJ: IUserGameStatsData[] = []
+        for (let i = 0; i < players.length; i++) {
             let p = players[i];
-            let new_p:IUserGameStatsData = {
-            position: p.position,
-            questions: p.questions,
-            userId: p.userId,
-            details: await this.getUserFromGoogleID(p.userId),
-            classId: p.classId,
-            timestamp: p.timestamp
+            let new_p: IUserGameStatsData = {
+                position: p.position,
+                questions: p.questions,
+                userId: p.userId,
+                details: await this.getUserFromGoogleID(p.userId),
+                classId: p.classId,
+                timestamp: p.timestamp
             }
             pJ.push(new_p);
         }
 
         let qids = game[0].questions;
         let questions: models.IQuestionDocument[] = [];
-        for(let i = 0; i < qids.length; i++){
+        for (let i = 0; i < qids.length; i++) {
             let q = await this.GetQuestionById(qids[i]);
             questions.push(q);
         }
-        
+
         let gameData: IGameData = {
             classId: classId,
             timestamp: timestamp,
@@ -224,9 +226,9 @@ export class Database extends Module {
     }
 
 
-    GetQuestionById(_qid): Promise<models.IQuestionDocument>{
-        return new Promise((resolve, reject)=>{
-            models.Question.findById(_qid, function(err, question){
+    GetQuestionById(_qid): Promise<models.IQuestionDocument> {
+        return new Promise((resolve, reject) => {
+            models.Question.findById(_qid, function (err, question) {
                 resolve(question);
             })
         })

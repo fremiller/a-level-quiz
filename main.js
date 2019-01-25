@@ -91,16 +91,8 @@ function getRunningGames() {
 }
 
 function creategamesubmit() {
-    $.ajax({
-        method: "POST",
-        url: `/games/create?class=${document.getElementById("class").value}`,
-        success: function (game) {
-            currentGame = game;
-            loadScene("loading", { text: "Connecting to game..." })
-            connectToGame(game.code);
-        }
-    })
-    loadScene("loading", { text: "Creating game" })
+    loadScene("loading", { text: "Connecting to game..." })
+    connectToGame(document.getElementById("class").value, true);
 }
 
 /**
@@ -136,7 +128,7 @@ function adminStateDisplay() {
         $("#adminstatus").html(state.status);
         let gl = "";
         state.games.forEach((g) => {
-            gl += `<div class="clickable"><h3>${g.status}</h3><h3>g.players</h3></div>`;
+            gl += `<div class="clickable"><h3>${g.status}</h3><h3>${g.players}</h3></div>`;
         })
         if (state.games.length == 0) {
             gl = `<div><h3>No running games</h3></div>`;
@@ -145,7 +137,7 @@ function adminStateDisplay() {
         $("#runningGamesList").html(gl);
         let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
         state.testAccounts.forEach((acc, i) => {
-            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 1 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
+            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 1 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button><button onclick="window.open('/?test=TEST_${i}')" class="btn-delete">Use</button></div>`
         })
         $("#testAccountList").html(al);
     })
@@ -221,9 +213,9 @@ function startgame() {
  * Connects to the socket.io server and joins a game
  * @param {Number} code 
  */
-function connectToGame(code) {
+function connectToGame(code, create=false) {
     // Connects to the socket.io server
-    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}`);
+    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create?"&createGame=true":""}`);
     setupSocketEvents(socket)
 }
 
@@ -254,45 +246,9 @@ function setupSocketEvents(socket) {
         socket.disconnect(true);
     })
 
-    socket.on("revealAnswer", function(answerStats){
-        console.log("Reveal answer")
-        showCorrectAnswer(answerStats)
-    })
-
-    socket.on("scoreboard", function(question){
-        loadScene("scoreboard", question)
-    })
-
-    // This runs when the server wants us to display a question
-    socket.on("showQuestion", function (question) {
-        console.log(question)
-        loadScene(currentUser.userType == 0 ? "studentquestion" : "teacherquestion", question);
-    })
-
-    socket.on("hideAnswers", function(){
-        loadScene("waitingForAnswers")
-    })
-
-    socket.on("numberOfAnswers", function(num){
-        $("#numberAnswers").text(num)
-    })
-
-    // This is when the lobby has changed, and updates the screen accordingly
-    socket.on("updateLobbyStatus", function (data) {
-        currentGame = data.game;
-        loadScene(currentUser.userType == 0 ? "studentlobby" : "teacherlobby");
-    })
-
-    socket.on("correctAnswer", function(data){
-        if(currentUser.userType == 0){
-            loadScene("correctanswer", data)
-        }
-    })
-
-    socket.on("incorrectAnswer", function(data){
-        if(currentUser.userType == 0){
-            loadScene("incorrectanswer", data)
-        }
+    socket.on("sceneUpdate", function(data){
+        console.log(data)
+        loadScene(data.scene, data.data);
     })
 }
 
@@ -857,21 +813,22 @@ class TeacherDashboard extends Scene {
  * @extends Scene
  */
 class TeacherLobby extends Scene {
+  /**
+   * 
+   * @param {Object} data
+   * @param {String[]} data.players 
+   */
   generateHtml(data) {
+    console.log(data)
     let playerlist = "";
-    for (let i = 0; i < currentGame.players.length; i++) {
-      if (currentGame.players[i].type == 0) {
-        playerlist += `<p>${currentGame.players[i].name}</p>`;
-      }
+    for (let i = 0; i < data.players.length; i++) {
+        playerlist += `<p>${data.players[i]}</p>`;
     }
     return html`
-<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length==1) ? "" : ""
-    }>Start Game</button>${currentGame ? `
-  <!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`
-  : ""}<h1>Play at <span id="link"> ffsh.xyz</span></h1>
+<div class="header"><button class="lobbystartbutton" onclick="startgame()">Start Game</button><h1>Play at <span id="link"> ffsh.xyz</span></h1>
   <div class="headerplayercount">
     <h1>${
-      currentGame.players.length - 1
+      data.players.length
       }</h1>
     <h6 class="mini">Players</h6>
   </div>
@@ -964,6 +921,7 @@ let scenes = {
 
 let intervalsToClear = [];
 let currentScene = undefined;
+let currentSceneName = undefined;
 
 /**
  * Displays a "scene" on the client
@@ -980,6 +938,7 @@ async function loadScene(tag, data) {
   await currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
+  currentSceneName = tag;
 }
 
 /**

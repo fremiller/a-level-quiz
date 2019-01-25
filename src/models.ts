@@ -70,6 +70,7 @@ export function init() {
     SchemaNames.forEach((name) => {
         _schematemp[name] = require("../models/" + name).Schema
     })
+    // @ts-ignore
     schemas = _schematemp;
     console.log("[MODELS] Initialising User Model");
     User = mongoose.model("User", schemas.User);

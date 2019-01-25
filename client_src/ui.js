@@ -24,6 +24,7 @@ let scenes = {
 
 let intervalsToClear = [];
 let currentScene = undefined;
+let currentSceneName = undefined;
 
 /**
  * Displays a "scene" on the client
@@ -40,6 +41,7 @@ async function loadScene(tag, data) {
   await currentScene.onEnter();
   $("#scene").html(currentScene.generateHtml(data));
   currentScene.postRender();
+  currentSceneName = tag;
 }
 
 /**

@@ -91,16 +91,8 @@ function getRunningGames() {
 }
 
 function creategamesubmit() {
-    $.ajax({
-        method: "POST",
-        url: `/games/create?class=${document.getElementById("class").value}`,
-        success: function (game) {
-            currentGame = game;
-            loadScene("loading", { text: "Connecting to game..." })
-            connectToGame(game.code);
-        }
-    })
-    loadScene("loading", { text: "Creating game" })
+    loadScene("loading", { text: "Connecting to game..." })
+    connectToGame(document.getElementById("class").value, true);
 }
 
 /**
@@ -145,7 +137,7 @@ function adminStateDisplay() {
         $("#runningGamesList").html(gl);
         let al = `<div><button onclick='createTestAccount(false)' class="createButton">Create Teacher</button><button onclick='createTestAccount(true)' class="createButton">Create Student</button></div>`;
         state.testAccounts.forEach((acc, i) => {
-            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 1 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button></div>`
+            al += `<div class="clickable"><h3>${acc.name}</h3><h3>${acc.userType == 1 ? "TEACHER" : "STUDENT"}</h3><h3>${acc.token}</h3><button onclick="deleteTestAccount(${i})" class="btn-delete">Delete</button><button onclick="window.open('/?test=TEST_${i}')" class="btn-delete">Use</button></div>`
         })
         $("#testAccountList").html(al);
     })

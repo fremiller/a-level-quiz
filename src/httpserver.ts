@@ -51,18 +51,13 @@ export class HTTPServer extends Module {
         this.app.get("/games/user", async function (req, res) {
             let usr = await auth.getUserFromToken(req.query.id);
             let clasWithGame = [];
-            let classes;
-            if(usr.classes.toObject){
-                classes = usr.classes.toObject();
-            }
-            else{
-                classes = usr.classes;
-            }
+            let classes = usr.classes;
             classes.forEach((clas) => {
-                let gam = GameManager.singleton.getGameByCode(clas.id, usr.domain)
+                let gam = GameManager.singleton.getGameByCode(clas.id,)
                 if (gam) {
                     let c = clas;
-                    c.gameInfo = gam.toJSON();
+                    //@ts-ignore
+                    c.gameInfo = gam.getDetails();
                     clasWithGame.push(c);
                 }
             })
@@ -158,11 +153,6 @@ export class HTTPServer extends Module {
             res.json(await Database.singleton.getUserPastGames(userid));
         })
 
-        this.app.post("/games/create", async function (req, res) {
-            httpServerInstance.log("[REQUEST] /games/create")
-            res.json(GameManager.singleton.createGame(req.query.class));
-        });
-
         return new Promise(function(resolve, reject){
             httpServerInstance.http.listen("8000", function () {
                 httpServerInstance.log("Server listening on port 8000");
@@ -176,7 +166,7 @@ export class HTTPServer extends Module {
      * @param {Request} req The request to check
      * @param {string[]} params The required parameters
      */
-    VerifyParams(req: Express.Request, params: string[]) :boolean{
+    VerifyParams(req: express.Request, params: string[]) :boolean{
         for (let i = 0; i < params.length; i++) {
             if (!req.query[params[i]]) {
                 return false;

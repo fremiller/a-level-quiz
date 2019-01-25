@@ -3,21 +3,22 @@
  * @extends Scene
  */
 class TeacherLobby extends Scene {
+  /**
+   * 
+   * @param {Object} data
+   * @param {String[]} data.players 
+   */
   generateHtml(data) {
+    console.log(data)
     let playerlist = "";
-    for (let i = 0; i < currentGame.players.length; i++) {
-      if (currentGame.players[i].type == 0) {
-        playerlist += `<p>${currentGame.players[i].name}</p>`;
-      }
+    for (let i = 0; i < data.players.length; i++) {
+        playerlist += `<p>${data.players[i]}</p>`;
     }
     return html`
-<div class="header"><button class="lobbystartbutton" onclick="startgame()" ${(currentGame.players.length==1) ? "" : ""
-    }>Start Game</button>${currentGame ? `
-  <!--<div id="classroom-share" class="g-sharetoclassroom" data-title="Physics Quiz" data-body="Join the Quiz using the link here" data-url="http://localhost:8000/?gameCode="+currentGame.code></div>-->`
-  : ""}<h1>Play at <span id="link"> ffsh.xyz</span></h1>
+<div class="header"><button class="lobbystartbutton" onclick="startgame()">Start Game</button><h1>Play at <span id="link"> ffsh.xyz</span></h1>
   <div class="headerplayercount">
     <h1>${
-      currentGame.players.length - 1
+      data.players.length
       }</h1>
     <h6 class="mini">Players</h6>
   </div>

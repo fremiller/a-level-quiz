@@ -18,9 +18,9 @@ function startgame() {
  * Connects to the socket.io server and joins a game
  * @param {Number} code 
  */
-function connectToGame(code) {
+function connectToGame(code, create=false) {
     // Connects to the socket.io server
-    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}`);
+    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create?"&createGame=true":""}`);
     setupSocketEvents(socket)
 }
 
@@ -51,45 +51,9 @@ function setupSocketEvents(socket) {
         socket.disconnect(true);
     })
 
-    socket.on("revealAnswer", function(answerStats){
-        console.log("Reveal answer")
-        showCorrectAnswer(answerStats)
-    })
-
-    socket.on("scoreboard", function(question){
-        loadScene("scoreboard", question)
-    })
-
-    // This runs when the server wants us to display a question
-    socket.on("showQuestion", function (question) {
-        console.log(question)
-        loadScene(currentUser.userType == 0 ? "studentquestion" : "teacherquestion", question);
-    })
-
-    socket.on("hideAnswers", function(){
-        loadScene("waitingForAnswers")
-    })
-
-    socket.on("numberOfAnswers", function(num){
-        $("#numberAnswers").text(num)
-    })
-
-    // This is when the lobby has changed, and updates the screen accordingly
-    socket.on("updateLobbyStatus", function (data) {
-        currentGame = data.game;
-        loadScene(currentUser.userType == 0 ? "studentlobby" : "teacherlobby");
-    })
-
-    socket.on("correctAnswer", function(data){
-        if(currentUser.userType == 0){
-            loadScene("correctanswer", data)
-        }
-    })
-
-    socket.on("incorrectAnswer", function(data){
-        if(currentUser.userType == 0){
-            loadScene("incorrectanswer", data)
-        }
+    socket.on("sceneUpdate", function(data){
+        console.log(data)
+        loadScene(data.scene, data.data);
     })
 }
 

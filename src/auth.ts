@@ -1,6 +1,6 @@
 import {OAuth2Client} from "google-auth-library";
 import {Database} from "./database";
-import { IUser } from "./models";
+import { IUser, IUserDocument } from "./models";
 import { GCResult, ClassInfo } from "./classroom";
 let config = require("../quizconfig.json");
 let models = require("./models")
@@ -68,7 +68,7 @@ export function findTestAccount(token: string){
 
 const Testers = config.testers;
 
-export async function getUserFromToken(token: string, code?: string, isSignIn:boolean=false) {
+export async function getUserFromToken(token: string, code?: string, isSignIn:boolean=false):Promise<IUserDocument> {
     if(token.startsWith("TEST_")){
         return findTestAccount(token);
     }

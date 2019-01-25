@@ -1,379 +1,275 @@
-import { IQuestion, IQuestionDocument } from "./models";
+import { IQuestion, IQuestionDocument, IUser } from "./models";
 import { Document } from "mongoose";
 import {GameManager} from "./gamemanager";
 import {Database} from "./database";
+import { ClassInfo } from "./classroom";
 
 /**
  * Game module
  * @module src/game
  */
 
+ interface GameOptions{
 
-let io = undefined;
-let currentQuestion = undefined;
+ }
 
-/**
- * @typedef {Object} GamePlayer
- * @property {string} googleId The googleID of the player
- * @property {string} name The name of the player
- * @property {number} score The score of the player
- * @property {UserType} type The UserType of the player
- */
-
-interface GamePlayer extends GamePlayerJ{
-    socket: SocketIO.Socket
-}
-
-interface GamePlayerJ{
-    googleid: string
-    name: string
-    score: number
-    questions: number[]
-    userType: number
-}
-
-interface QuestionInstance extends IQuestionDocument{
-    number: number
-    userAnswers: UserAnswer[]
-    scoresToAdd: number[]
-    
-}
-
-interface UserAnswer{
-    userid: string,
-    answer: number,
+ interface AnswerData{
+     answer: number
+     correct: boolean
+     userid?: string
     time: number
-}
+ }
 
-interface AnswerStats{
-    count: number
-    correct?: boolean
-}
+ interface GamePlayer{
+     score: number
+     socket: SocketIO.Socket
+     questionAnswers: AnswerData[]
+     details: IUser
+ }
+
+ interface QuestionResults{
+    questionId: string
+    questionNumber: number
+    studentAnswers: AnswerData[]
+ }
+
+ interface GameScene{
+     sceneId: string
+     teacher: boolean
+     data?: any
+     update?: CallableFunction
+ }
+
+ interface LobbyData{}
+
+ interface TeacherQuestionData extends LobbyData{
+    question: string,
+    answers: string[],
+    studentAnswerCount: number,
+    timeLimit: number,
+    correctAnswer: number,
+    answerCounts: number[],
+    revealAnswers: boolean
+ }
+
+ interface TeacherLobbyData extends LobbyData{
+    players: string[]
+ }
+
+ interface StudentQuestionData extends LobbyData{
+     answers: string[]
+     timeLimit: number
+ }
+
+ interface IDDocument{
+     _id: string;
+ }
+
+ interface GameDetails{
+     classid: string,
+     teacher: string,
+     topic: string
+ }
+
+ interface Question extends IQuestion, IDDocument{}
+
 
 /**
  * Represents a class's game
  */
 export class Game {
-    code: string;
-    players: GamePlayer[];
+    classid: string;
+    currentClientScene: GameScene;
+    currentTeacherScene: GameScene;
+    questions: QuestionResults[] = [];
+    currentQuestion: Question;
+    state: "LOBBY"|"GAME"|"SCOREBOARD" = "LOBBY";
+    players: GamePlayer[] = [];
     host: GamePlayer;
-    topics: string[];
-    domain: string;
-    pastQuestions: QuestionInstance[];
-    currentQuestion: QuestionInstance;
-    questionTimeout: NodeJS.Timer;
-    state: "LOBBY"|"QUESTION"|"GAME"|"SCOREBOARD"
-    showTimeout: NodeJS.Timer;
-    leaderboard: GamePlayerJ[];
-    /**
-     * @constructor
-     * @description Initialises the game object
-     * @param {string} classid The GC ID of the class
-     * @param {string} domain The GSuite domain of the class
-     */
-    constructor(classid, domain) {
-        this.code = classid;
-        this.players = [];
-        this.host = undefined;
-        this.topics = [];
-        this.domain = domain;
-        this.pastQuestions = [];
-        this.currentQuestion = undefined;
-        this.questionTimeout = undefined;
-        this.state = "LOBBY";
-        this.showTimeout = undefined;
-        console.log("[INFO][GAME] New game " + this.code);
-        io = GameManager.singleton.io
+
+    static Scenes: GameScene[] = [
+        {
+            teacher: true,
+            sceneId: "teacherlobby",
+            data: {},
+            update: (game: Game, data: TeacherLobbyData): TeacherLobbyData=>{
+                data.players = [];
+                game.players.forEach((p)=>{
+                    data.players.push(p.details.name);
+                })
+                return data;
+            }
+        },
+        {
+            teacher: false,
+            sceneId: "studentlobby"
+        },
+        {
+            teacher: false,
+            sceneId: "studentquestion",
+            data: {}
+        },
+        {
+            teacher: true,
+            sceneId: "teacherquestion",
+            data: {},
+            update: (game: Game, data: TeacherQuestionData): TeacherQuestionData=>{
+                data.studentAnswerCount = game.questions[game.questions.length - 1].studentAnswers.length;
+                return data;
+            }
+        },
+        {
+            teacher: false,
+            sceneId: "waitingForAnswers"
+        },
+        {
+            teacher: false,
+            sceneId: "correctanswer"
+        },
+        {
+            teacher: false,
+            sceneId: "incorrectanswer"
+        },
+        {
+            teacher: true,
+            sceneId: "scoreboard"
+        }
+    ]
+
+    static FindSceneById(id: string): GameScene{
+        let scene = undefined;
+        Game.Scenes.forEach((sc)=>{
+            if(sc.sceneId == id){
+                scene = sc;
+            }
+        })
+        return scene;
+    }
+
+    constructor(classId: string, options: GameOptions, host: IUser, hostSocket: SocketIO.Socket){
+        console.log("Creating game "+classId)
+        this.classid = classId;
+        this.host = {
+            details: host,
+            socket: hostSocket,
+            score: 0,
+            questionAnswers: []
+        }
+        this.currentClientScene = Game.FindSceneById("studentlobby");
+        this.currentTeacherScene = Game.FindSceneById("teacherlobby");
+        this.updateState()
+        this.sendScene()
     }
 
     /**
-     * Sets the host of the game
-     * @param {User} host The host of the game (teacher)
-     * @param {Socket} socket The host's socket
+     * Run to get the player to join a game
+     * @param user 
+     * @param socket 
      */
-    setHost(host, socket) {
-        host.socket = socket;
-        this.host = host;
-    }
-
-    /**
-     * Starts the game
-     */
-    startGame() {
-        this.players.forEach((player) => {
-            player.score = 0;
+    joinGame(user: IUser, socket: SocketIO.Socket){
+        // Make sure the player is not in the game already
+        if(this.findPlayerById(user.googleid)){
+            return
+        }
+        // Add the player to the list
+        this.players.push({
+            score: 0,
+            details: user,
+            questionAnswers: [],
+            socket: socket
         });
-        this.state = "GAME";
-        this.sendQuestion();
+        this.updateState();
+        this.sendScene();
     }
 
-    /**
-     * Gets the answer submitted by the given user
-     * @param {string} user The UserID of the user
-     */
-    getCurrentAnswerByUser(user) {
-        if (typeof (user) != "string") {
-            return undefined;
-        }
-        for (let i = 0; i < this.currentQuestion.userAnswers.length; i++) {
-            if (this.currentQuestion.userAnswers[i].userid == user) {
-                return this.currentQuestion.userAnswers[i];
-            }
-        }
-        return undefined;
-    }
-
-    /**
-     * Submits the answer from the user
-     * @param {string} user The ID of the user
-     * @param {number} answer The index of the answer
-     * @param {Socket} socket The player's socket
-     */
-    submitAnswer(user, answer, socket) {
-        if (this.getCurrentAnswerByUser(user)) {
-            console.log(`[GAME][${this.code}] Player ${user} has already submitted answer`)
-            return;
-        }
-        let p = this.getPlayerByGoogleId(user)
-        if (!p) {
-            return;
-        }
-        if (p.socket.id != socket.id) {
-            return;
-        }
-        p.questions[this.pastQuestions.length] = answer;
-        console.log(`[GAME][${this.code}] Player ${user} submitted answer ${answer}`)
-        this.currentQuestion.userAnswers.push({
-            "userid": user,
-            "answer": answer,
-            "time": 0
-        });
-        this.updateAnswersAmount();
-        let game = this;
-        if (this.currentQuestion.userAnswers.length >= this.players.length - 1) {
-            setTimeout(() => game.showScoreboard(game), 200)
+    getDetails(): GameDetails{
+        return {
+            classid: this.classid,
+            teacher: this.host.details.name,
+            topic: "Physics"
         }
     }
 
-    /**
-     * Sorts the scoreboard based on the players' scores
-     */
-    sortScoreboard() {
-        this.players.sort((a, b) => {
-            return b.score - a.score;
-        })
-    }
-
-    /**
-     * Gets the player object
-     * @param {string} id The ID of the player
-     * @returns {player} The player that has that ID
-     */
-    getPlayerByGoogleId(id) {
-        let p = undefined;
-        this.players.forEach((pl) => {
-            if (pl.googleid == id) {
-                p = pl;
+    findPlayerById(id:string): GamePlayer|undefined{
+        this.players.forEach((p)=>{
+            if(p.details.googleid == id){
+                return p;
             }
         })
-        return p
+        return
     }
 
-    /**
-     * Sorts and shows the scoreboard on the clients
-     * @param {Game} game The game object to display the scoreboard on
-     */
-    showScoreboard(game) {
-        if (this.state == "SCOREBOARD") {
-            return;
-        }
-        this.state = "SCOREBOARD";
-        if (game.questionTimeout) {
-            clearTimeout(game.questionTimeout);
-        }
-        game.currentQuestion.scoresToAdd = {};
-        let answerStats: AnswerStats[] = [{ count: 0 }, { count: 0 }, { count: 0 }, { count: 0 }];
-        answerStats[game.currentQuestion.correctAnswer].correct = true;
-        game.currentQuestion.userAnswers.forEach(function (player, i) {
-            answerStats[player.answer].count += 1;
-            if (player.answer == game.currentQuestion.correctAnswer) {
-                game.currentQuestion.scoresToAdd[player.userid] = game.players.length - i + 5;
-            }
+    sendScene(){
+        console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
+Sending players ${this.currentClientScene.sceneId}`)
+        this.host.socket.emit("sceneUpdate", {
+            scene: this.currentTeacherScene.sceneId,
+            data: this.currentTeacherScene.data
         })
-        this.players.forEach((player) => {
-            if (game.currentQuestion.scoresToAdd[player.googleid]) {
-                player.score += game.currentQuestion.scoresToAdd[player.googleid];
-            }
-        })
-        game.sendToHost("revealAnswer", answerStats)
-        this.showTimeout = setTimeout(() => game.sendToHost("scoreboard", game.currentQuestion), 10000)
-    }
-
-    /**
-     * Shows the answers to all player clients. Called by the teacher client
-     */
-    revealAnswersToPlayers() {
-        this.players.forEach((player) => {
-            if (this.currentQuestion.scoresToAdd[player.googleid]) {
-                player.socket.emit("correctAnswer", player.score)
-            } else {
-                player.socket.emit("incorrectAnswer", player.score)
-            }
-        })
-        this.sortScoreboard()
-        this.leaderboard = this.players as GamePlayerJ[]
-    }
-
-    /**
-     * Turns the player object to JSON
-     * @returns {GamePlayer[]} playerList
-     * 
-     */
-    playerJSON() {
-        let j = [];
-        this.players.forEach((player) => {
-            j.push({
-                googleid: player.googleid,
-                name: player.name,
-                score: player.score,
-                type: player.userType,
-                questions: player.questions
+        this.players.forEach((p)=>{
+            p.socket.emit("sceneUpdate", {
+                scene: this.currentClientScene.sceneId,
+                data: this.currentClientScene.data
             })
         })
-        return j
     }
 
-    async finishGame(g) {
-        console.log(`[INFO][GAME][${this.code}] Game finished`);
-        let time = new Date().getTime();
-        if (this.currentQuestion) {
-            this.pastQuestions.push(this.currentQuestion);
-        }
-        console.log(`[INFO][GAME][${this.code}][UPLOAD] Uploading game info...`);
-        this.currentQuestion = undefined;
-        let playerids = [];
-        await this.players.forEach(async (player, i) => {
-            let userGameStats = {
-                classId: this.code,
-                timestamp: time,
-                position: i,
-                userId: player.googleid,
-                questions: player.questions
-            };
-            console.log(`[INFO][GAME][${this.code}][UPLOAD] New UGS ${userGameStats}`);
-            playerids.push(player.googleid)
-            await Database.singleton.addUserGameStats(userGameStats);
-            await Database.singleton.addGameToUser(player.googleid, this.code, time)
-        });
-        let questionIds = [];
-        this.pastQuestions.forEach((q)=>{
-            questionIds.push(q._id);
+    startGame(){
+        this.state = "GAME";
+    }
+
+    endGame(){
+
+    }
+
+    async nextQuestion(){
+        let question = await Database.singleton.GetRandomQuestion();
+        this.currentQuestion = question;
+        this.questions.push({
+            questionId: this.currentQuestion._id,
+            questionNumber: this.questions.length,
+            studentAnswers: []
         })
-        await Database.singleton.addGameStats({
-            timestamp: time,
-            classId: this.code,
-            players: playerids,
-            questions: questionIds
-        });
-        console.log(`[INFO][GAME][${this.code}][UPLOAD] Done!`);
+        let CScene: StudentQuestionData = {
+            answers: this.currentQuestion.answers,
+            timeLimit: this.currentQuestion.timeLimit
+        }
+        let TScene: TeacherQuestionData = {
+            question: this.currentQuestion.question,
+            answerCounts: [],
+            answers: this.currentQuestion.answers,
+            correctAnswer: -1,
+            revealAnswers: false,
+            studentAnswerCount: 0,
+            timeLimit: this.currentQuestion.timeLimit
+        }
+        this.currentClientScene = Game.FindSceneById("studentquestion");
+        this.currentClientScene.data = CScene;
+        this.currentTeacherScene = Game.FindSceneById("teacherquestion")
+        this.currentTeacherScene.data = TScene;
     }
 
-    toJSON() {
-        return {
-            "code": this.code,
-            "players": this.players as GamePlayerJ[],
-            "state": this.state
+    updateState(){
+        if(this.currentClientScene.update){
+            this.currentClientScene.data = this.currentClientScene.update(this, this.currentClientScene.data)
+        }
+        if(this.currentTeacherScene.update){
+            this.currentTeacherScene.data = this.currentTeacherScene.update(this, this.currentTeacherScene.data)
+        }
+        this.sendScene()
+    }
+    
+    getState(isTeacher: boolean): GameScene{
+        if(isTeacher){
+            return this.currentTeacherScene;
+        }
+        else{
+            return this.currentClientScene;
         }
     }
 
-    updateAnswersAmount() {
-        this.sendToHost("numberOfAnswers", this.currentQuestion.userAnswers.length)
+    next(){
+
     }
 
-    join(player, socket) {
-        console.log(`[INFO][GAME][${this.code}] New player joined`)
-        for (let i = 0; i < this.players.length; i++) {
-            if (this.players[i].googleid == player.googleid) {
-                this.players[i].socket.emit("displayError", {
-                    "text": "Another device has signed in with this account."
-                })
-                this.players[i].socket.emit("forceDisconnect")
-                this.players[i].socket.disconnect(true);
-                console.log(`[GAME][${this.code}] Player connection overwritten`)
-                // This socket will be destroyed
-            }
-        }
-        player.socket = socket;
-        player.questions = [];
-        this.players.push(player);
-    }
-
-    leave(socket) {
-        let indx = -1;
-        for (let i = 0; i < this.players.length; i++) {
-            if (this.players[i].socket.id == socket.id) {
-                indx = i;
-            }
-        }
-        if(this.players[indx].googleid == this.host.googleid){
-            // This player is the teacher
-            // end the game
-            this.end("Teacher left.")
-        }
-        if (indx != -1) {
-            this.players.splice(indx);
-        }
-    }
-
-    end(message: string) {
-        this.broadcast("displayError", {
-            "text": message,
-            "continue": "studentdashboard"
-        })
-        this.broadcast("forceDisconnect");
-        GameManager.singleton.deleteGame(this.code);
-    }
-
-    broadcastLobbyStatus() {
-        if (this.state == "LOBBY") {
-            console.log(`[INFO][GAME][${this.code}] Updating lobby status`)
-            this.broadcast("updateLobbyStatus", {
-                game: this.toJSON()
-            });
-        }
-    }
-
-    async sendQuestion() {
-        if (this.showTimeout) {
-            clearTimeout(this.showTimeout);
-            this.showTimeout = undefined;
-        }
-        if (this.currentQuestion) {
-            this.pastQuestions.push(this.currentQuestion)
-        }
-        this.players.forEach((p)=>{
-            p.questions.push(-1);
-        })
-        console.log(`[INFO][GAME][${this.code}] Sending question`)
-        let _nextQuestion = await Database.singleton.GetRandomQuestion() as QuestionInstance;
-        _nextQuestion.userAnswers = [];
-        _nextQuestion.number = this.pastQuestions.length + 1;
-        currentQuestion = _nextQuestion;
-        this.broadcast("showQuestion", this.currentQuestion)
-        this.state = "QUESTION";
-        let game = this;
-        this.questionTimeout = setTimeout(() => game.showScoreboard(game), this.currentQuestion.timeLimit * 1000)
-    }
-
-    broadcast(name: string, data?: {}) {
-        try {
-            io.in(this.code).emit(name, data);
-        } catch (e) {
-            console.log(`[ERR][GAME][${this.code}][broadcast]Broadcast failed ${e}`)
-        }
-    }
-
-    sendToHost(name, data) {
-        this.host.socket.emit(name, data);
-    }
 }

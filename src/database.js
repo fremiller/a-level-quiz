@@ -162,7 +162,9 @@ class Database extends module_1.Module {
             models.Question.count({}).exec(function (err, count) {
                 var random = Math.floor(Math.random() * count);
                 models.Question.findOne().skip(random).exec(function (err, result) {
-                    resolve(result.toObject());
+                    if (result) {
+                        resolve(result.toObject());
+                    }
                 });
             });
         });

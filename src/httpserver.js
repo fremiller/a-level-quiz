@@ -51,18 +51,13 @@ class HTTPServer extends module_1.Module {
             return __awaiter(this, void 0, void 0, function* () {
                 let usr = yield auth.getUserFromToken(req.query.id);
                 let clasWithGame = [];
-                let classes;
-                if (usr.classes.toObject) {
-                    classes = usr.classes.toObject();
-                }
-                else {
-                    classes = usr.classes;
-                }
+                let classes = usr.classes;
                 classes.forEach((clas) => {
-                    let gam = gamemanager_1.GameManager.singleton.getGameByCode(clas.id, usr.domain);
+                    let gam = gamemanager_1.GameManager.singleton.getGameByCode(clas.id);
                     if (gam) {
                         let c = clas;
-                        c.gameInfo = gam.toJSON();
+                        //@ts-ignore
+                        c.gameInfo = gam.getDetails();
                         clasWithGame.push(c);
                     }
                 });
@@ -166,12 +161,6 @@ class HTTPServer extends module_1.Module {
                 let userid = yield auth.getUserIDFromToken(req.query.token);
                 console.log(userid);
                 res.json(yield database_1.Database.singleton.getUserPastGames(userid));
-            });
-        });
-        this.app.post("/games/create", function (req, res) {
-            return __awaiter(this, void 0, void 0, function* () {
-                httpServerInstance.log("[REQUEST] /games/create");
-                res.json(gamemanager_1.GameManager.singleton.createGame(req.query.class));
             });
         });
         return new Promise(function (resolve, reject) {
