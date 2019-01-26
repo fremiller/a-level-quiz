@@ -1,3 +1,5 @@
+import { Game } from "./game";
+
 /**
  * Contains Admin class
  * @module src/admin
@@ -22,11 +24,11 @@ export class Admin extends Module {
 
     getRunningGames() {
         let games = [];
-        for (var key in GameManager.singleton.games.none) {
-            if (GameManager.singleton.games.none.hasOwnProperty(key)) {
-                let g = GameManager.singleton.games.none[key];
+        for (var key in GameManager.singleton.games) {
+            if (GameManager.singleton.games.hasOwnProperty(key)) {
+                let g: Game = GameManager.singleton.games[key];
                 let state = g.state;
-                let id = g.code
+                let id = g.classid
                 let players = g.players.length;
                 games.push({
                     id: id,
@@ -63,12 +65,12 @@ export class Admin extends Module {
         }
     }
 
-    makeTestAccount(isTeacher){
+    makeTestAccount(isTeacher: boolean){
         console.log(`Creating ${isTeacher?"teacher":"student"} account`);
         Auth.generateTestAccount(isTeacher);
     }
 
-    deleteTestAccount(index){
+    deleteTestAccount(index: number){
         console.log(`Deleting test account ${index}`);
         Auth.deleteTestAccount(index);
     }

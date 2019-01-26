@@ -25,7 +25,7 @@ class Scoreboard extends Scene {
     })
     return html`
 <div class="header">
-  <h1>Scoreboard</h1><button onclick="finishGame()">Finish</button><button onclick="lobbyContinue()">Continue</button>
+  <h1>Scoreboard</h1><button onclick="end()">Finish</button><button onclick="next()">Continue</button>
 </div>
 <h3>${data.fact ? data.fact : ""}</h3>
 <div class="leaderboard">${leaderboard}</div>`;

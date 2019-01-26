@@ -29,6 +29,7 @@ class Game {
         this.currentTeacherScene = Game.FindSceneById("teacherlobby");
         this.updateState();
         this.sendScene();
+        this.setupSocketEvents(hostSocket, host.googleid, true);
     }
     static FindSceneById(id) {
         let scene = undefined;
@@ -38,6 +39,33 @@ class Game {
             }
         });
         return scene;
+    }
+    setupSocketEvents(socket, userid, isHost = false) {
+        let gameInstance = this;
+        if (isHost) {
+            socket.on("next", () => gameInstance.next(gameInstance));
+            socket.on("end", () => gameInstance.endGame(gameInstance));
+        }
+        else {
+            socket.on("answer", (ans) => gameInstance.submitAnswer(gameInstance, userid, ans));
+        }
+    }
+    submitAnswer(gameInstance = this, userid, answer) {
+        const answers = gameInstance.questions[gameInstance.questions.length - 1].studentAnswers;
+        let alreadySubmitted = false;
+        if (answers.find((a) => { return a.userid == userid; })) {
+            console.log("already submitted answer");
+            return;
+        }
+        gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.push({
+            answer: answer,
+            correct: answer == gameInstance.currentQuestion.correctAnswer,
+            time: 0,
+            userid: userid
+        });
+        gameInstance.findPlayerById(userid).socket.emit("sceneUpdate", {
+            scene: "waitingForAnswers"
+        });
     }
     /**
      * Run to get the player to join a game
@@ -56,8 +84,9 @@ class Game {
             questionAnswers: [],
             socket: socket
         });
+        // Update the state
         this.updateState();
-        this.sendScene();
+        this.setupSocketEvents(socket, user.googleid, false);
     }
     getDetails() {
         return {
@@ -67,33 +96,30 @@ class Game {
         };
     }
     findPlayerById(id) {
-        this.players.forEach((p) => {
-            if (p.details.googleid == id) {
-                return p;
-            }
-        });
-        return;
+        return this.players.find((p) => { return p.details.googleid == id; });
     }
-    sendScene() {
+    sendScene(options = "BOTH") {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`);
-        this.host.socket.emit("sceneUpdate", {
-            scene: this.currentTeacherScene.sceneId,
-            data: this.currentTeacherScene.data
-        });
-        this.players.forEach((p) => {
-            p.socket.emit("sceneUpdate", {
-                scene: this.currentClientScene.sceneId,
-                data: this.currentClientScene.data
+        if (options == "TEACHER" || options == "BOTH") {
+            this.host.socket.emit("sceneUpdate", {
+                scene: this.currentTeacherScene.sceneId,
+                data: this.currentTeacherScene.data
             });
-        });
+        }
+        if (options == "STUDENT" || options == "BOTH") {
+            this.players.forEach((p) => {
+                p.socket.emit("sceneUpdate", {
+                    scene: this.currentClientScene.sceneId,
+                    data: this.currentClientScene.data
+                });
+            });
+        }
     }
-    startGame() {
-        this.state = "GAME";
+    endGame(gameInstance = this) {
+        console.log("End Game");
     }
-    endGame() {
-    }
-    nextQuestion() {
+    nextQuestion(gameInstance = this) {
         return __awaiter(this, void 0, void 0, function* () {
             let question = yield database_1.Database.singleton.GetRandomQuestion();
             this.currentQuestion = question;
@@ -113,22 +139,27 @@ Sending players ${this.currentClientScene.sceneId}`);
                 correctAnswer: -1,
                 revealAnswers: false,
                 studentAnswerCount: 0,
-                timeLimit: this.currentQuestion.timeLimit
+                timeLimit: this.currentQuestion.timeLimit,
+                number: this.questions.length
             };
             this.currentClientScene = Game.FindSceneById("studentquestion");
             this.currentClientScene.data = CScene;
             this.currentTeacherScene = Game.FindSceneById("teacherquestion");
             this.currentTeacherScene.data = TScene;
+            this.updateState();
         });
     }
-    updateState() {
+    /**
+     * Runs each current scene's update function then sends the new data to all clients
+     */
+    updateState(options = "BOTH") {
         if (this.currentClientScene.update) {
             this.currentClientScene.data = this.currentClientScene.update(this, this.currentClientScene.data);
         }
         if (this.currentTeacherScene.update) {
             this.currentTeacherScene.data = this.currentTeacherScene.update(this, this.currentTeacherScene.data);
         }
-        this.sendScene();
+        this.sendScene(options);
     }
     getState(isTeacher) {
         if (isTeacher) {
@@ -138,7 +169,23 @@ Sending players ${this.currentClientScene.sceneId}`);
             return this.currentClientScene;
         }
     }
-    next() {
+    next(gameInstance = this) {
+        if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
+            // Move to the next question
+            gameInstance.state = "GAME";
+            console.log("Getting next question");
+            gameInstance.nextQuestion(gameInstance);
+        }
+        else if (gameInstance.state == "ANSWERS") {
+            // Move to the scoreboard
+            gameInstance.state = "SCOREBOARD";
+            console.log("Moving to scoreboard");
+        }
+        else if (gameInstance.state == "GAME") {
+            // Reveal answers
+            gameInstance.state = "ANSWERS";
+            console.log("Revealing answers");
+        }
     }
 }
 Game.Scenes = [

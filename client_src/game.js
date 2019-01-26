@@ -24,17 +24,17 @@ function connectToGame(code, create=false) {
     setupSocketEvents(socket)
 }
 
-function finishGame(){
-    socket.emit("finishGame");
+function next(){
+    socket.emit("next")
 }
 
-function lobbyContinue(){
-    socket.emit("lobbyContinue")
+function end(){
+    socket.emit("end")
 }
 
 function submitAnswer(id){
     console.log(`answer ${id}`)
-    socket.emit("submitAnswer", id)
+    socket.emit("answer", id)
 }
 /**
  * Adds all required events to the socket.io socket
@@ -55,12 +55,4 @@ function setupSocketEvents(socket) {
         console.log(data)
         loadScene(data.scene, data.data);
     })
-}
-
-function continueQuestion(){
-    socket.emit("continueQuestion");
-}
-
-function revealAnswersToPlayers(){
-    socket.emit("revealAnswersToPlayers")
 }

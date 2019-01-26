@@ -1,9 +1,9 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Contains Admin class
  * @module src/admin
  */
-Object.defineProperty(exports, "__esModule", { value: true });
 let { Module } = require("module");
 let { GameManager } = require("./gamemanager.js");
 let Auth = require("./auth");
@@ -20,11 +20,11 @@ class Admin extends Module {
     }
     getRunningGames() {
         let games = [];
-        for (var key in GameManager.singleton.games.none) {
-            if (GameManager.singleton.games.none.hasOwnProperty(key)) {
-                let g = GameManager.singleton.games.none[key];
+        for (var key in GameManager.singleton.games) {
+            if (GameManager.singleton.games.hasOwnProperty(key)) {
+                let g = GameManager.singleton.games[key];
                 let state = g.state;
-                let id = g.code;
+                let id = g.classid;
                 let players = g.players.length;
                 games.push({
                     id: id,

@@ -15,7 +15,7 @@ class TeacherLobby extends Scene {
         playerlist += `<p>${data.players[i]}</p>`;
     }
     return html`
-<div class="header"><button class="lobbystartbutton" onclick="startgame()">Start Game</button><h1>Play at <span id="link"> ffsh.xyz</span></h1>
+<div class="header"><button class="lobbystartbutton" onclick="next()">Start Game</button><h1>Play at <span id="link"> ffsh.xyz</span></h1>
   <div class="headerplayercount">
     <h1>${
       data.players.length
