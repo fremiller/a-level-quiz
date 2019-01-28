@@ -40,32 +40,84 @@ class Game {
         });
         return scene;
     }
+    /**
+     * Sets up the socket events for the user
+     * This is the only way data gets into the game instance
+     * All these events do not need to be verified, they can only be sent from
+     * the user which is stored in the `userid` parameter
+     * @param socket Socket to set up event listeners for
+     * @param userid The userid of the socket
+     * @param isHost Whether the user is the game host
+     */
     setupSocketEvents(socket, userid, isHost = false) {
         let gameInstance = this;
         if (isHost) {
+            // Move on to the next scene
             socket.on("next", () => gameInstance.next(gameInstance));
+            // Reveal answers to all students: displays correct or incorrect scene
+            socket.on("revealanswers", () => gameInstance.revealAnswersToStudents(gameInstance));
+            // Finish the game
             socket.on("end", () => gameInstance.endGame(gameInstance));
+            socket.on("disconnect", () => gameInstance.endGame(gameInstance));
         }
         else {
             socket.on("answer", (ans) => gameInstance.submitAnswer(gameInstance, userid, ans));
         }
     }
+    revealAnswersToStudents(gameInstance = this) {
+        // PRECONDITION: Game state is in answers or scoreboard
+        if (["ANSWERS", "SCOREBOARD"].indexOf(this.state) == -1) {
+            return;
+        }
+        let answerCorrect = new Map();
+        gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.forEach((ans) => {
+            // Should not find user by ID, this has n time complexity.
+            // Add the correct property to an object, and send socket events all at once
+            answerCorrect[ans.userid] = ans.correct;
+        });
+        gameInstance.players.forEach((p) => {
+            p.socket.emit("sceneUpdate", {
+                scene: answerCorrect[p.details.googleid] ? "correctanswer" : "incorrectanswer"
+            });
+        });
+    }
+    /**
+     * Submit an answer on behalf of a user
+     * Assumes socket is authorized to submit answer
+     * @param gameInstance The instance of the game
+     * @param userid The userid of the user which submitted the answer
+     * @param answer The index of the submitted answer
+     */
     submitAnswer(gameInstance = this, userid, answer) {
+        // PRECONDITION: Must be in game state
+        if (gameInstance.state != "GAME") {
+            return;
+        }
+        // Get answers from current question instance
         const answers = gameInstance.questions[gameInstance.questions.length - 1].studentAnswers;
-        let alreadySubmitted = false;
+        // Make sure that the user hasn't submitted an answer already
         if (answers.find((a) => { return a.userid == userid; })) {
             console.log("already submitted answer");
             return;
         }
+        // Adds a new AnswerData containing answer information to the current question instance
         gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.push({
             answer: answer,
             correct: answer == gameInstance.currentQuestion.correctAnswer,
             time: 0,
             userid: userid
         });
+        // Tells the client to display the waiting scene
         gameInstance.findPlayerById(userid).socket.emit("sceneUpdate", {
             scene: "waitingForAnswers"
         });
+        // Update the teacher scene: the number of answers has changed
+        gameInstance.updateState("TEACHER");
+        // Checks to see whether all players have submitted an answer
+        if (gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.length == gameInstance.players.length) {
+            // Move to the next scene; we must already be in the game scene to be in the current function
+            gameInstance.next();
+        }
     }
     /**
      * Run to get the player to join a game
@@ -176,15 +228,16 @@ Sending players ${this.currentClientScene.sceneId}`);
             console.log("Getting next question");
             gameInstance.nextQuestion(gameInstance);
         }
-        else if (gameInstance.state == "ANSWERS") {
-            // Move to the scoreboard
-            gameInstance.state = "SCOREBOARD";
-            console.log("Moving to scoreboard");
-        }
         else if (gameInstance.state == "GAME") {
             // Reveal answers
             gameInstance.state = "ANSWERS";
             console.log("Revealing answers");
+            this.updateState("TEACHER");
+        }
+        else if (gameInstance.state == "ANSWERS") {
+            // Move to the scoreboard
+            gameInstance.state = "SCOREBOARD";
+            console.log("Moving to scoreboard");
         }
     }
 }
@@ -211,11 +264,34 @@ Game.Scenes = [
         data: {}
     },
     {
+        teacher: false,
+        sceneId: "correctanswer"
+    },
+    {
+        teacher: false,
+        sceneId: "incorrectanswer"
+    },
+    {
         teacher: true,
         sceneId: "teacherquestion",
         data: {},
         update: (game, data) => {
+            // Update the state to match how many answers the game now has
             data.studentAnswerCount = game.questions[game.questions.length - 1].studentAnswers.length;
+            // If the game state is answers, we only need to calculate this state once
+            if (game.state == "ANSWERS" && !data.revealAnswers) {
+                // Reveal answers
+                data.revealAnswers = true;
+                // Add the question's correct answer to the data
+                data.correctAnswer = game.currentQuestion.correctAnswer;
+                // Add all the answer counts
+                data.answerCounts = [0, 0, 0, 0];
+                game.questions[game.questions.length - 1].studentAnswers.forEach((answer) => {
+                    if (answer.answer > -1 && answer.answer <= 3) {
+                        data.answerCounts[answer.answer] += 1;
+                    }
+                });
+            }
             return data;
         }
     },

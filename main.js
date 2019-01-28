@@ -250,6 +250,10 @@ function setupSocketEvents(socket) {
         console.log(data)
         loadScene(data.scene, data.data);
     })
+}
+
+function revealAnswersToPlayers(){
+    socket.emit("revealanswers")
 }let html = String.raw;
 /**
  * Represents a scene which is displayed in the client
@@ -844,6 +848,9 @@ class TeacherQuestion extends Scene {
      * @param {String[]} data.answers The question's answers
      */
     generateHtml(data) {
+        if(data.revealAnswers){
+            this.showCorrectAnswer(data.answerCounts, data.correctAnswer)
+        }
         clearInterval(currentTimer);
         currentQuestion = data;
         startTimer(data.timeLimit)
@@ -879,6 +886,41 @@ class TeacherQuestion extends Scene {
             }</p>
 <div class="answers host">${examStyle ? "" : answerBoxes}</div>`;
     }
+
+    showCorrectAnswer(counts, correctAnswer) {
+        let revealLast = 0;
+        let revealRandom = [];
+        counts.forEach(function (count, i) {
+          let ht = $("#answer-" + i).html()
+          $("#answer-" + i).html(ht + `<span class="answerCount"> ${toString(count)}</span>`);
+          if (i == correctAnswer) {
+            revealLast = i;
+          }
+          else {
+            revealRandom.push(i);
+          }
+        })
+        let revealQueue = shuffle(revealRandom);
+        revealQueue.push(revealLast);
+        revealQueue.forEach((answer, i) => {
+          let ht = $("#answer-" + answer).html()
+          if (i == counts.length - 1) {
+            // This is the last (the correct) answer
+            let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
+            timeoutsToClear.push(t);
+          }
+          else {
+            let t = setTimeout(() => $("#answer-" + answer).addClass("animated slideOutLeft").one("animationend", function () {
+              $(this).removeClass('animated slideOutLeft');
+              $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
+              revealAnswersToPlayers();
+              //if (typeof callback === 'function') callback();
+            }), 5000 + (300 * i));
+            timeoutsToClear.push(t);
+          }
+        })
+        clearInterval(currentTimer);
+      }
 }/**
  * Scene is shown while the student is waiting for answers
  * @extends Scene
@@ -988,60 +1030,6 @@ function showRunningGames(games) {
 }
 
 let timeoutsToClear = [];
-
-function showCorrectAnswer(data) {
-  let revealLast = 0;
-  let revealRandom = [];
-  data.forEach(function (ans, i) {
-    let ht = $("#answer-" + i).html()
-    $("#answer-" + i).html(ht + `<span class="answerCount"> ${ans.count}</span>`);
-    if (ans.correct) {
-      revealLast = i;
-    }
-    else {
-      revealRandom.push(i);
-    }
-  })
-  let revealQueue = shuffle(revealRandom);
-  revealQueue.push(revealLast);
-  revealQueue.forEach((answer, i) => {
-    let ht = $("#answer-" + answer).html()
-    if (data[answer].correct) {
-      let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
-      timeoutsToClear.push(t);
-    }
-    else {
-      let t = setTimeout(() => $("#answer-" + answer).addClass("animated slideOutLeft").one("animationend", function () {
-        $(this).removeClass('animated slideOutLeft');
-        $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
-        revealAnswersToPlayers();
-        //if (typeof callback === 'function') callback();
-      }), 5000 + (300 * i));
-      timeoutsToClear.push(t);
-    }
-  })
-  clearInterval(currentTimer);
-  if (currentQuestion.type != "EXAM") {
-    setTimeout(() => colourAnswer(data), 5000);
-  }
-}
-
-function colourAnswer(data) {
-  if (currentQuestion.type == "EXAM") {
-    for (let i = 0; i < currentQuestion.answers.length; i++) {
-
-    }
-  } else {
-    for (let i = 0; i < currentQuestion.answers.length; i++) {
-      if (data[i].correct) {
-        $("#answer-" + i).removeClass("answer").addClass("correctAnswer")
-      }
-      else {
-        $("#answer-" + i).removeClass("answer").addClass("incorrectAnswer")
-      }
-    }
-  }
-}
 
 function dropQuestion() {
   $(".exam.questiontitle").addClass("animated hinge slow");

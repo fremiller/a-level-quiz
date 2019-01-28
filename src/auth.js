@@ -80,7 +80,13 @@ const Testers = config.testers;
 function getUserFromToken(token, code, isSignIn = false) {
     return __awaiter(this, void 0, void 0, function* () {
         if (token.startsWith("TEST_")) {
-            return findTestAccount(token);
+            const TA = findTestAccount(token);
+            if (TA) {
+                return TA;
+            }
+            else {
+                throw "Test account does not exist";
+            }
         }
         let ticket = yield client.verifyIdToken({
             idToken: token,

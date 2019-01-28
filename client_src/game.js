@@ -56,3 +56,7 @@ function setupSocketEvents(socket) {
         loadScene(data.scene, data.data);
     })
 }
+
+function revealAnswersToPlayers(){
+    socket.emit("revealanswers")
+}

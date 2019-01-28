@@ -70,7 +70,13 @@ const Testers = config.testers;
 
 export async function getUserFromToken(token: string, code?: string, isSignIn:boolean=false):Promise<IUserDocument> {
     if(token.startsWith("TEST_")){
-        return findTestAccount(token);
+        const TA = findTestAccount(token);
+        if(TA){
+            return TA;
+        }
+        else{
+            throw "Test account does not exist";
+        }
     }
     let ticket = await client.verifyIdToken({
         idToken: token,
