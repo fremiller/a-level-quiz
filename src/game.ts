@@ -257,9 +257,11 @@ export class Game {
             userid: userid
         })
         // Tells the client to display the waiting scene
-        gameInstance.findPlayerById(userid).socket.emit("sceneUpdate", {
+        const client = gameInstance.findPlayerById(userid);
+        client.socket.emit("sceneUpdate", {
             scene: "waitingForAnswers"
         })
+        client.score += 10
         // Update the teacher scene: the number of answers has changed
         gameInstance.updateState("TEACHER")
         // Checks to see whether all players have submitted an answer
