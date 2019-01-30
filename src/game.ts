@@ -261,7 +261,9 @@ export class Game {
         client.socket.emit("sceneUpdate", {
             scene: "waitingForAnswers"
         })
-        client.score += 10
+        if (answer == gameInstance.currentQuestion.correctAnswer) {
+            client.score += 10
+        }
         // Update the teacher scene: the number of answers has changed
         gameInstance.updateState("TEACHER")
         // Checks to see whether all players have submitted an answer
