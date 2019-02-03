@@ -9,7 +9,7 @@ import {Admin} from "./src/admin";
 function init() {
     new Admin();
     console.log("A Level Quiz server");
-    console.log("By Freddie Miller");
+    console.log("By Freddie Miller");   
     console.log("Version 0.1.3");
     console.log("Setting up database");
     new Database(function () {

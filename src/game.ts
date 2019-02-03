@@ -230,7 +230,8 @@ export class Game {
         })
         gameInstance.players.forEach((p) => {
             p.socket.emit("sceneUpdate", {
-                scene: answerCorrect[p.details.googleid] ? "correctanswer" : "incorrectanswer"
+                scene: answerCorrect[p.details.googleid] ? "correctanswer" : "incorrectanswer",
+                data: p.score
             })
         })
     }
@@ -262,9 +263,13 @@ export class Game {
             userid: userid
         })
         // Tells the client to display the waiting scene
-        gameInstance.findPlayerById(userid).socket.emit("sceneUpdate", {
+        const client = gameInstance.findPlayerById(userid);
+        client.socket.emit("sceneUpdate", {
             scene: "waitingForAnswers"
         })
+        if (answer == gameInstance.currentQuestion.correctAnswer) {
+            client.score += 10
+        }
         // Update the teacher scene: the number of answers has changed
         gameInstance.updateState("TEACHER")
         // Checks to see whether all players have submitted an answer
@@ -414,17 +419,20 @@ Sending players ${this.currentClientScene.sceneId}`)
             gameInstance.state = "GAME";
             console.log("Getting next question")
             gameInstance.nextQuestion(gameInstance)
+            return
         }
         else if (gameInstance.state == "GAME") {
             // Reveal answers
             gameInstance.state = "ANSWERS";
             console.log("Revealing answers")
             this.updateState("TEACHER");
+            return
         }
         else if (gameInstance.state == "ANSWERS") {
             // Move to the scoreboard
             gameInstance.state = "SCOREBOARD";
             console.log("Moving to scoreboard")
+            return
         }
     }
 

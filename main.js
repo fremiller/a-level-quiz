@@ -345,12 +345,12 @@ class AdminDashboard extends Scene {
             }">
     </div>
     
-</div><div id="adminstatus" class="status"></div>
+</div><!--<div id="adminstatus" class="status"></div>
             <div class="gitstatus">
                 <p><span>1231542</span> by fishfred</p>
                 <h3>Added git status</h3>
                 <div class="pullbutton">Pull</div>
-            </div>
+            </div>-->
     <div class="adminrow">
     <div id="adminconsole" class="console">
 
