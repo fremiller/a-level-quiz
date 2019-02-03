@@ -6,5 +6,9 @@
             "cmd": "npm run build"
             }
         ]
+    },
+    "files.exclude": {
+        "src/*.js": true,
+        "src/*.js.map": true
     }
 }

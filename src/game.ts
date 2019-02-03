@@ -4,11 +4,6 @@ import { GameManager } from "./gamemanager";
 import { Database } from "./database";
 import { ClassInfo } from "./classroom";
 
-/**
- * Game module
- * @module src/game
- */
-
 interface GameOptions {
 
 }
@@ -79,15 +74,24 @@ interface Question extends IQuestion, IDDocument { }
  * Represents a class's game
  */
 export class Game {
+    /** The game's class ID. PK */
     classid: string;
+    /** The current scene with state displayed on the host */
     currentClientScene: GameScene;
+    /** The current scene with state displayed on the clients */
     currentTeacherScene: GameScene;
+    /** Results from past questions. Last item is current question */
     questions: QuestionResults[] = [];
+    /** Current question data. Identical to data in the question database */
     currentQuestion: Question;
+    /** The game's current state */
     state: "LOBBY" | "GAME" | "SCOREBOARD" | "ANSWERS" = "LOBBY";
+    /** All players */
     players: GamePlayer[] = [];
+    /** Host */
     host: GamePlayer;
 
+    /** Templates for all scenes. */
     static Scenes: GameScene[] = [
         {
             teacher: true,
@@ -160,6 +164,7 @@ export class Game {
         }
     ]
 
+    /** Gets a scene template based on it's id. The IDs are the same as on the client */
     static FindSceneById(id: string): GameScene {
         let scene = undefined;
         Game.Scenes.forEach((sc) => {
@@ -170,6 +175,7 @@ export class Game {
         return scene;
     }
 
+    /** Creates a new game object. */
     constructor(classId: string, options: GameOptions, host: IUser, hostSocket: SocketIO.Socket) {
         console.log("Creating game " + classId)
         this.classid = classId;
@@ -230,7 +236,7 @@ export class Game {
     }
 
     /**
-     * Submit an answer on behalf of a user
+     * Submit an answer on behalf of a user.
      * Assumes socket is authorized to submit answer
      * @param gameInstance The instance of the game
      * @param userid The userid of the user which submitted the answer
@@ -290,6 +296,7 @@ export class Game {
         this.setupSocketEvents(socket, user.googleid, false)
     }
 
+    /** Returns information about the game in a JSON friendly format */
     getDetails(): GameDetails {
         return {
             classid: this.classid,
@@ -298,10 +305,18 @@ export class Game {
         }
     }
 
+    /** Gets a student by their id.
+     *  TODO: Make this a dictionary based so it is order 1.
+     *  @param id The player's googleid
+     */
     findPlayerById(id: string): GamePlayer | undefined {
         return this.players.find((p) => { return p.details.googleid == id });
     }
 
+    /**
+     * Sends the current scene as-is to the clients
+     * @param options Which clients to send the scene to
+     */
     sendScene(options: "TEACHER" | "STUDENT" | "BOTH" | "NONE" = "BOTH") {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`)
@@ -321,10 +336,18 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
     }
 
+    /**
+     * Ends the game
+     * @param gameInstance Current game instance
+     */
     endGame(gameInstance: Game = this) {
         console.log("End Game")
     }
 
+    /**
+     * Finds and displays the next question
+     * @param gameInstance Current game instance
+     */
     async nextQuestion(gameInstance: Game = this) {
         let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
         this.currentQuestion = question;
@@ -356,6 +379,7 @@ Sending players ${this.currentClientScene.sceneId}`)
 
     /**
      * Runs each current scene's update function then sends the new data to all clients
+     * @param options The clients to update
      */
     updateState(options: "TEACHER" | "STUDENT" | "BOTH" | "NONE" = "BOTH") {
         if (this.currentClientScene.update) {
@@ -367,7 +391,11 @@ Sending players ${this.currentClientScene.sceneId}`)
         this.sendScene(options)
     }
 
-    getState(isTeacher: boolean): GameScene {
+    /**
+     * Gets the current scene
+     * @param isTeacher Gets the teacher scene if true
+     */
+    getCurrentScene(isTeacher: boolean): GameScene {
         if (isTeacher) {
             return this.currentTeacherScene;
         }
@@ -376,6 +404,10 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
     }
 
+    /**
+     * Goes to the next stage of the game
+     * @param gameInstance The current game instance
+     */
     next(gameInstance: Game = this) {
         if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
             // Move to the next question

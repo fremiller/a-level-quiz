@@ -19,6 +19,7 @@ coverage
 out
 docs
 server_docs
+tsdocs
 
 # nyc test coverage
 .nyc_output

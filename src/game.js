@@ -13,9 +13,13 @@ const database_1 = require("./database");
  * Represents a class's game
  */
 class Game {
+    /** Creates a new game object. */
     constructor(classId, options, host, hostSocket) {
+        /** Results from past questions. Last item is current question */
         this.questions = [];
+        /** The game's current state */
         this.state = "LOBBY";
+        /** All players */
         this.players = [];
         console.log("Creating game " + classId);
         this.classid = classId;
@@ -31,6 +35,7 @@ class Game {
         this.sendScene();
         this.setupSocketEvents(hostSocket, host.googleid, true);
     }
+    /** Gets a scene template based on it's id. The IDs are the same as on the client */
     static FindSceneById(id) {
         let scene = undefined;
         Game.Scenes.forEach((sc) => {
@@ -82,7 +87,7 @@ class Game {
         });
     }
     /**
-     * Submit an answer on behalf of a user
+     * Submit an answer on behalf of a user.
      * Assumes socket is authorized to submit answer
      * @param gameInstance The instance of the game
      * @param userid The userid of the user which submitted the answer
@@ -140,6 +145,7 @@ class Game {
         this.updateState();
         this.setupSocketEvents(socket, user.googleid, false);
     }
+    /** Returns information about the game in a JSON friendly format */
     getDetails() {
         return {
             classid: this.classid,
@@ -147,9 +153,17 @@ class Game {
             topic: "Physics"
         };
     }
+    /** Gets a student by their id.
+     *  TODO: Make this a dictionary based so it is order 1.
+     *  @param id The player's googleid
+     */
     findPlayerById(id) {
         return this.players.find((p) => { return p.details.googleid == id; });
     }
+    /**
+     * Sends the current scene as-is to the clients
+     * @param options Which clients to send the scene to
+     */
     sendScene(options = "BOTH") {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`);
@@ -168,9 +182,17 @@ Sending players ${this.currentClientScene.sceneId}`);
             });
         }
     }
+    /**
+     * Ends the game
+     * @param gameInstance Current game instance
+     */
     endGame(gameInstance = this) {
         console.log("End Game");
     }
+    /**
+     * Finds and displays the next question
+     * @param gameInstance Current game instance
+     */
     nextQuestion(gameInstance = this) {
         return __awaiter(this, void 0, void 0, function* () {
             let question = yield database_1.Database.singleton.GetRandomQuestion();
@@ -203,6 +225,7 @@ Sending players ${this.currentClientScene.sceneId}`);
     }
     /**
      * Runs each current scene's update function then sends the new data to all clients
+     * @param options The clients to update
      */
     updateState(options = "BOTH") {
         if (this.currentClientScene.update) {
@@ -213,7 +236,11 @@ Sending players ${this.currentClientScene.sceneId}`);
         }
         this.sendScene(options);
     }
-    getState(isTeacher) {
+    /**
+     * Gets the current scene
+     * @param isTeacher Gets the teacher scene if true
+     */
+    getCurrentScene(isTeacher) {
         if (isTeacher) {
             return this.currentTeacherScene;
         }
@@ -221,6 +248,10 @@ Sending players ${this.currentClientScene.sceneId}`);
             return this.currentClientScene;
         }
     }
+    /**
+     * Goes to the next stage of the game
+     * @param gameInstance The current game instance
+     */
     next(gameInstance = this) {
         if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
             // Move to the next question
@@ -241,6 +272,7 @@ Sending players ${this.currentClientScene.sceneId}`);
         }
     }
 }
+/** Templates for all scenes. */
 Game.Scenes = [
     {
         teacher: true,

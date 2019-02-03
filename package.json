@@ -7,7 +7,7 @@
     "test": "nyc --reporter=html mocha",
     "start": "node server.js",
     "build": "node build.js",
-    "docs": "jsdoc client_src models -t './node_modules/jsdoc-one-page' -r -d docs;jsdoc src models -t './node_modules/jsdoc-one-page' -r -d server_docs"
+    "docs": "jsdoc client_src models -r -d docs;jsdoc src models -r -d server_docs"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,8 @@
     "os-utils": "0.0.14",
     "pm2": "^3.2.3",
     "request": "^2.88.0",
-    "socket.io": "^2.1.1"
+    "socket.io": "^2.1.1",
+    "typedoc": "^0.14.2"
   },
   "devDependencies": {
     "eslint": "^5.9.0",
