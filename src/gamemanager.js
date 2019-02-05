@@ -34,7 +34,7 @@ class GameManager extends module_1.Module {
          */
         GameManager.singleton = this;
         this.log("Initializing IO object");
-        this.games = {};
+        this.games = new Map();
         this.io = httpserver_1.HTTPServer.singleton.io;
         this.io.on("connection", this.onConnection);
     }
@@ -105,7 +105,7 @@ class GameManager extends module_1.Module {
         return game;
     }
     deleteGame(classid) {
-        this.games[classid] = undefined;
+        this.games.delete(classid);
     }
 }
 exports.GameManager = GameManager;

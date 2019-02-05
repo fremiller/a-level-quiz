@@ -22,6 +22,11 @@ interface GamePlayer {
     details: IUser
 }
 
+interface ScoreboardData{
+    score: number
+    name: string
+}
+
 interface QuestionResults {
     questionId: string
     questionNumber: number
@@ -409,6 +414,29 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
     }
 
+    showScoreboard(){
+        // sort leaderboard
+        this.players = this.players.sort((a, b)=>{
+            return b.score - a.score
+        })
+        // update scene
+        let d: ScoreboardData[] = [];
+        this.players.forEach((p, i)=>{
+            if (i > 4){
+                return
+            }
+            d.push({
+                name: p.details.name,
+                score: p.score
+            })
+        })
+        this.currentTeacherScene = Game.FindSceneById("scoreboard")
+        this.currentTeacherScene.data = {
+            leaderboard: d
+        }
+        this.sendScene("TEACHER")
+    }
+
     /**
      * Goes to the next stage of the game
      * @param gameInstance The current game instance
@@ -425,13 +453,14 @@ Sending players ${this.currentClientScene.sceneId}`)
             // Reveal answers
             gameInstance.state = "ANSWERS";
             console.log("Revealing answers")
-            this.updateState("TEACHER");
+            gameInstance.updateState("TEACHER");
             return
         }
         else if (gameInstance.state == "ANSWERS") {
             // Move to the scoreboard
             gameInstance.state = "SCOREBOARD";
             console.log("Moving to scoreboard")
+            gameInstance.showScoreboard()
             return
         }
     }

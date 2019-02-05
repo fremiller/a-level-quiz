@@ -16,12 +16,7 @@ class Scoreboard extends Scene {
     let leaderboard = "";
     console.log(data)
     data.leaderboard.forEach(function (player, i) {
-      if (player.type == 0 && player.score > 0) {
-        if (i > 4) {
-          return;
-        }
-        leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
-      }
+      leaderboard += `<h5>${player.name} <span>${player.score}</span></h5>`
     })
     return html`
 <div class="header">

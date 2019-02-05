@@ -16,7 +16,7 @@ import { IUser } from "./models";
 export class GameManager extends Module {
     static singleton: GameManager;
     io: SocketIO.Server
-    games: {}
+    games: Map<String, Game>
     /**
      * @constructor
      * @description Adds the onConnection method to the server
@@ -30,7 +30,7 @@ export class GameManager extends Module {
          */
         GameManager.singleton = this;
         this.log("Initializing IO object");
-        this.games = {};
+        this.games = new Map<String, Game>();
         this.io = HTTPServer.singleton.io;
         this.io.on("connection", this.onConnection);
     }
@@ -104,6 +104,6 @@ export class GameManager extends Module {
     }
 
     deleteGame(classid: string) {
-        this.games[classid] = undefined;
+        this.games.delete(classid);
     }
 }
