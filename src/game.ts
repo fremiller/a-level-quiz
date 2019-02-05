@@ -464,5 +464,4 @@ Sending players ${this.currentClientScene.sceneId}`)
             return
         }
     }
-
 }
