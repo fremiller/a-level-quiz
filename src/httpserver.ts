@@ -6,15 +6,27 @@
 import * as express from "express";
 
 import { Database } from "./database";
-import {Module} from "./module";
+import { Module } from "./module";
 import * as auth from "./auth";
 import { GameManager } from "./gamemanager";
 import * as  classroom from "./classroom"
-import {Admin} from "./admin";
-import * as socketio  from "socket.io";
+import { Admin } from "./admin";
+import * as socketio from "socket.io";
 
 import * as nocache from 'nocache';
 import * as http from "http";
+
+export class NotAuthorizedError extends Error {
+    constructor() {
+        super("Not Authorized")
+    }
+}
+
+export class ParameterError extends Error {
+    constructor() {
+        super("Invalid Parameters")
+    }
+}
 
 /**
  * Manages all http communication
@@ -40,20 +52,41 @@ export class HTTPServer extends Module {
 
         this.app.use(nocache());
         this.app.use(express.static('public'));
+
+        this.app.use((req, res, next) => {
+            try {
+                next()
+            }
+            catch (e) {
+                if (e instanceof NotAuthorizedError || e instanceof ParameterError || e instanceof auth.TestAccountError) {
+                    res.send({
+                        result: "error",
+                        error: e.message
+                    })
+                }
+                else {
+                    console.error("Unknown Error: " + e)
+                    res.send({
+                        result: "error",
+                        error: "Unknown Error"
+                    })
+                }
+            }
+        })
     }
 
     /**
      * Adds all HTTP routes and starts the server
      * @returns {Promise} Resolves when the HTTP server is listening
      */
-    setup(): Promise<Object>{
+    setup(): Promise<Object> {
         let httpServerInstance = this;
         this.app.get("/games/user", async function (req, res) {
             let usr = await auth.getUserFromToken(req.query.id);
             let clasWithGame = [];
             let classes = usr.classes;
             classes.forEach((clas) => {
-                let gam = GameManager.singleton.getGameByCode(clas.id,)
+                let gam = GameManager.singleton.getGameByCode(clas.id)
                 if (gam) {
                     let c = clas;
                     //@ts-ignore
@@ -66,36 +99,24 @@ export class HTTPServer extends Module {
             })
         })
 
-        this.app.get("/admin/status", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json({
-                    "message": "go away"
-                });
-                return;
+        this.app.get("/admin/status", async function (req, res) {
+            if (!await auth.VerifyAdmin(req.query.token)) {
+                throw new NotAuthorizedError();
             }
             let AS = Admin.singleton.getAdminState()
             res.json(AS)
         })
 
-        this.app.post("/admin/accounts/create", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json({
-                    "message": "go away"
-                });
-                return;
+        this.app.post("/admin/accounts/create", async function (req, res) {
+            if (!await auth.VerifyAdmin(req.query.token)) {
+                throw new NotAuthorizedError();
             }
             Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
         })
 
-        this.app.post("/admin/accounts/delete", async function(req, res){
-            if(!await auth.VerifyAdmin(req.query.token)){
-                httpServerInstance.log("User not admin")
-                res.json({
-                    "message": "go away"
-                });
-                return;
+        this.app.post("/admin/accounts/delete", async function (req, res) {
+            if (!await auth.VerifyAdmin(req.query.token)) {
+                throw new NotAuthorizedError();
             }
             Admin.singleton.deleteTestAccount(req.query.index);
         })
@@ -103,8 +124,7 @@ export class HTTPServer extends Module {
         this.app.get("/users/register", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/register")
             if (!httpServerInstance.VerifyParams(req, ["name"])) {
-                res.status(402).send("Failed to add user. Invalid parameters");
-                return;
+                throw new ParameterError();
             }
             let usr = await Database.singleton.CreateUser({
                 name: req.query.name,
@@ -116,15 +136,10 @@ export class HTTPServer extends Module {
         this.app.post("/users/login", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/login");
             if (!httpServerInstance.VerifyParams(req, ["token"])) {
-                res.status(402).send("Failed to sign in. Invalid parameters");
+                throw new ParameterError();
             }
-            try {
-                let user = await auth.getUserFromToken(req.query.id, req.query.token, true);
-                res.json(user);
-            } catch (err) {
-                httpServerInstance.log(err);
-                res.status(403).send(err);
-            }
+            let user = await auth.getUserFromToken(req.query.id, req.query.token, true);
+            res.json(user);
         });
 
         this.app.get("/topics/list", async function (req, res) {
@@ -147,13 +162,13 @@ export class HTTPServer extends Module {
             res.json(d);
         })
 
-        this.app.get("/games/me", async function(req, res){
+        this.app.get("/games/me", async function (req, res) {
             let userid = await auth.getUserIDFromToken(req.query.token);
             console.log(userid);
             res.json(await Database.singleton.getUserPastGames(userid));
         })
 
-        return new Promise(function(resolve, reject){
+        return new Promise(function (resolve, reject) {
             httpServerInstance.http.listen("8000", function () {
                 httpServerInstance.log("Server listening on port 8000");
                 resolve();
@@ -166,7 +181,7 @@ export class HTTPServer extends Module {
      * @param {Request} req The request to check
      * @param {string[]} params The required parameters
      */
-    VerifyParams(req: express.Request, params: string[]) :boolean{
+    VerifyParams(req: express.Request, params: string[]): boolean {
         for (let i = 0; i < params.length; i++) {
             if (!req.query[params[i]]) {
                 return false;

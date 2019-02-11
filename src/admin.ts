@@ -11,6 +11,8 @@ let Auth = require("./auth");
 let clogold = console.log;
 
 export class Admin extends Module {
+    static singleton: Admin;
+
     constructor() {
         super("Admin");
         Admin.singleton = this;

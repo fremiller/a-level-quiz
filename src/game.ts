@@ -22,7 +22,7 @@ interface GamePlayer {
     details: IUser
 }
 
-interface ScoreboardData{
+interface ScoreboardData {
     score: number
     name: string
 }
@@ -105,7 +105,9 @@ export class Game {
             update: (game: Game, data: TeacherLobbyData): TeacherLobbyData => {
                 data.players = [];
                 game.players.forEach((p) => {
-                    data.players.push(p.details.name);
+                    if (p.socket.connected) {
+                        data.players.push(p.details.name);
+                    }
                 })
                 return data;
             }
@@ -215,11 +217,16 @@ export class Game {
             socket.on("revealanswers", () => gameInstance.revealAnswersToStudents(gameInstance))
             // Finish the game
             socket.on("end", () => gameInstance.endGame(gameInstance))
-            socket.on("disconnect", () => gameInstance.endGame(gameInstance))
         }
         else {
             socket.on("answer", (ans) => gameInstance.submitAnswer(gameInstance, userid, ans))
         }
+        socket.on("disconnect", () => {
+            if (gameInstance.state == "LOBBY") {
+                this.updateState()
+            }
+            console.log("disconnected")
+        })
     }
 
     revealAnswersToStudents(gameInstance: Game = this) {
@@ -291,19 +298,48 @@ export class Game {
      */
     joinGame(user: IUser, socket: SocketIO.Socket) {
         // Make sure the player is not in the game already
-        if (this.findPlayerById(user.googleid)) {
-            return
+        let p = this.findPlayerById(user.googleid);
+        if (p) {
+            if (p.socket.disconnected) {
+                // The socket is trying to reconnect
+                p.socket = socket
+                this.setupSocketEvents(socket, user.googleid, false)
+                if (this.state == "LOBBY") {
+                    this.updateState()
+                    return
+                }
+                // If we are in a game and the user has submitted an answer
+                if (this.questions.length > 0) {
+                    if ((this.state == "GAME" || this.state == "ANSWERS") && this.questions[this.questions.length - 1].studentAnswers.find((p) => { return p.userid == user.googleid })) {
+                        p.socket.emit("sceneUpdate", {
+                            scene: "waitingForAnswers"
+                        })
+                        return
+                    }
+                }
+                p.socket.emit("sceneUpdate", {
+                    scene: this.currentClientScene.sceneId,
+                    data: this.currentClientScene.data
+                })
+                return
+            } else {
+                return
+            }
         }
-        // Add the player to the list
-        this.players.push({
-            score: 0,
-            details: user,
-            questionAnswers: [],
-            socket: socket
-        });
-        // Update the state
-        this.updateState();
-        this.setupSocketEvents(socket, user.googleid, false)
+        else {
+            // Add the player to the list
+            this.players.push({
+                score: 0,
+                details: user,
+                questionAnswers: [],
+                socket: socket
+            });
+            // Update the state
+            if (this.state != "GAME") {
+                this.updateState();
+            }
+            this.setupSocketEvents(socket, user.googleid, false)
+        }
     }
 
     /** Returns information about the game in a JSON friendly format */
@@ -352,6 +388,7 @@ Sending players ${this.currentClientScene.sceneId}`)
      */
     endGame(gameInstance: Game = this) {
         console.log("End Game")
+        GameManager.singleton.deleteGame(gameInstance.classid)
     }
 
     /**
@@ -414,15 +451,15 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
     }
 
-    showScoreboard(){
+    showScoreboard() {
         // sort leaderboard
-        this.players = this.players.sort((a, b)=>{
+        this.players = this.players.sort((a, b) => {
             return b.score - a.score
         })
         // update scene
         let d: ScoreboardData[] = [];
-        this.players.forEach((p, i)=>{
-            if (i > 4){
+        this.players.forEach((p, i) => {
+            if (i > 4) {
                 return
             }
             d.push({

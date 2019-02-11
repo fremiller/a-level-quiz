@@ -215,7 +215,9 @@ function startgame() {
  */
 function connectToGame(code, create=false) {
     // Connects to the socket.io server
-    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create?"&createGame=true":""}`);
+    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create?"&createGame=true":""}`, {
+        reconnection: false
+    });
     setupSocketEvents(socket)
 }
 

@@ -12,7 +12,7 @@ export class Module {
      * Registers the module's name for easy logging
      * @param {string} name The name of the module
      */
-    constructor(name){
+    constructor(name: string){
         if(!name){
             console.error("Missing 'name' property of module");
         }

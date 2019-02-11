@@ -2,11 +2,18 @@ import {OAuth2Client} from "google-auth-library";
 import {Database} from "./database";
 import { IUser, IUserDocument } from "./models";
 import { GCResult, ClassInfo } from "./classroom";
+import { NotAuthorizedError } from "./httpserver";
 let config = require("../quizconfig.json");
 let models = require("./models")
 const CLIENT_ID = "628238058270-ea37oolom6rtkfhkdulour1ckqe52v3h.apps.googleusercontent.com";
 let client = new OAuth2Client();
 let classroom = require("./classroom")
+
+export class TestAccountError extends Error{
+    constructor(){
+        super("Test account does not exist")
+    }
+}
 
 export async function getUserIDFromToken(token) {
     let user = await getUserFromToken(token);
@@ -75,7 +82,7 @@ export async function getUserFromToken(token: string, code?: string, isSignIn:bo
             return TA;
         }
         else{
-            throw "Test account does not exist";
+            throw new TestAccountError();
         }
     }
     let ticket = await client.verifyIdToken({
@@ -85,7 +92,7 @@ export async function getUserFromToken(token: string, code?: string, isSignIn:bo
     let payload = ticket.getPayload();
     let userid = payload['sub'];
     if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
-        throw "Go away"
+        throw new NotAuthorizedError();
     }
     let user = await Database.singleton.getUserFromGoogleID(userid);
     if (!user) {
