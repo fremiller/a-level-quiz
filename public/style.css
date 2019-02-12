@@ -10,6 +10,7 @@ body {
     background-image: linear-gradient(to bottom, rgb(89, 216, 89) 0%, rgb(89, 216, 89) 33.333%, rgb(69, 149, 224) 33.334%, rgb(69, 149, 224) 66.666%, red 66.667%, red 100%);
     background-position: 0 50%;
     transition: background-position 1s;
+    overflow: hidden;
 }
 
 .body-green {
@@ -33,6 +34,7 @@ body {
     color: white;
     font-family: sans-serif;
     margin: 0;
+    user-select: none;
 }
 
 
