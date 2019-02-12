@@ -94,19 +94,6 @@ function dropQuestion() {
 
 let currentTimer = undefined;
 
-function startTimer(tlimit) {
-  let timer = tlimit;
-  $("#timer").text(timer);
-  let interval = setInterval(() => {
-    $("#timer").text(timer);
-    timer -= 1;
-  }, 1000);
-  setTimeout(() => {
-    clearInterval(interval)
-  }, tlimit * 1000)
-  currentTimer = interval;
-}
-
 $(function () {
   loadScene("signin");
   //setInterval(checkFullscreen, 10000);

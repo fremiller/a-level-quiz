@@ -200,6 +200,7 @@ function loadGameInfo(classId, timestamp) {
 
 let socket;
 let currentQuestion;
+let currentCountdownEnd = 0;
 
 /**
 * Starts a game when it is in the lobby
@@ -695,9 +696,16 @@ class StudentLobby extends Scene {
  */
 class StudentQuestion extends Scene {
     generateHtml(question) {
-        clearInterval(currentTimer);
         let answerBoxes = "";
-        startTimer(question.timeLimit)
+        currentCountdownEnd = question.endTime
+        let e = this
+        this.currentTimer = setInterval(()=>{
+          let t = (currentCountdownEnd - new Date().getTime())/1000;
+          $("#timer").html(t>0?Math.round(t):"")
+          if (t < 0){
+            clearInterval(e.currentTimer)
+          }
+        }, 200)
         question.answers.forEach((answer, i) => {
             answerBoxes += html`
 <div id="answer-${i}" class="answer normal" onclick="submitAnswer(${i})">
@@ -709,7 +717,7 @@ class StudentQuestion extends Scene {
         return html`
 <div class="header questionheader">
     <h1>Question ${question.number}</h1>
-    <h1 id="timer"></h1>
+    <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime())/1000)}</h1>
 </div>
 <div class="answers">${answerBoxes}</div>`;
     }
@@ -842,6 +850,7 @@ class TeacherQuestion extends Scene {
      * @param {boolean} data.revealAnswers Whether the answer should be revealed
      * @param {number} data.studentAnswerCount The amount of answers recieved
      * @param {number} data.timeLimit The amount of time to count down for
+     * @param {number} data.endTime The time when the countdown ends
      * @param {String[]} data.answers The question's answers
      */
     generateHtml(data) {
@@ -850,7 +859,23 @@ class TeacherQuestion extends Scene {
         }
         clearInterval(currentTimer);
         currentQuestion = data;
-        startTimer(data.timeLimit)
+        currentCountdownEnd = data.endTime
+        let e = this
+        let last_t = Infinity;
+        this.currentTimer = setInterval(()=>{
+          let t = (currentCountdownEnd - new Date().getTime())/1000;
+          let t_round = Math.round(t);
+          $("#timer").html(t>0?t_round:"")
+          if (last_t > t_round && t <= 10){
+            last_t = t_round
+            e.displayCountdown(t_round);
+          }
+          if (t < 0){
+            clearInterval(e.currentTimer)
+            e.hideCountdown()
+          }
+        }, 200)
+        
         let examStyle = true;
         let answerBoxes = "";
         data.exam = "";
@@ -865,8 +890,9 @@ class TeacherQuestion extends Scene {
         }
         return html`
 <div class="header">
+<p id="countdown">5</p>
     <h1>Question ${data.number}</h1>
-    <h1 id="timer"></h1>
+    <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime())/1000)}</h1>
     <button class="lobbystartbutton" onclick="next()">Continue</button>
     <div class="headerplayercount">
         <h1 id="numberAnswers">${
@@ -903,7 +929,7 @@ class TeacherQuestion extends Scene {
           let ht = $("#answer-" + answer).html()
           if (i == counts.length - 1) {
             // This is the last (the correct) answer
-            let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
+            let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), (300 * i));
             timeoutsToClear.push(t);
           }
           else {
@@ -912,11 +938,23 @@ class TeacherQuestion extends Scene {
               $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
               revealAnswersToPlayers();
               //if (typeof callback === 'function') callback();
-            }), 5000 + (300 * i));
+            }), (300 * i));
             timeoutsToClear.push(t);
           }
         })
         clearInterval(currentTimer);
+      }
+
+      displayCountdown(number){
+        $("#countdown").show();
+        $("#countdown").html(number)
+        $("#countdown").addClass("animated heartBeat fast").one("animationend", function(){
+          $(this).removeClass("animated heartBeat fast")
+        })
+      }
+
+      hideCountdown(){
+        $("#countdown").hide()
       }
 }/**
  * Scene is shown while the student is waiting for answers
@@ -1033,19 +1071,6 @@ function dropQuestion() {
 }
 
 let currentTimer = undefined;
-
-function startTimer(tlimit) {
-  let timer = tlimit;
-  $("#timer").text(timer);
-  let interval = setInterval(() => {
-    $("#timer").text(timer);
-    timer -= 1;
-  }, 1000);
-  setTimeout(() => {
-    clearInterval(interval)
-  }, tlimit * 1000)
-  currentTimer = interval;
-}
 
 $(function () {
   loadScene("signin");

@@ -5,6 +5,7 @@
 
 let socket;
 let currentQuestion;
+let currentCountdownEnd = 0;
 
 /**
 * Starts a game when it is in the lobby

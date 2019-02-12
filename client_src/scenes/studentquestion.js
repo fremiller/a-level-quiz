@@ -4,9 +4,16 @@
  */
 class StudentQuestion extends Scene {
     generateHtml(question) {
-        clearInterval(currentTimer);
         let answerBoxes = "";
-        startTimer(question.timeLimit)
+        currentCountdownEnd = question.endTime
+        let e = this
+        this.currentTimer = setInterval(()=>{
+          let t = (currentCountdownEnd - new Date().getTime())/1000;
+          $("#timer").html(t>0?Math.round(t):"")
+          if (t < 0){
+            clearInterval(e.currentTimer)
+          }
+        }, 200)
         question.answers.forEach((answer, i) => {
             answerBoxes += html`
 <div id="answer-${i}" class="answer normal" onclick="submitAnswer(${i})">
@@ -18,7 +25,7 @@ class StudentQuestion extends Scene {
         return html`
 <div class="header questionheader">
     <h1>Question ${question.number}</h1>
-    <h1 id="timer"></h1>
+    <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime())/1000)}</h1>
 </div>
 <div class="answers">${answerBoxes}</div>`;
     }

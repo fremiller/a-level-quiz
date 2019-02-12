@@ -12,6 +12,7 @@ class TeacherQuestion extends Scene {
      * @param {boolean} data.revealAnswers Whether the answer should be revealed
      * @param {number} data.studentAnswerCount The amount of answers recieved
      * @param {number} data.timeLimit The amount of time to count down for
+     * @param {number} data.endTime The time when the countdown ends
      * @param {String[]} data.answers The question's answers
      */
     generateHtml(data) {
@@ -20,7 +21,23 @@ class TeacherQuestion extends Scene {
         }
         clearInterval(currentTimer);
         currentQuestion = data;
-        startTimer(data.timeLimit)
+        currentCountdownEnd = data.endTime
+        let e = this
+        let last_t = Infinity;
+        this.currentTimer = setInterval(()=>{
+          let t = (currentCountdownEnd - new Date().getTime())/1000;
+          let t_round = Math.round(t);
+          $("#timer").html(t>0?t_round:"")
+          if (last_t > t_round && t <= 10){
+            last_t = t_round
+            e.displayCountdown(t_round);
+          }
+          if (t < 0){
+            clearInterval(e.currentTimer)
+            e.hideCountdown()
+          }
+        }, 200)
+        
         let examStyle = true;
         let answerBoxes = "";
         data.exam = "";
@@ -35,8 +52,9 @@ class TeacherQuestion extends Scene {
         }
         return html`
 <div class="header">
+<p id="countdown">5</p>
     <h1>Question ${data.number}</h1>
-    <h1 id="timer"></h1>
+    <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime())/1000)}</h1>
     <button class="lobbystartbutton" onclick="next()">Continue</button>
     <div class="headerplayercount">
         <h1 id="numberAnswers">${
@@ -73,7 +91,7 @@ class TeacherQuestion extends Scene {
           let ht = $("#answer-" + answer).html()
           if (i == counts.length - 1) {
             // This is the last (the correct) answer
-            let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), 5000 + (300 * i));
+            let t = setTimeout(() => $("#answer-" + answer).addClass("animated bounce"), (300 * i));
             timeoutsToClear.push(t);
           }
           else {
@@ -82,10 +100,22 @@ class TeacherQuestion extends Scene {
               $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
               revealAnswersToPlayers();
               //if (typeof callback === 'function') callback();
-            }), 5000 + (300 * i));
+            }), (300 * i));
             timeoutsToClear.push(t);
           }
         })
         clearInterval(currentTimer);
+      }
+
+      displayCountdown(number){
+        $("#countdown").show();
+        $("#countdown").html(number)
+        $("#countdown").addClass("animated heartBeat fast").one("animationend", function(){
+          $(this).removeClass("animated heartBeat fast")
+        })
+      }
+
+      hideCountdown(){
+        $("#countdown").hide()
       }
 }

@@ -51,6 +51,7 @@ interface TeacherQuestionData extends LobbyData {
     answerCounts: number[],
     revealAnswers: boolean,
     number: number
+    endTime: number
 }
 
 interface TeacherLobbyData extends LobbyData {
@@ -60,6 +61,8 @@ interface TeacherLobbyData extends LobbyData {
 interface StudentQuestionData extends LobbyData {
     answers: string[]
     timeLimit: number
+    endTime: number
+    number: number
 }
 
 interface IDDocument {
@@ -95,6 +98,8 @@ export class Game {
     players: GamePlayer[] = [];
     /** Host */
     host: GamePlayer;
+    /** The timer for the question to continue */
+    questionTimer: NodeJS.Timer
 
     /** Templates for all scenes. */
     static Scenes: GameScene[] = [
@@ -403,9 +408,12 @@ Sending players ${this.currentClientScene.sceneId}`)
             questionNumber: this.questions.length,
             studentAnswers: []
         })
+        let endTime = new Date().getTime() + this.currentQuestion.timeLimit * 1000
         let CScene: StudentQuestionData = {
             answers: this.currentQuestion.answers,
-            timeLimit: this.currentQuestion.timeLimit
+            timeLimit: this.currentQuestion.timeLimit,
+            endTime: endTime,
+            number : this.questions.length
         }
         let TScene: TeacherQuestionData = {
             question: this.currentQuestion.question,
@@ -415,13 +423,16 @@ Sending players ${this.currentClientScene.sceneId}`)
             revealAnswers: false,
             studentAnswerCount: 0,
             timeLimit: this.currentQuestion.timeLimit,
-            number: this.questions.length
+            number: this.questions.length,
+            endTime: endTime
         }
         this.currentClientScene = Game.FindSceneById("studentquestion");
         this.currentClientScene.data = CScene;
         this.currentTeacherScene = Game.FindSceneById("teacherquestion")
         this.currentTeacherScene.data = TScene;
         this.updateState()
+        let e = this
+        this.questionTimer = setTimeout(()=>e.next(e), this.currentQuestion.timeLimit * 1000)
     }
 
     /**
@@ -489,8 +500,10 @@ Sending players ${this.currentClientScene.sceneId}`)
         else if (gameInstance.state == "GAME") {
             // Reveal answers
             gameInstance.state = "ANSWERS";
+            clearInterval(gameInstance.questionTimer);
             console.log("Revealing answers")
-            gameInstance.updateState("TEACHER");
+            gameInstance.currentClientScene = Game.FindSceneById("waitingForAnswers")
+            gameInstance.updateState();
             return
         }
         else if (gameInstance.state == "ANSWERS") {
