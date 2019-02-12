@@ -408,6 +408,7 @@ Sending players ${this.currentClientScene.sceneId}`)
             questionNumber: this.questions.length,
             studentAnswers: []
         })
+        this.currentQuestion.timeLimit = 15;
         let endTime = new Date().getTime() + this.currentQuestion.timeLimit * 1000
         let CScene: StudentQuestionData = {
             answers: this.currentQuestion.answers,

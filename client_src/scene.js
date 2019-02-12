@@ -16,8 +16,8 @@ class Scene {
      * @param {Object} data The data which is passed to the object
      */
     preRender(data) {
-        if (intervalsToClear.length > 0) {
-            intervalsToClear.forEach(function (interval) {
+        if (timeoutsToClear.length > 0) {
+            timeoutsToClear.forEach(function (interval) {
                 clearInterval(interval);
             })
         }
@@ -47,6 +47,11 @@ class Scene {
      * @returns {Promise} Promise which resolves once the scene has left
      */
     onLeave(){
+        if (intervalsToClear.length > 0) {
+            intervalsToClear.forEach(function (interval) {
+                clearInterval(interval);
+            })
+        }
         return new Promise(function(res) {res()});
     }
 
