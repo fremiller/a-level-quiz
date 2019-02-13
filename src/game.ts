@@ -414,7 +414,7 @@ Sending players ${this.currentClientScene.sceneId}`)
             answers: this.currentQuestion.answers,
             timeLimit: this.currentQuestion.timeLimit,
             endTime: endTime,
-            number : this.questions.length
+            number: this.questions.length
         }
         let TScene: TeacherQuestionData = {
             question: this.currentQuestion.question,
@@ -433,7 +433,11 @@ Sending players ${this.currentClientScene.sceneId}`)
         this.currentTeacherScene.data = TScene;
         this.updateState()
         let e = this
-        this.questionTimer = setTimeout(()=>e.next(e), this.currentQuestion.timeLimit * 1000)
+        this.questionTimer = setTimeout(() => {
+            if (e.state == "GAME") {
+                e.next(e)
+            }
+        }, this.currentQuestion.timeLimit * 1000)
     }
 
     /**
