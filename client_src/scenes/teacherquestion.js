@@ -111,7 +111,8 @@ class TeacherQuestion extends Scene {
 
   displayCountdown(number) {
     $("#countdown").show();
-    $("#countdown").removeClass("animated heartBeat fast")
+    $("#countdown").removeClass("animated heartBeat fast");
+    void document.getElementById("countdown").offsetWidth
     $("#countdown").html(number)
     $("#countdown").addClass("animated heartBeat fast").one("animationend", function () {
       $(this).removeClass("animated heartBeat fast")
