@@ -19,7 +19,8 @@ let scenes = {
   createquestion: CreateQuestion,
   admindashboard: AdminDashboard,
   teachergameinfo: TeacherGameInfo,
-  finish: Finish
+  finish: Finish,
+  privacy: Privacy
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -162,4 +163,9 @@ function ordinal_suffix_of(i) {
       return i + "rd";
   }
   return i + "th";
+}
+
+function updateScroll(elementid){
+  var element = document.getElementById(elementid);
+  element.scrollTop = element.scrollHeight;
 }

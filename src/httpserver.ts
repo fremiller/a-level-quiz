@@ -54,8 +54,16 @@ export class HTTPServer extends Module {
         this.app.use(express.static('public'));
 
         this.app.use((req, res, next) => {
+            const logfilter = ["/admin/status"]
             try {
+                if (logfilter.indexOf(req.path) == -1) {
+                    this.log(req.path)
+                }
                 next()
+                res.setTimeout(2000, ()=>{
+                    res.status(500)
+                    res.send("Timeout. Try again later")
+                })
             }
             catch (e) {
                 if (e instanceof NotAuthorizedError || e instanceof ParameterError || e instanceof auth.TestAccountError) {
@@ -66,7 +74,7 @@ export class HTTPServer extends Module {
                 }
                 else {
                     console.error("Unknown Error: " + e)
-                    res.send({
+                    res.json({
                         result: "error",
                         error: "Unknown Error"
                     })
@@ -112,6 +120,9 @@ export class HTTPServer extends Module {
                 throw new NotAuthorizedError();
             }
             Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
+            res.json({
+                success: true
+            })
         })
 
         this.app.post("/admin/accounts/delete", async function (req, res) {
@@ -119,6 +130,9 @@ export class HTTPServer extends Module {
                 throw new NotAuthorizedError();
             }
             Admin.singleton.deleteTestAccount(req.query.index);
+            res.json({
+                success: true
+            })
         })
 
         this.app.get("/users/register", async function (req, res) {

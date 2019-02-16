@@ -126,6 +126,7 @@ function adminStateDisplay() {
         console.log(state);
         $("#adminconsole").html(state.console.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
         $("#adminstatus").html(state.status);
+        updateScroll("adminconsole")
         let gl = "";
         state.games.forEach((g) => {
             gl += `<div class="clickable"><h3>${g.status}</h3><h3>${g.players}</h3></div>`;

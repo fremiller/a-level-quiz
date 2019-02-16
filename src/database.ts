@@ -90,7 +90,7 @@ export class Database extends Module {
      * Adds a UserGameStats to the database
      * @param {UserGameStats} stats The UserGameStats to add
      */
-    async addUserGameStats(stats) {
+    async addUserGameStats(stats: models.IUserGameStats) {
         let stat = new models.UserGameStats(stats);
         stat = await stat.save();
         return stat;
@@ -100,7 +100,7 @@ export class Database extends Module {
      * Adds a GameStats to the database
      * @param {GameStats} stats The GameStats to add
      */
-    async addGameStats(stats) {
+    async addGameStats(stats: models.IGameStats) {
         let stat = new models.GameStats(stats);
         stat = await stat.save();
         return stat;
@@ -112,7 +112,7 @@ export class Database extends Module {
      * @param {string} userid The ID of the user
      * @param {string} gameid The ID of the game to add
      */
-    async addGameToUser(userid, classId, timestamp) {
+    async addGameToUser(userid: string, classId: string, timestamp: string) {
         let p = await this.getUserFromGoogleID(userid);
         p.previousGames.push(`${classId}:${timestamp}`);
         return await p.save();
@@ -130,7 +130,7 @@ export class Database extends Module {
         })
     }
 
-    async getUserPastGames(userid) {
+    async getUserPastGames(userid: string) {
         let games = await models.UserGameStats.find({
             userId: userid
         }).exec();

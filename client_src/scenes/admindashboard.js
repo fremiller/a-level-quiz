@@ -25,14 +25,14 @@ class AdminDashboard extends Scene {
                 <h3>Added git status</h3>
                 <div class="pullbutton">Pull</div>
             </div>-->
-    <div class="adminrow">
+    <div class="adminrow" id="admin-row-large">
     <div id="adminconsole" class="console">
 
     </div>
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
     <div id="testAccountList" class="datalist" data-list-title="Test Accounts"></div>
-    <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    <!--<button class="bigbtn" onclick="createQuestion()">Create Question</button>-->`
     }
 
     onLeave(){

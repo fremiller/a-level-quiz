@@ -4,21 +4,31 @@ class TeacherGameInfo extends Scene{
         let date = new Date(Number.parseInt(gameInfo.timestamp));
 
         let sc = "";
+        gameInfo.players.sort((a, b)=>{
+            return a.position - b.position
+        })
         gameInfo.players.forEach((p, i)=>{
-            if(i > 0){
+            if (p.position == -1){
+                // This is the teacher
+                return
+            }
+            if(p.position > 0){
                 sc += html`<div class="hline"></div>`
             }
             console.log(p)
-            sc += html`<div><h3>${i + 1}</h3><div class="vline"></div><h3>${p.details.name}</h3></div>`
+            sc += html`<div><h3>${p.position+1}</h3><div class="vline"></div><h3>${p.details?p.details.name:p.userId}</h3></div>`
         })
         
         let ql = "";
         gameInfo.questions.forEach((q, qi)=>{
-            let CA = q.correctAnswer;
+            let correctAnswer = q.correctAnswer;
             let correct = 0;
             let total = 0;
             gameInfo.players.forEach((p, i)=>{
-                if(p.questions[qi] == CA){
+                if(p.position == -1){
+                    return
+                }
+                if(p.questions[qi] == correctAnswer){
                     correct++;
                 }
                 total ++;

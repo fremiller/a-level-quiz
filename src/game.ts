@@ -1,4 +1,4 @@
-import { IQuestion, IQuestionDocument, IUser } from "./models";
+import { IQuestion, IQuestionDocument, IUser, IUserGameStatsDocument } from "./models";
 import { Document } from "mongoose";
 import { GameManager } from "./gamemanager";
 import { Database } from "./database";
@@ -272,10 +272,11 @@ export class Game {
             console.log("already submitted answer")
             return;
         }
+        const correct = answer == gameInstance.currentQuestion.correctAnswer
         // Adds a new AnswerData containing answer information to the current question instance
         gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.push({
             answer: answer,
-            correct: answer == gameInstance.currentQuestion.correctAnswer,
+            correct: correct,
             time: 0,
             userid: userid
         })
@@ -284,9 +285,14 @@ export class Game {
         client.socket.emit("sceneUpdate", {
             scene: "waitingForAnswers"
         })
-        if (answer == gameInstance.currentQuestion.correctAnswer) {
+        if (correct) {
             client.score += 10
         }
+        client.questionAnswers.push({
+            answer: answer,
+            correct: correct,
+            time: 0
+        })
         // Update the teacher scene: the number of answers has changed
         gameInstance.updateState("TEACHER")
         // Checks to see whether all players have submitted an answer
@@ -391,9 +397,65 @@ Sending players ${this.currentClientScene.sceneId}`)
      * Ends the game
      * @param gameInstance Current game instance
      */
-    endGame(gameInstance: Game = this) {
+    async endGame(gameInstance: Game = this) {
         console.log("End Game")
+        gameInstance.currentClientScene = {
+            sceneId: "loading",
+            data: {
+                "text": "Finishing game"
+            },
+            teacher: false
+        }
+        gameInstance.currentTeacherScene = {
+            sceneId: "loading",
+            data: {
+                "text": "Finishing game"
+            },
+            teacher: true
+        }
+        gameInstance.updateState()
+        await gameInstance.submitStats(gameInstance)
         GameManager.singleton.deleteGame(gameInstance.classid)
+    }
+
+    /**
+     * Saves all statistics for the game
+     * @param gameInstance GameInstance to run this on
+     */
+    async submitStats(gameInstance: Game = this){
+        console.log(`Saving GameStats for ${gameInstance.classid}`)
+        let db = Database.singleton;
+        let timestamp = new Date().getTime().toString()
+        await db.addGameStats({
+            classId: gameInstance.classid,
+            players: [], // Redundant as we can get this from google classroom
+            questions: this.questions.map((question)=>{return question.questionId}), // We only need IDs, The results from each question are stored in UserGameStats
+            timestamp: timestamp
+        })
+        console.log(`Done`)
+
+        let tasks: Promise<IUserGameStatsDocument>[] = [];
+        tasks.push(db.addUserGameStats({
+            classId: gameInstance.classid,
+            position: -1,
+            questions: [],
+            timestamp: timestamp,
+            userId: gameInstance.host.details.googleid
+        }))
+        gameInstance.players.forEach((player, i)=>{
+            console.log(`[${i + 1}/${gameInstance.players.length}] Saving UserGameStats for ${player.details.name}`)
+            tasks.push(db.addUserGameStats({
+                classId: gameInstance.classid,
+                position: i,
+                questions: player.questionAnswers.map((answer) => {return answer.answer}),
+                timestamp: timestamp,
+                userId: player.details.googleid
+            }))
+            console.log(`[${i + 1}/${gameInstance.players.length}] Done`)
+        })
+        
+        await Promise.all(tasks)
+        console.log("Done")
     }
 
     /**

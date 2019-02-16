@@ -126,6 +126,7 @@ function adminStateDisplay() {
         console.log(state);
         $("#adminconsole").html(state.console.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
         $("#adminstatus").html(state.status);
+        updateScroll("adminconsole")
         let gl = "";
         state.games.forEach((g) => {
             gl += `<div class="clickable"><h3>${g.status}</h3><h3>${g.players}</h3></div>`;
@@ -359,14 +360,14 @@ class AdminDashboard extends Scene {
                 <h3>Added git status</h3>
                 <div class="pullbutton">Pull</div>
             </div>-->
-    <div class="adminrow">
+    <div class="adminrow" id="admin-row-large">
     <div id="adminconsole" class="console">
 
     </div>
     <div id="runningGamesList" class="datalist" data-list-title="Running Games"></div>
     </div>
     <div id="testAccountList" class="datalist" data-list-title="Test Accounts"></div>
-    <button class="bigbtn" onclick="createQuestion()">Create Question</button>`
+    <!--<button class="bigbtn" onclick="createQuestion()">Create Question</button>-->`
     }
 
     onLeave(){
@@ -564,6 +565,23 @@ class LoadingScene extends Scene {
         </div>`;
     }
 }/**
+ * Contains a sign in button and welcome text
+ * @extends Scene
+ */
+class Privacy extends Scene {
+    generateHtml(data) {
+        return html`
+<div class="row">
+    <div class="center-box center-block animated slideInUp">
+        <h1>Privacy</h1>
+        <p>The only personally identifiable information we store is your full name (from your google account)</p>
+        <p>We also store your profile picture and google account ID</p>
+        <p>To access classes you're in, we query google APIs, access to which can be revoked at any time.</p>
+        <p>All other data stored is game performance, which cannot be opted out of, as it is crucial to the function of the service</p>
+    </div>
+</div>`;
+    }
+}/**
  * Game scoreboard
  * @extends Scene
  */
@@ -604,6 +622,7 @@ class SignIn extends Scene {
         <div id="google-align">
             <div id="g-signin" class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" style="display: block; margin: 0 auto;"></div>
         </div>
+        <p><a onclick="loadScene('privacy')">Privacy</a></p>
     </div>
 </div>`;
     }
@@ -777,21 +796,31 @@ class TeacherDashboard extends Scene {
         let date = new Date(Number.parseInt(gameInfo.timestamp));
 
         let sc = "";
+        gameInfo.players.sort((a, b)=>{
+            return a.position - b.position
+        })
         gameInfo.players.forEach((p, i)=>{
-            if(i > 0){
+            if (p.position == -1){
+                // This is the teacher
+                return
+            }
+            if(p.position > 0){
                 sc += html`<div class="hline"></div>`
             }
             console.log(p)
-            sc += html`<div><h3>${i + 1}</h3><div class="vline"></div><h3>${p.details.name}</h3></div>`
+            sc += html`<div><h3>${p.position+1}</h3><div class="vline"></div><h3>${p.details?p.details.name:p.userId}</h3></div>`
         })
         
         let ql = "";
         gameInfo.questions.forEach((q, qi)=>{
-            let CA = q.correctAnswer;
+            let correctAnswer = q.correctAnswer;
             let correct = 0;
             let total = 0;
             gameInfo.players.forEach((p, i)=>{
-                if(p.questions[qi] == CA){
+                if(p.position == -1){
+                    return
+                }
+                if(p.questions[qi] == correctAnswer){
                     correct++;
                 }
                 total ++;
@@ -1006,7 +1035,8 @@ let scenes = {
   createquestion: CreateQuestion,
   admindashboard: AdminDashboard,
   teachergameinfo: TeacherGameInfo,
-  finish: Finish
+  finish: Finish,
+  privacy: Privacy
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -1149,4 +1179,9 @@ function ordinal_suffix_of(i) {
       return i + "rd";
   }
   return i + "th";
+}
+
+function updateScroll(elementid){
+  var element = document.getElementById(elementid);
+  element.scrollTop = element.scrollHeight;
 }

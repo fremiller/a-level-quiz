@@ -577,7 +577,7 @@ select *{
     background-color: #272727;
     border-radius: 5px;
     font-family: monospace;
-    flex: 1 1 auto;
+    flex: 1 0 auto;
     padding: 1vh 1vw;
 }
 
@@ -588,14 +588,20 @@ select *{
 .adminrow{
     display: flex;
     flex-direction: row;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     margin: 1vh 1vw;
+    height: 60vh;
 }
 
 #runningGamesList{
-    flex: 1 1 auto;
+    flex: 1 0 auto;
     margin: 0;
     margin-left: 1vw;
+}
+
+#testAccountList{
+    flex: 0 0 auto;
+    height: 25vh;
 }
 
 div .vline{

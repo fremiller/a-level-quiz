@@ -12,6 +12,7 @@ class SignIn extends Scene {
         <div id="google-align">
             <div id="g-signin" class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" style="display: block; margin: 0 auto;"></div>
         </div>
+        <p><a onclick="loadScene('privacy')">Privacy</a></p>
     </div>
 </div>`;
     }
