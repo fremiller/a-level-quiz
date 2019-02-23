@@ -33,9 +33,11 @@ class TeacherQuestion extends Scene {
           last_t = t_round;
           e.displayCountdown(t_round);
         }
+        if (t_round < 0){
+          e.hideCountdown()
+        }
         if (t < 0) {
           clearInterval(e.currentTimer)
-          e.hideCountdown()
         }
       }, 200)
     }
@@ -101,12 +103,11 @@ class TeacherQuestion extends Scene {
           $(this).removeClass('animated slideOutLeft');
           $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
           revealAnswersToPlayers();
-          //if (typeof callback === 'function') callback();
         }), (300 * i));
         timeoutsToClear.push(t);
       }
     })
-    clearInterval(currentTimer);
+    clearInterval(this.currentTimer);
   }
 
   displayCountdown(number) {
@@ -121,5 +122,10 @@ class TeacherQuestion extends Scene {
 
   hideCountdown() {
     $("#countdown").hide()
+  }
+
+  onLeave(){
+    clearInterval(this.currentTimer)
+    return super.onLeave()
   }
 }

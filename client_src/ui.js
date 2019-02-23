@@ -20,7 +20,8 @@ let scenes = {
   admindashboard: AdminDashboard,
   teachergameinfo: TeacherGameInfo,
   finish: Finish,
-  privacy: Privacy
+  privacy: Privacy,
+  teachersummary: TeacherSummary
 }; // [Scene]
 
 let intervalsToClear = [];

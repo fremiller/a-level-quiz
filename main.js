@@ -905,9 +905,11 @@ class TeacherQuestion extends Scene {
           last_t = t_round;
           e.displayCountdown(t_round);
         }
+        if (t_round < 0){
+          e.hideCountdown()
+        }
         if (t < 0) {
           clearInterval(e.currentTimer)
-          e.hideCountdown()
         }
       }, 200)
     }
@@ -973,12 +975,11 @@ class TeacherQuestion extends Scene {
           $(this).removeClass('animated slideOutLeft');
           $(this).html("&zwnj;<span class='bold'>&zwnj;</span>");
           revealAnswersToPlayers();
-          //if (typeof callback === 'function') callback();
         }), (300 * i));
         timeoutsToClear.push(t);
       }
     })
-    clearInterval(currentTimer);
+    clearInterval(this.currentTimer);
   }
 
   displayCountdown(number) {
@@ -994,6 +995,28 @@ class TeacherQuestion extends Scene {
   hideCountdown() {
     $("#countdown").hide()
   }
+
+  onLeave(){
+    clearInterval(this.currentTimer)
+    return super.onLeave()
+  }
+}class TeacherSummary extends Scene{
+    /**
+     * Generates HTML
+     * @param {Object} data TeacherSummary data
+     * @param {Object[]} data.leaderboard
+     * @param {String} data.leaderboard.name
+     * @param {Number} data.leaderboard.score
+     * @param {Number} data.numberOfQuestions
+     */
+    generateHtml(data){
+        let lbhtml = data.leaderboard.map((item)=>{return html`<h3>${item.name}<span>${item.score}</span></h3>`})
+        return html`<div class="header">
+            <h1>Summary</h1><p>${data.numberOfQuestions} Questions</p>
+            <button class="lobbystartbutton" onclick="loadScene('teacherdashboard')">Continue</button>
+            </div>
+        ${lbhtml}`
+    }
 }/**
  * Scene is shown while the student is waiting for answers
  * @extends Scene
@@ -1036,7 +1059,8 @@ let scenes = {
   admindashboard: AdminDashboard,
   teachergameinfo: TeacherGameInfo,
   finish: Finish,
-  privacy: Privacy
+  privacy: Privacy,
+  teachersummary: TeacherSummary
 }; // [Scene]
 
 let intervalsToClear = [];

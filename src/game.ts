@@ -1,8 +1,6 @@
 import { IQuestion, IQuestionDocument, IUser, IUserGameStatsDocument } from "./models";
-import { Document } from "mongoose";
 import { GameManager } from "./gamemanager";
 import { Database } from "./database";
-import { ClassInfo } from "./classroom";
 
 interface GameOptions {
 
@@ -63,6 +61,11 @@ interface StudentQuestionData extends LobbyData {
     timeLimit: number
     endTime: number
     number: number
+}
+
+interface SummaryData extends LobbyData{
+    leaderboard: ScoreboardData[],
+    numberOfQuestions: number
 }
 
 interface IDDocument {
@@ -173,6 +176,29 @@ export class Game {
         {
             teacher: true,
             sceneId: "scoreboard"
+        },
+        {
+            teacher: false,
+            sceneId: "studentdashboard"
+        },
+        {
+            teacher: true,
+            sceneId: "teacherdashboard"
+        },
+        {
+            teacher: true,
+            sceneId: "teachersummary",
+            data: {},
+            update: (game: Game, data: SummaryData): SummaryData =>{
+                data.leaderboard = game.players.map((player)=>{
+                    return {
+                        name: player.details.name,
+                        score: player.score
+                    }
+                })
+                data.numberOfQuestions = game.questions.length
+                return data
+            }
         }
     ]
 
@@ -302,6 +328,11 @@ export class Game {
         }
     }
 
+    leaveGame(userid: string){
+        let player = this.findPlayerById(userid);
+        player.socket.disconnect();
+    }
+
     /**
      * Run to get the player to join a game
      * @param user 
@@ -415,6 +446,12 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
         gameInstance.updateState()
         await gameInstance.submitStats(gameInstance)
+        gameInstance.currentClientScene = Game.FindSceneById("studentdashboard")
+        gameInstance.currentTeacherScene = Game.FindSceneById("teachersummary")
+        gameInstance.updateState()
+        gameInstance.players.forEach((p)=>{
+            p.socket.disconnect()
+        })
         GameManager.singleton.deleteGame(gameInstance.classid)
     }
 
