@@ -1,3 +1,7 @@
+/**
+ * @module a-level-quiz
+ */
+
 import { IQuestion, IQuestionDocument, IUser, IUserGameStatsDocument } from "./models";
 import { GameManager } from "./gamemanager";
 import { Database } from "./database";
@@ -18,6 +22,7 @@ interface GamePlayer {
     socket: SocketIO.Socket
     questionAnswers: AnswerData[]
     details: IUser
+    displayName: string
 }
 
 interface ScoreboardData {
@@ -114,7 +119,7 @@ export class Game {
                 data.players = [];
                 game.players.forEach((p) => {
                     if (p.socket.connected) {
-                        data.players.push(p.details.name);
+                        data.players.push(p.displayName);
                     }
                 })
                 return data;
@@ -192,7 +197,7 @@ export class Game {
             update: (game: Game, data: SummaryData): SummaryData =>{
                 data.leaderboard = game.players.map((player)=>{
                     return {
-                        name: player.details.name,
+                        name: player.displayName,
                         score: player.score
                     }
                 })
@@ -221,7 +226,8 @@ export class Game {
             details: host,
             socket: hostSocket,
             score: 0,
-            questionAnswers: []
+            questionAnswers: [],
+            displayName: ""
         }
         this.currentClientScene = Game.FindSceneById("studentlobby");
         this.currentTeacherScene = Game.FindSceneById("teacherlobby");
@@ -369,13 +375,22 @@ export class Game {
             }
         }
         else {
+            let displayName = user.name.split(" ")[0] + " "
+            this.players.forEach((p)=>{
+                while (p.displayName == displayName){
+                    p.displayName += p.details.name.replace(p.displayName, "")[0]
+                    displayName += user.name.replace(displayName, "")[0]
+                }
+            })
             // Add the player to the list
             this.players.push({
                 score: 0,
                 details: user,
                 questionAnswers: [],
-                socket: socket
+                socket: socket,
+                displayName: displayName
             });
+            
             // Update the state
             if (this.state != "GAME") {
                 this.updateState();
@@ -578,7 +593,7 @@ Sending players ${this.currentClientScene.sceneId}`)
                 return
             }
             d.push({
-                name: p.details.name,
+                name: p.displayName,
                 score: p.score
             })
         })

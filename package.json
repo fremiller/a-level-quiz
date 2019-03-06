@@ -43,6 +43,7 @@
     "jsdoc-one-page": "0.0.5",
     "mocha": "^5.2.0",
     "mock-socket": "^8.0.5",
-    "node-minify": "^3.6.0"
+    "node-minify": "^3.6.0",
+    "typedoc-plugin-markdown": "^1.1.27"
   }
 }

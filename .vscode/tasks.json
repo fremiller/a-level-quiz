@@ -14,6 +14,12 @@
             "problemMatcher": [
                 "$tsc"
             ]
+        },
+        {
+            "command": "typedoc --theme minimal --out tsdocs --mode file",
+            "label": "Build Documentation",
+            "problemMatcher": [],
+            "type": "shell"
         }
     ]
 }

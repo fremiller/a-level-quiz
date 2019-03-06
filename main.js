@@ -1002,7 +1002,7 @@ class TeacherQuestion extends Scene {
   }
 }class TeacherSummary extends Scene{
     /**
-     * Generates HTML
+     * Generates HTML for the TeacherSummary scene
      * @param {Object} data TeacherSummary data
      * @param {Object[]} data.leaderboard
      * @param {String} data.leaderboard.name
