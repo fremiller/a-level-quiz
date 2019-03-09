@@ -4,6 +4,8 @@
  */
 class StudentDashboard extends Scene {
     generateHtml(data) {
+        this.returnable = true
+        this.regenerateHtml = true
         getRunningGames()
         setInterval(getRunningGames, 5000);
         return html`

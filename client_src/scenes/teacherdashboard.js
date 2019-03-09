@@ -4,6 +4,8 @@
  */
 class TeacherDashboard extends Scene {
     generateHtml(data) {
+        this.returnable = true
+        this.regenerateHtml = true
         return html`
 <div class="header">
     <h1>Dashboard</h1>

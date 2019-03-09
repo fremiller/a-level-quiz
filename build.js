@@ -10,18 +10,18 @@ async function run() {
             let t = await fs.readFileSync(name, { encoding: "utf-8" });
             text += t;
         }
-        let out = __dirname + "/main.js";
+        let out = __dirname + "/public/main.js";
         console.log("Writing to " + out + ".");
         await fs.writeFileSync(out, text);
-        console.log("Compressing files...");
-        compressor.minify({
-            compressor: 'gcc',
-            input: __dirname + "/main.js",
-            output: __dirname + "/public/main.js",
-            callback: function(err, min){
-                console.log("done");
-            }
-        })
+        // console.log("Compressing files...");
+        // compressor.minify({
+        //     compressor: 'gcc',
+        //     input: __dirname + "/main.js",
+        //     output: __dirname + "/public/main.js",
+        //     callback: function(err, min){
+        //         console.log("done");
+        //     }
+        // })
     });
 }
 

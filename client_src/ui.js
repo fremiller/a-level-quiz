@@ -21,29 +21,55 @@ let scenes = {
   teachergameinfo: TeacherGameInfo,
   finish: Finish,
   privacy: Privacy,
-  teachersummary: TeacherSummary
+  teachersummary: TeacherSummary,
+  statistics: Statistics
 }; // [Scene]
 
 let intervalsToClear = [];
 let currentScene = undefined;
 let currentSceneName = undefined;
 
+let sceneStack = [];
+let newSceneStackItem = {};
 /**
  * Displays a "scene" on the client
  * @param {String} tag The name of the scene
  * @param {*} data Any data to be given to the scene
  */
-async function loadScene(tag, data) {
-  if(currentScene){
+async function loadScene(tag, data, html, regenerateHtml = true, goingBack=false) {
+  if (currentScene) {
+    if (currentScene.returnable && !goingBack) {
+      sceneStack.push(newSceneStackItem)
+    }
     await currentScene.onLeave();
   }
   changeBackgroundColour("body-blue");
   currentScene = new scenes[tag]("#scene");
-  currentScene.preRender();
-  await currentScene.onEnter();
-  $("#scene").html(currentScene.generateHtml(data));
-  currentScene.postRender();
+  await currentScene.preRender(data);
+  await currentScene.onEnter(data);
+  let generatedHtml = regenerateHtml ? currentScene.generateHtml(data) : html;
+  $("#scene").html(generatedHtml);
+  currentScene.postRender(data);
   currentSceneName = tag;
+  newSceneStackItem = {
+    scene: currentScene,
+    html: generatedHtml,
+    regenerateHtml: currentScene.regenerateHtml,
+    tag: tag,
+    data: data
+  };
+  if(sceneStack.length > 0 && ["creategame", "teacherlobby", "studentlobby", "statistics", "privacy", "error"].indexOf(tag) != -1){
+    // make back button appear in header
+    let header = $(".header")
+    header.html("<button onclick='back()'>Back</button>" + header.html())
+  }
+}
+
+async function back() {
+  if (sceneStack.length > 0) {
+    let scene = sceneStack.pop();
+    await loadScene(scene.tag, scene.data, scene.generatedHtml, scene.regenerateHtml, true)
+  }
 }
 
 /**
@@ -147,26 +173,26 @@ function shuffle(a) {
   return a;
 }
 
-function int_to_pos(i){
-  return ordinal_suffix_of(i+1)
+function int_to_pos(i) {
+  return ordinal_suffix_of(i + 1)
 }
 
 function ordinal_suffix_of(i) {
   var j = i % 10,
-      k = i % 100;
+    k = i % 100;
   if (j == 1 && k != 11) {
-      return i + "st";
+    return i + "st";
   }
   if (j == 2 && k != 12) {
-      return i + "nd";
+    return i + "nd";
   }
   if (j == 3 && k != 13) {
-      return i + "rd";
+    return i + "rd";
   }
   return i + "th";
 }
 
-function updateScroll(elementid){
+function updateScroll(elementid) {
   var element = document.getElementById(elementid);
   element.scrollTop = element.scrollHeight;
 }

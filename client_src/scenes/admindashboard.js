@@ -5,6 +5,8 @@
 class AdminDashboard extends Scene {
     preRender(data) {
         this.stateInterval = setInterval(adminStateDisplay, 1000);
+        this.returnable = true
+        this.regenerateHtml = true
     }
     /**
      * @inheritdoc

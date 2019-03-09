@@ -177,7 +177,7 @@ export class Database extends Module {
         })
     }
 
-    async getGameInfo(classId: string, timestamp: string) {
+    async getTeacherGameInfo(classId: string, timestamp: string): Promise<IGameData|any> {
         console.log(`Class: ${classId} Time: ${timestamp}`)
         let game = await models.GameStats.find({
             classId: classId,
