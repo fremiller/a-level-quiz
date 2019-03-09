@@ -4,7 +4,7 @@
  */
 class StudentQuestion extends Scene {
     generateHtml(question) {
-        let timeOffset = data.time - new Date().getTime();
+        let timeOffset = question.time - new Date().getTime();
         question.endTime += timeOffset;
         let answerBoxes = "";
         currentCountdownEnd = question.endTime
