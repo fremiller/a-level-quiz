@@ -17,7 +17,7 @@ class TeacherQuestion extends Scene {
    */
   generateHtml(data) {
     let timeOffset = data.time - new Date().getTime();
-    data.endTime += timeOffset;
+    data.endTime -= timeOffset;
     if (data.revealAnswers) {
       this.showCorrectAnswer(data.answerCounts, data.correctAnswer)
     }

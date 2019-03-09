@@ -68,7 +68,7 @@ interface StudentQuestionData extends LobbyData {
     number: number
 }
 
-interface SummaryData extends LobbyData{
+interface SummaryData extends LobbyData {
     leaderboard: ScoreboardData[],
     numberOfQuestions: number
 }
@@ -194,8 +194,8 @@ export class Game {
             teacher: true,
             sceneId: "teachersummary",
             data: {},
-            update: (game: Game, data: SummaryData): SummaryData =>{
-                data.leaderboard = game.players.map((player)=>{
+            update: (game: Game, data: SummaryData): SummaryData => {
+                data.leaderboard = game.players.map((player) => {
                     return {
                         name: player.displayName,
                         score: player.score
@@ -336,7 +336,7 @@ export class Game {
         }
     }
 
-    leaveGame(userid: string){
+    leaveGame(userid: string) {
         let player = this.findPlayerById(userid);
         player.socket.disconnect();
     }
@@ -378,8 +378,8 @@ export class Game {
         }
         else {
             let displayName = user.name.split(" ")[0] + " "
-            this.players.forEach((p)=>{
-                while (p.displayName == displayName){
+            this.players.forEach((p) => {
+                while (p.displayName == displayName) {
                     p.displayName += p.details.name.replace(p.displayName, "")[0]
                     displayName += user.name.replace(displayName, "")[0]
                 }
@@ -392,7 +392,7 @@ export class Game {
                 socket: socket,
                 displayName: displayName
             });
-            
+
             // Update the state
             if (this.state != "GAME") {
                 this.updateState();
@@ -426,19 +426,25 @@ export class Game {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`)
         let time = new Date().getTime();
+        let TD: any = this.currentTeacherScene.data;
+        if (TD) {
+            TD.time = time;
+        }
         if (options == "TEACHER" || options == "BOTH") {
             this.host.socket.emit("sceneUpdate", {
                 scene: this.currentTeacherScene.sceneId,
-                data: this.currentTeacherScene.data,
-                time: time
+                data: TD
             })
+        }
+        let SD: any = this.currentClientScene.data;
+        if (SD) {
+            SD.time = time;
         }
         if (options == "STUDENT" || options == "BOTH") {
             this.players.forEach((p) => {
                 p.socket.emit("sceneUpdate", {
                     scene: this.currentClientScene.sceneId,
-                    data: this.currentClientScene.data,
-                    time: time
+                    data: SD,
                 })
             })
         }
@@ -469,7 +475,7 @@ Sending players ${this.currentClientScene.sceneId}`)
         gameInstance.currentClientScene = Game.FindSceneById("studentdashboard")
         gameInstance.currentTeacherScene = Game.FindSceneById("teachersummary")
         gameInstance.updateState()
-        gameInstance.players.forEach((p)=>{
+        gameInstance.players.forEach((p) => {
             p.socket.disconnect()
         })
         GameManager.singleton.deleteGame(gameInstance.classid)
@@ -479,14 +485,14 @@ Sending players ${this.currentClientScene.sceneId}`)
      * Saves all statistics for the game
      * @param gameInstance GameInstance to run this on
      */
-    async submitStats(gameInstance: Game = this){
+    async submitStats(gameInstance: Game = this) {
         console.log(`Saving GameStats for ${gameInstance.classid}`)
         let db = Database.singleton;
         let timestamp = new Date().getTime().toString()
         await db.addGameStats({
             classId: gameInstance.classid,
             players: [], // Redundant as we can get this from google classroom
-            questions: this.questions.map((question)=>{return question.questionId}), // We only need IDs, The results from each question are stored in UserGameStats
+            questions: this.questions.map((question) => { return question.questionId }), // We only need IDs, The results from each question are stored in UserGameStats
             timestamp: timestamp
         })
         console.log(`Done`)
@@ -499,18 +505,18 @@ Sending players ${this.currentClientScene.sceneId}`)
             timestamp: timestamp,
             userId: gameInstance.host.details.googleid
         }))
-        gameInstance.players.forEach((player, i)=>{
+        gameInstance.players.forEach((player, i) => {
             console.log(`[${i + 1}/${gameInstance.players.length}] Saving UserGameStats for ${player.details.name}`)
             tasks.push(db.addUserGameStats({
                 classId: gameInstance.classid,
                 position: i,
-                questions: player.questionAnswers.map((answer) => {return answer.answer}),
+                questions: player.questionAnswers.map((answer) => { return answer.answer }),
                 timestamp: timestamp,
                 userId: player.details.googleid
             }))
             console.log(`[${i + 1}/${gameInstance.players.length}] Done`)
         })
-        
+
         await Promise.all(tasks)
         console.log("Done")
     }
@@ -615,7 +621,7 @@ Sending players ${this.currentClientScene.sceneId}`)
      * @param gameInstance The current game instance
      */
     next(gameInstance: Game = this) {
-        console.log("next "+gameInstance.state)
+        console.log("next " + gameInstance.state)
         if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
             // Move to the next question
             gameInstance.state = "GAME";
