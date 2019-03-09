@@ -425,17 +425,20 @@ export class Game {
     sendScene(options: "TEACHER" | "STUDENT" | "BOTH" | "NONE" = "BOTH") {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`)
+        let time = new Date().getTime();
         if (options == "TEACHER" || options == "BOTH") {
             this.host.socket.emit("sceneUpdate", {
                 scene: this.currentTeacherScene.sceneId,
-                data: this.currentTeacherScene.data
+                data: this.currentTeacherScene.data,
+                time: time
             })
         }
         if (options == "STUDENT" || options == "BOTH") {
             this.players.forEach((p) => {
                 p.socket.emit("sceneUpdate", {
                     scene: this.currentClientScene.sceneId,
-                    data: this.currentClientScene.data
+                    data: this.currentClientScene.data,
+                    time: time
                 })
             })
         }

@@ -950,6 +950,8 @@ class StudentLobby extends Scene {
  */
 class StudentQuestion extends Scene {
     generateHtml(question) {
+        let timeOffset = data.time - new Date().getTime();
+        data.endTime += timeOffset;
         let answerBoxes = "";
         currentCountdownEnd = question.endTime
         let e = this
@@ -1120,6 +1122,8 @@ class TeacherQuestion extends Scene {
    * @param {String[]} data.answers The question's answers
    */
   generateHtml(data) {
+    let timeOffset = data.time - new Date().getTime();
+    data.endTime += timeOffset;
     if (data.revealAnswers) {
       this.showCorrectAnswer(data.answerCounts, data.correctAnswer)
     }
