@@ -267,6 +267,7 @@ export class Game {
     }
 
     revealAnswersToStudents(gameInstance: Game = this) {
+        console.log("Reveal Answers")
         // PRECONDITION: Game state is in answers or scoreboard
         if (["ANSWERS", "SCOREBOARD"].indexOf(this.state) == -1) {
             return
@@ -293,6 +294,7 @@ export class Game {
      * @param answer The index of the submitted answer
      */
     submitAnswer(gameInstance: Game = this, userid: string, answer: number) {
+        console.log("submit answer")
         // PRECONDITION: Must be in game state
         if (gameInstance.state != "GAME") {
             return
@@ -515,6 +517,7 @@ Sending players ${this.currentClientScene.sceneId}`)
      * @param gameInstance Current game instance
      */
     async nextQuestion(gameInstance: Game = this) {
+        console.log("next question")
         let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
         this.currentQuestion = question;
         this.questions.push({
@@ -609,6 +612,7 @@ Sending players ${this.currentClientScene.sceneId}`)
      * @param gameInstance The current game instance
      */
     next(gameInstance: Game = this) {
+        console.log("next "+gameInstance.state)
         if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
             // Move to the next question
             gameInstance.state = "GAME";
