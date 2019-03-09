@@ -171,7 +171,10 @@ export class HTTPServer extends Module {
              * Gets all GameUserInfo for a specific game.
              * Requires a timestamp and classid
              */
-            let userid = await auth.getUserIDFromToken(req.query.token);
+            let user = await auth.getUserFromToken(req.query.token);
+            if(user.userType != 1){
+                return
+            }
             let d = await Database.singleton.getTeacherGameInfo(req.query.classId, req.query.timestamp);
             res.json(d);
         })

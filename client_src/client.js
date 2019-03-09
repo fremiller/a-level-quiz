@@ -180,17 +180,13 @@ function getAdminState() {
 
 function openGameInfo(classId, timestamp) {
     loadScene("loading", { text: "Getting game info" })
-    loadGameInfo(classId, timestamp).then((gameInfo) => loadScene("teachergameinfo", gameInfo));
+    loadGameInfo(classId, timestamp);
 }
 
 function loadGameInfo(classId, timestamp) {
-    return new Promise(function (resolve, reject) {
-        $.ajax({
-            method: "GET",
-            url: `/games/data?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
-            success: function (gameInfo) {
-                resolve(gameInfo);
-            }
-        })
+    loadScene("statistics", {
+        download: true,
+        downloadURL: `/games/data/teacher?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+        dataType: "teachergame"
     })
 }

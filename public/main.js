@@ -180,18 +180,14 @@ function getAdminState() {
 
 function openGameInfo(classId, timestamp) {
     loadScene("loading", { text: "Getting game info" })
-    loadGameInfo(classId, timestamp).then((gameInfo) => loadScene("teachergameinfo", gameInfo));
+    loadGameInfo(classId, timestamp);
 }
 
 function loadGameInfo(classId, timestamp) {
-    return new Promise(function (resolve, reject) {
-        $.ajax({
-            method: "GET",
-            url: `/games/data?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
-            success: function (gameInfo) {
-                resolve(gameInfo);
-            }
-        })
+    loadScene("statistics", {
+        download: true,
+        downloadURL: `/games/data/teacher?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+        dataType: "teachergame"
     })
 }
 /**
@@ -652,7 +648,7 @@ class SignIn extends Scene {
  * @property {boolean} download
  * @property {string} downloadURL
  * @property {Object} data
- * @property {"teachergame"} dataType
+ * @property {"teachergame"|"teacherquestion"} dataType
  */
 
  /**
@@ -1020,7 +1016,7 @@ class TeacherDashboard extends Scene {
                 <!-- <h3 class="gold">1<sup>st</sup></h3> -->
     <div><h5>${className}</h5>
     <h6>${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>
-    <h3 class="totip" data-main="6.4.3" data-topic="Electric Fields"><sup>&nbsp;</sup></h3><sup>&nbsp;</sup></h3><div class="vline"></div><h3 class="good">86%<sup>&nbsp;</sup></h3>
+    <sup>&nbsp;</sup><h3 class="totip" data-main="6.4.3" data-topic="Electric Fields"><sup>&nbsp;</sup></h3></h3><div class="vline"></div><h3 class="good">86%<sup>&nbsp;</sup></h3>
 </div>`
             });
             $("#pastGames").html(pgBox);

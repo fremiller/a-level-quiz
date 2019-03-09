@@ -726,6 +726,24 @@ textarea{
     display: none;
 }
 
+#pastGames{
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#pastGames .gamejoin{
+    flex-direction: row;
+    display: flex;
+}
+
+#pastGames .gamejoin div{
+    flex: 1 0 auto;
+}
+
+#pastGames .gamejoin sup{
+    width: 100%;
+    flex: 0 1 auto;
+}
 
 @media only screen and (min-width: 768px) {
     #fullscreenBox{
