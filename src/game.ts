@@ -337,7 +337,10 @@ export class Game {
         // Checks to see whether all players have submitted an answer
         if (gameInstance.questions[gameInstance.questions.length - 1].studentAnswers.length == gameInstance.players.length) {
             // Move to the next scene; we must already be in the game scene to be in the current function
-            gameInstance.next()
+            gameInstance.next(gameInstance, {
+                expectedState: "GAME",
+                expectedQuestion: this.questions.length - 1
+            })
         }
     }
 
@@ -566,10 +569,12 @@ Sending players ${this.currentClientScene.sceneId}`)
         this.currentTeacherScene.data = TScene;
         this.updateState()
         let e = this
+        let currentQuestionIndex = this.questions.length - 1
         this.questionTimer = setTimeout(() => {
-            if (e.state == "GAME") {
-                e.next(e)
-            }
+                e.next(e, {
+                    expectedQuestion: currentQuestionIndex,
+                    expectedState: "GAME"
+                })
         }, this.currentQuestion.timeLimit * 1000)
     }
 
