@@ -24,7 +24,8 @@ class TeacherDashboard extends Scene {
     }
 
     postRender() {
-        getUserPastGames().then(function (games) {
+        getUserPastGames().then(function (data) {
+            let games = data.games;
             let pgBox = "";
             console.log(games);
             games.forEach(g => {
@@ -35,7 +36,7 @@ class TeacherDashboard extends Scene {
                     }
                 })
                 let date = new Date(Number.parseInt(g.timestamp));
-            pgBox += html`<div class="gamejoin" onclick="openGameInfo('${g.classId}', '${g.timestamp}')">
+            pgBox += html`<div class="gamejoin" onclick="openGameInfo('${g.classId}', '${g.timestamp}', true)">
                 <!-- <h3 class="gold">1<sup>st</sup></h3> -->
     <div><h5>${className}</h5>
     <h6>${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>

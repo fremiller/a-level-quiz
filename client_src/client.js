@@ -178,15 +178,32 @@ function getAdminState() {
     })
 }
 
-function openGameInfo(classId, timestamp) {
+function openGameInfo(classId, timestamp, teacher) {
     loadScene("loading", { text: "Getting game info" })
-    loadGameInfo(classId, timestamp);
+    loadGameInfo(classId, timestamp, teacher);
 }
 
-function loadGameInfo(classId, timestamp) {
+function loadGameInfo(classId, timestamp, teacher) {
+    if (teacher) {
+        loadScene("statistics", {
+            download: true,
+            downloadURL: `/games/data/teacher?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+            dataType: "teachergame"
+        })
+    }
+    else{
+        loadScene("statistics", {
+            download: true,
+            downloadURL: `/games/data/student?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
+            dataType: "teachergame"
+        })
+    }
+}
+
+function openUserProfile(id){
     loadScene("statistics", {
         download: true,
-        downloadURL: `/games/data/teacher?token=${GOOGLE_TOKEN}&classId=${classId}&timestamp=${timestamp}`,
-        dataType: "teachergame"
+        downloadURL: `/games/me/?token=${GOOGLE_TOKEN}&id=${id}`,
+        dataType: "studentprofile"
     })
 }

@@ -177,6 +177,55 @@ export class Database extends Module {
         })
     }
 
+    async getStudentGameInfo(classId: string, timestamp: string, userid: string): Promise<IGameData|any>{
+        console.log(`Class: ${classId} Time: ${timestamp}`)
+        let game = await models.GameStats.find({
+            classId: classId,
+            timestamp: timestamp
+        }).exec();
+        console.log("QQ" + game)
+
+        let players = await models.UserGameStats.find({
+            classId: classId,
+            timestamp: timestamp,
+            userId: userid
+        }).exec();
+        if (players.length == 0) {
+            return {
+                "error": "No game with id"
+            }
+        }
+
+        let pJ: IUserGameStatsData[] = []
+        for (let i = 0; i < players.length; i++) {
+            let p = players[i];
+            let new_p: IUserGameStatsData = {
+                position: p.position,
+                questions: p.questions,
+                userId: p.userId,
+                details: await this.getUserFromGoogleID(p.userId),
+                classId: p.classId,
+                timestamp: p.timestamp
+            }
+            pJ.push(new_p);
+        }
+
+        let qids = game[0].questions;
+        let questions: models.IQuestionDocument[] = [];
+        for (let i = 0; i < qids.length; i++) {
+            let q = await this.GetQuestionById(qids[i]);
+            questions.push(q);
+        }
+
+        let gameData: IGameData = {
+            classId: classId,
+            timestamp: timestamp,
+            questions: questions,
+            players: pJ
+        }
+        return gameData;
+    }
+
     async getTeacherGameInfo(classId: string, timestamp: string): Promise<IGameData|any> {
         console.log(`Class: ${classId} Time: ${timestamp}`)
         let game = await models.GameStats.find({

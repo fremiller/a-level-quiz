@@ -190,6 +190,31 @@ const statsProcessData = {
             Answers: questionAnswer,
             Students: students
         }
+    },
+    "studentprofile": function(data, params){
+        console.log(data)
+        let gamesList = [];
+        let games = data.games;
+        let name = data.userinfo.name;
+        games.forEach(g => {
+            let className = "";
+            currentUser.classes.forEach((clas) => {
+                if (clas.id == g.classId) {
+                    className = clas.name;
+                }
+            })
+            let date = new Date(Number.parseInt(g.timestamp));
+        gamesList.push(html`<div class="gamejoin" onclick="openGameInfo('${g.classId}', '${g.timestamp}', true)">
+            <!-- <h3 class="gold">1<sup>st</sup></h3> -->
+<div><h5>${className}</h5>
+<h6>${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${date.getHours()}:${date.getMinutes()}</h6></div>
+<sup>&nbsp;</sup><h3 class="totip" data-main="6.4.3" data-topic="Electric Fields"><sup>&nbsp;</sup></h3></h3><div class="vline"></div><h3 class="good">86%<sup>&nbsp;</sup></h3>
+</div>`)
+        })
+        return {
+            title: name,
+            "Past Games": gamesList
+        }
     }
 }
 

@@ -60,7 +60,7 @@ export class HTTPServer extends Module {
                     this.log(req.path)
                 }
                 next()
-                res.setTimeout(2000, ()=>{
+                res.setTimeout(2000, () => {
                     res.status(500)
                     res.send("Timeout. Try again later")
                 })
@@ -172,18 +172,44 @@ export class HTTPServer extends Module {
              * Requires a timestamp and classid
              */
             let user = await auth.getUserFromToken(req.query.token);
-            if(user.userType != 1){
+            if (user.userType != 1) {
                 return
             }
             let d = await Database.singleton.getTeacherGameInfo(req.query.classId, req.query.timestamp);
             res.json(d);
         })
 
-        this.app.get("/games/me", async function (req, res) {
-            let userid = await auth.getUserIDFromToken(req.query.token);
-            console.log(userid);
-            res.json(await Database.singleton.getUserPastGames(userid));
+        this.app.get("/games/data/student", async function (req, res) {
+            /**
+            * Gets all GameUserInfo for a specific game.
+            * Requires a timestamp and classid
+            */
+            let user = await auth.getUserFromToken(req.query.token);
+            let d = await Database.singleton.getStudentGameInfo(req.query.classId, req.query.timestamp, user.googleid);
+            res.json(d);
         })
+
+        this.app.get("/games/me", async function (req, res) {
+            let user = await auth.getUserFromToken(req.query.token);
+            console.log(user.googleid);
+            if (user.userType != 1 && user.googleid != req.query.id && req.query.id != undefined) {
+                return
+            }
+            let idToFind = user.googleid;
+            let userInfoRaw;
+            if(user.googleid != req.query.id && req.query.id != undefined){
+                idToFind = req.query.id;
+                userInfoRaw = await Database.singleton.getUserFromGoogleID(idToFind);
+            }
+            
+            res.json({
+                games: await Database.singleton.getUserPastGames(idToFind),
+                userinfo: {
+                    name: userInfoRaw?userInfoRaw.name:""
+                }
+            });
+        })
+
 
         return new Promise(function (resolve, reject) {
             httpServerInstance.http.listen("8000", function () {
