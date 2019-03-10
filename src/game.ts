@@ -83,6 +83,11 @@ interface GameDetails {
     topic: string
 }
 
+interface NextData {
+    expectedQuestion: number,
+    expectedState: string
+}
+
 interface Question extends IQuestion, IDDocument { }
 
 
@@ -249,7 +254,7 @@ export class Game {
         let gameInstance = this;
         if (isHost) {
             // Move on to the next scene
-            socket.on("next", () => gameInstance.next(gameInstance))
+            socket.on("next", (data: NextData) => gameInstance.next(gameInstance, data))
             // Reveal answers to all students: displays correct or incorrect scene
             socket.on("revealanswers", () => gameInstance.revealAnswersToStudents(gameInstance))
             // Finish the game
@@ -433,7 +438,8 @@ Sending players ${this.currentClientScene.sceneId}`)
         if (options == "TEACHER" || options == "BOTH") {
             this.host.socket.emit("sceneUpdate", {
                 scene: this.currentTeacherScene.sceneId,
-                data: TD
+                data: TD,
+                state: this.state
             })
         }
         let SD: any = this.currentClientScene.data;
@@ -445,6 +451,7 @@ Sending players ${this.currentClientScene.sceneId}`)
                 p.socket.emit("sceneUpdate", {
                     scene: this.currentClientScene.sceneId,
                     data: SD,
+                    state: this.state,
                 })
             })
         }
@@ -620,7 +627,13 @@ Sending players ${this.currentClientScene.sceneId}`)
      * Goes to the next stage of the game
      * @param gameInstance The current game instance
      */
-    next(gameInstance: Game = this) {
+    next(gameInstance: Game = this, nextData?: NextData) {
+        if (nextData){
+            if (gameInstance.state != nextData.expectedState || gameInstance.questions.length - 1 != nextData.expectedQuestion){
+                // This next was not intended by the client, or has already happened
+                return
+            }
+        }
         console.log("next " + gameInstance.state)
         if (gameInstance.state == "LOBBY" || gameInstance.state == "SCOREBOARD") {
             // Move to the next question

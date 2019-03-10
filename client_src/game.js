@@ -6,6 +6,8 @@
 let socket;
 let currentQuestion;
 let currentCountdownEnd = 0;
+let currentQuestionIndex = -1;
+let currentState = "";
 
 /**
 * Starts a game when it is in the lobby
@@ -19,23 +21,26 @@ function startgame() {
  * Connects to the socket.io server and joins a game
  * @param {Number} code 
  */
-function connectToGame(code, create=false) {
+function connectToGame(code, create = false) {
     // Connects to the socket.io server
-    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create?"&createGame=true":""}`, {
+    socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create ? "&createGame=true" : ""}`, {
         reconnection: false
     });
     setupSocketEvents(socket)
 }
 
-function next(){
-    socket.emit("next")
+function next() {
+    socket.emit("next", {
+        expectedQuestion: currentQuestionIndex,
+        expectedState: currentState
+    })
 }
 
-function end(){
+function end() {
     socket.emit("end")
 }
 
-function submitAnswer(id){
+function submitAnswer(id) {
     console.log(`answer ${id}`)
     socket.emit("answer", id)
 }
@@ -50,16 +55,22 @@ function setupSocketEvents(socket) {
         loadScene("error", { text: data.text, status: "", continue: data.continue })
     });
 
-    socket.on("forceDisconnect", function(){
+    socket.on("forceDisconnect", function () {
         socket.disconnect(true);
     })
 
-    socket.on("sceneUpdate", function(data){
+    socket.on("sceneUpdate", function (data) {
         console.log(data)
+        if (data.data) {
+            if (data.data.number) {
+                currentQuestionIndex = data.data.number - 1;
+            }
+        }
+        currentState = data.state
         loadScene(data.scene, data.data);
     })
 }
 
-function revealAnswersToPlayers(){
+function revealAnswersToPlayers() {
     socket.emit("revealanswers")
 }
