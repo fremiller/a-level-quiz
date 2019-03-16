@@ -81,7 +81,7 @@ export class Database extends Module {
                 // Run the callback given
                 console.log("\r\tConnected");
                 // This adds questions from the JSON config
-                //Database.singleton.addQuestionsFromConfig();
+                Database.singleton.addQuestionsFromConfig();
                 callback();
             });
         }
