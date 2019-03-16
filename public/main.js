@@ -1219,10 +1219,23 @@ class TeacherQuestion extends Scene {
         answerBoxes += `<br><br><span class="examAnswer" id="answer-${i}"><span class="bold">${"ABCD"[i]}</span> ${answer}</span>`;
       });
     }
+    
+    if (!data.revealAnswers){
+      this.bonus = 110;
+    }
+    let sceneInstance = this;
+    this.bonusInterval = setInterval(()=>{
+      //sceneInstance.bonus -= 100/(data.timeLimit/(20 /1000))
+      sceneInstance.bonus -= 1;
+      $("#bonus").html(Math.round(sceneInstance.bonus))
+    }, (data.timeLimit/100) * 1000)
+  
+    
     return html`
 <div class="header">
 <p id="countdown">5</p>
     <h1>Question ${data.number}</h1>
+    <h1 id="bonus">${-1000}</h1> 
     <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime()) / 1000)}</h1>
     <button class="lobbystartbutton" onclick="next()">Continue</button>
     <div class="headerplayercount">
@@ -1291,6 +1304,7 @@ class TeacherQuestion extends Scene {
 
   onLeave(){
     clearInterval(this.currentTimer)
+    clearInterval(this.bonusInterval)
     return super.onLeave()
   }
 }class TeacherSummary extends Scene{

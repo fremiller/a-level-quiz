@@ -1,4 +1,5 @@
 import { Game } from "./game";
+import { IUser } from "./models";
 
 /**
  * Contains Admin class
@@ -9,6 +10,12 @@ let { Module } = require("module");
 let { GameManager } = require("./gamemanager.js");
 let Auth = require("./auth");
 let clogold = console.log;
+
+interface RunningGame{
+    state: string,
+    id: string,
+    players: number
+}
 
 export class Admin extends Module {
     static singleton: Admin;
@@ -24,7 +31,10 @@ export class Admin extends Module {
         }
     }
 
-    getRunningGames() {
+    /**
+     * Returns a list of currently running games
+     */
+    getRunningGames(): RunningGame[] {
         let games = [];
         for (var key in GameManager.singleton.games) {
             if (GameManager.singleton.games.hasOwnProperty(key)) {
@@ -42,7 +52,10 @@ export class Admin extends Module {
         return games;
     }
 
-    getTestAccounts(){
+    /**
+     * Returns a list of test accounts.
+     */
+    getTestAccounts(): IUser[]{
         let TA = [];
         Auth.testAccounts.forEach((acc)=>{
             let E = {
@@ -57,6 +70,10 @@ export class Admin extends Module {
         return TA
     }
 
+    /**
+     * Called from the admin state http request.
+     * Returns current application status
+     */
     getAdminState(){
         return {
             "console": this.log,
@@ -67,11 +84,19 @@ export class Admin extends Module {
         }
     }
 
+    /**
+     * Creates a test account
+     * @param isTeacher Whether to create a teacher or a student
+     */
     makeTestAccount(isTeacher: boolean){
         console.log(`Creating ${isTeacher?"teacher":"student"} account`);
         Auth.generateTestAccount(isTeacher);
     }
 
+    /**
+     * Deletes a test account
+     * @param index Which test account to delete
+     */
     deleteTestAccount(index: number){
         console.log(`Deleting test account ${index}`);
         Auth.deleteTestAccount(index);

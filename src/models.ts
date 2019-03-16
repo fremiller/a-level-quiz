@@ -19,7 +19,7 @@ var schemas: {
 export interface IUser {
     name: string,
     googleid: string,
-    previousGames: [string],
+    previousGames: string[],
     domain: string,
     profileImage: string,
     userType: Number,

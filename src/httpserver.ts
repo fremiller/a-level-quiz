@@ -135,18 +135,6 @@ export class HTTPServer extends Module {
             })
         })
 
-        this.app.get("/users/register", async function (req, res) {
-            httpServerInstance.log("[REQUEST] /users/register")
-            if (!httpServerInstance.VerifyParams(req, ["name"])) {
-                throw new ParameterError();
-            }
-            let usr = await Database.singleton.CreateUser({
-                name: req.query.name,
-                previousGames: []
-            });
-            res.json(usr.toJSON());
-        });
-
         this.app.post("/users/login", async function (req, res) {
             httpServerInstance.log("[REQUEST] /users/login");
             if (!httpServerInstance.VerifyParams(req, ["token"])) {

@@ -4,6 +4,10 @@ src/*.js.map
 server.js
 server.js.map
 
+# Generated Documentation
+docs.json
+documentation.html
+
 # Logs
 logs
 *.log

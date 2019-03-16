@@ -10,6 +10,11 @@ export interface GCResult{
     courses: ClassInfo[]
 }
 
+/**
+ * Queries a user's google classroom classes
+ * @param token The client's access token
+ * @param isTeacher Whether the client is a teacher or not
+ */
 export function getClasses(token: string, isTeacher:boolean) : Promise<GCResult>{
     if(token.startsWith("TEST_")){
         return new Promise((res, rej)=>{
@@ -38,7 +43,13 @@ export function getClasses(token: string, isTeacher:boolean) : Promise<GCResult>
     })
 }
 
-export function getUsersInClass(token: string, classId: string, isTeacher=true){
+/**
+ * Queries class information from google classroom
+ * @param token The client's access token
+ * @param classId The class ID to find
+ * @param isTeacher Whether the client is a teacher
+ */
+export function getUsersInClass(token: string, classId: string, isTeacher=true): Promise<any>{
     let p = new Promise((resolve, reject) => {
         var options = {
             method: 'GET',

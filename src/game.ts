@@ -1,15 +1,23 @@
 /**
  * @module a-level-quiz
+ * @internal
  */
 
 import { IQuestion, IQuestionDocument, IUser, IUserGameStatsDocument } from "./models";
 import { GameManager } from "./gamemanager";
 import { Database } from "./database";
 
+/**
+ * Represents options for a game
+ * Could be used in the future
+ */
 interface GameOptions {
 
 }
 
+/**
+ * Represents a users answer for a question
+ */
 interface AnswerData {
     answer: number
     correct: boolean
@@ -17,6 +25,9 @@ interface AnswerData {
     time: number
 }
 
+/**
+ * Represents a player in the game
+ */
 interface GamePlayer {
     score: number
     socket: SocketIO.Socket
@@ -25,26 +36,38 @@ interface GamePlayer {
     displayName: string
 }
 
+/**
+ * Represents a scoreboard entry
+ */
 interface ScoreboardData {
     score: number
     name: string
 }
 
+/**
+ * Represents data about a question instance
+ */
 interface QuestionResults {
     questionId: string
     questionNumber: number
     studentAnswers: AnswerData[]
 }
 
+/**
+ * Represents a client side scene
+ */
 interface GameScene {
     sceneId: string
     teacher: boolean
     data?: any
-    update?: CallableFunction
+    update?: any
 }
 
 interface LobbyData { }
 
+/**
+ * Represents data in the teacherquestion scene
+ */
 interface TeacherQuestionData extends LobbyData {
     question: string,
     answers: string[],
@@ -57,10 +80,16 @@ interface TeacherQuestionData extends LobbyData {
     endTime: number
 }
 
+/**
+ * Represents data in the teacherlobby scene
+ */
 interface TeacherLobbyData extends LobbyData {
     players: string[]
 }
 
+/**
+ * Represents data in the studentquestion scene
+ */
 interface StudentQuestionData extends LobbyData {
     answers: string[]
     timeLimit: number
@@ -68,31 +97,48 @@ interface StudentQuestionData extends LobbyData {
     number: number
 }
 
+/**
+ * Represents data in the summary scene
+ */
 interface SummaryData extends LobbyData {
     leaderboard: ScoreboardData[],
     numberOfQuestions: number
 }
 
+/**
+ * Adds the ID parameter which is present in database objects
+ */
 interface IDDocument {
     _id: string;
 }
 
+/**
+ * Represents basic game information
+ */
 interface GameDetails {
     classid: string,
     teacher: string,
     topic: string
 }
 
+/**
+ * Represents what the client expects to happen
+ * when the next function is called
+ */
 interface NextData {
     expectedQuestion: number,
     expectedState: string
 }
 
+/**
+ * Question with ID
+ */
 interface Question extends IQuestion, IDDocument { }
 
 
 /**
  * Represents a class's game
+ * @internal
  */
 export class Game {
     /** The game's class ID. PK */
@@ -113,6 +159,8 @@ export class Game {
     host: GamePlayer;
     /** The timer for the question to continue */
     questionTimer: NodeJS.Timer
+    /** The time that the last question started */
+    currentQuestionStartTime: number
 
     /** Templates for all scenes. */
     static Scenes: GameScene[] = [
@@ -325,7 +373,7 @@ export class Game {
             scene: "waitingForAnswers"
         })
         if (correct) {
-            client.score += 10
+            client.score += this.calculateBonusPoints();
         }
         client.questionAnswers.push({
             answer: answer,
@@ -344,6 +392,19 @@ export class Game {
         }
     }
 
+    /**
+     * Calculates the amount of points to award to the user based on the time taken
+     * There is an estimate of this on the client
+     */
+    calculateBonusPoints(){
+        let timeElapsed = (new Date().getTime() - this.currentQuestionStartTime)/1000;
+        return Math.round(100 - ((100/this.currentQuestion.timeLimit) * timeElapsed))
+    }
+
+    /**
+     * Makes a player leave the game based on their ID
+     * @param userid The userid to leave
+     */
     leaveGame(userid: string) {
         let player = this.findPlayerById(userid);
         player.socket.disconnect();
@@ -539,6 +600,7 @@ Sending players ${this.currentClientScene.sceneId}`)
         console.log("next question")
         let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
         this.currentQuestion = question;
+        this.currentQuestionStartTime = new Date().getTime();
         this.questions.push({
             questionId: this.currentQuestion._id,
             questionNumber: this.questions.length,
@@ -605,6 +667,9 @@ Sending players ${this.currentClientScene.sceneId}`)
         }
     }
 
+    /**
+     * Calculates the scores and loads the scoreboard scene on the teacher
+     */
     showScoreboard() {
         // sort leaderboard
         this.players = this.players.sort((a, b) => {

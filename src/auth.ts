@@ -15,12 +15,20 @@ export class TestAccountError extends Error{
     }
 }
 
-export async function getUserIDFromToken(token) {
+/**
+ * Returns a user's ID based on their token.
+ * @param token The client's ID token
+ */
+export async function getUserIDFromToken(token: string) {
     let user = await getUserFromToken(token);
     return user.googleid;
 }
 
-export async function VerifyAdmin(token: string) {
+/**
+ * Returns true if the client is an admin
+ * @param token The client's ID token
+ */
+export async function VerifyAdmin(token: string): Promise<boolean> {
     let ticket = await client.verifyIdToken({
         idToken: token,
         audience: CLIENT_ID
@@ -35,6 +43,10 @@ export async function VerifyAdmin(token: string) {
 
 var testAccounts = exports.testAccounts = [];
 
+/**
+ * Creates a test account and adds it to the account list
+ * @param isTeacher Whether to create a teacher
+ */
 export function generateTestAccount(isTeacher: boolean){
     testAccounts.push({
         name: "Test "+testAccounts.length,
@@ -59,11 +71,19 @@ export function generateTestAccount(isTeacher: boolean){
     });
 }
 
+/**
+ * Deletes a test account at the given index
+ * @param index The index of the test account to delete
+ */
 export function deleteTestAccount(index: number){
     testAccounts.splice(index, 1)
 }
 
-export function findTestAccount(token: string){
+/**
+ * Returns a test account if it exists, otherwise returns undefined
+ * @param token The client's token
+ */
+export function findTestAccount(token: string): IUser|undefined{
     let result = undefined;
     testAccounts.forEach((acc)=>{
         if(acc.googleid == token){
@@ -75,49 +95,73 @@ export function findTestAccount(token: string){
 
 const Testers = config.testers;
 
+/**
+ * Returns a user from a given token
+ * @param token The client's ID token
+ * @param code The client's access token
+ * @param isSignIn Whether this is a sign in operation or not
+ */
 export async function getUserFromToken(token: string, code?: string, isSignIn:boolean=false):Promise<IUserDocument> {
+    // Handles test accounts
     if(token.startsWith("TEST_")){
         const TA = findTestAccount(token);
         if(TA){
-            return TA;
+            return TA as IUserDocument;
         }
         else{
             throw new TestAccountError();
         }
     }
+    // Gets the account information from google
     let ticket = await client.verifyIdToken({
         idToken: token,
         audience: CLIENT_ID
     })
+    // Gets the payload from the ticket
     let payload = ticket.getPayload();
+    // Gets the user ID
     let userid = payload['sub'];
+
+    // Checks whether the client is allowed to connect
     if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
         throw new NotAuthorizedError();
     }
+
+    // Gets the user from the database
     let user = await Database.singleton.getUserFromGoogleID(userid);
     if (!user) {
+        // If the user doesn't exist; create it
         user = await Database.singleton.CreateUser({
-            "name": payload.name,
-            "domain": payload.hd,
-            "googleid": payload.sub,
-            "profileImage": payload.picture,
-            "userType": models.UserType.STUDENT,
+            name: payload.name,
+            domain: payload.hd,
+            googleid: payload.sub,
+            profileImage: payload.picture,
+            userType: models.UserType.STUDENT,
+            previousGames: [],
+            classes: []
         });
     }
+    // If this is a sign in, update profile information
     if (isSignIn) {
         if (user.domain == "orleanspark.school") {
+            // Figure out whether the user is a teacher or student
             user.userType = payload.email.match(/^[0-9]{2}.+/) ? models.UserType.STUDENT : models.UserType.TEACHER;
         } else {
+            // Figure out whether the user is an admin
             if (payload.email == "fred.miller097@gmail.com") {
                 user.userType = models.UserType.ADMIN;
             }
         }
+        // Update the user's profile image
         user.profileImage = payload.picture;
+        // Get the user's google classroom classes from google classroom
         let classData = JSON.parse(await classroom.getClasses(code, user.userType == models.UserType.TEACHER)) as GCResult
         let clasids: ClassInfo[] = [];
+        // These checks are nesessary in case the user hasn't got a google classroom account
         if (classData) {
             if (classData.courses) {
                 classData.courses.forEach((course) => {
+                    // Archived courses are not useful to the user, they will clutter the application
                     if (course.courseState != "ARCHIVED") {
                         clasids.push({
                             id: course.id,
@@ -127,7 +171,10 @@ export async function getUserFromToken(token: string, code?: string, isSignIn:bo
                 })
             }
         }
+        // Add the found classes to the user
         user.classes = clasids;
+
+        // Save the user in the database
         user.save();
     }
     return user

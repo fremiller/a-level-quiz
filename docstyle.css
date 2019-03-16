@@ -1,0 +1,38 @@
+div{
+    /*border: solid black 1px;*/
+    margin: 0;
+    margin-left: 20px;
+    padding-left: 5px;
+}
+
+*{
+    font-family: sans-serif;
+}
+
+
+h1{
+    font-family: monospace;
+}
+
+.class{
+    /*page-break-after: always;
+    page-break-before: always;*/
+}
+
+table{
+    margin-left: 20px;
+}
+
+table, th, td {
+border: 1px solid black;
+border-collapse: collapse;
+padding: 3px;
+}
+
+.source{
+    font-style: italic;
+}
+
+.inherits{
+    font-weight: 600;
+}
