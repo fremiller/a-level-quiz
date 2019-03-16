@@ -200,8 +200,9 @@ export class HTTPServer extends Module {
 
 
         return new Promise(function (resolve, reject) {
-            httpServerInstance.http.listen("8000", function () {
-                httpServerInstance.log("Server listening on port 8000");
+            const port = process.env.PORT || 8000;
+            httpServerInstance.http.listen(port, function () {
+                httpServerInstance.log("Server listening on port "+port);
                 resolve();
             });
         })
