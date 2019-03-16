@@ -6,7 +6,7 @@
   "scripts": {
     "test": "nyc --reporter=html mocha",
     "start": "node server.js",
-    "build": "node build.js",
+    "build": "node build.js && tsc --build tsconfig.json",
     "docs": "jsdoc client_src models -r -d docs;jsdoc src models -r -d server_docs"
   },
   "repository": {

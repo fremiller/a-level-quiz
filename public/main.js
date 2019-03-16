@@ -1225,7 +1225,6 @@ class TeacherQuestion extends Scene {
     }
     let sceneInstance = this;
     this.bonusInterval = setInterval(()=>{
-      //sceneInstance.bonus -= 100/(data.timeLimit/(20 /1000))
       sceneInstance.bonus -= 1;
       $("#bonus").html(Math.round(sceneInstance.bonus))
     }, (data.timeLimit/100) * 1000)
@@ -1235,7 +1234,7 @@ class TeacherQuestion extends Scene {
 <div class="header">
 <p id="countdown">5</p>
     <h1>Question ${data.number}</h1>
-    <h1 id="bonus">${-1000}</h1> 
+    <h1 id="bonus"></h1> 
     <h1 id="timer">${Math.round((currentCountdownEnd - new Date().getTime()) / 1000)}</h1>
     <button class="lobbystartbutton" onclick="next()">Continue</button>
     <div class="headerplayercount">
