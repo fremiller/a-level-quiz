@@ -3,6 +3,8 @@ src/*.js
 src/*.js.map
 server.js
 server.js.map
+main.js
+public/main.js
 
 # Generated Documentation
 docs.json
