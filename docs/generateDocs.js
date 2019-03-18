@@ -1,11 +1,11 @@
-let docs = require("./docs.json");
+let docs = require("./output/docs.json");
 let fs = require("fs");
 let style = "";
 let currentDoc = docs;
 let alreadyRead = [];
 async function run(){
-    style = "<style>" + await fs.readFileSync("./docstyle.css") +  "</style>";
-    await fs.writeFileSync("documentation.html", generateDocs(docs) + style);
+    style = "<style>" + await fs.readFileSync(__dirname + "/docstyle.css") +  "</style>";
+    await fs.writeFileSync(__dirname + "/output/documentation.html", generateDocs(docs) + style);
 }
 
 run();

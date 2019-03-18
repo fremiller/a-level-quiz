@@ -9,6 +9,7 @@ public/main.js
 # Generated Documentation
 docs.json
 documentation.html
+docs/output
 
 # Logs
 logs
@@ -29,7 +30,6 @@ lib-cov
 # Coverage directory used by tools like istanbul
 coverage
 out
-docs
 server_docs
 tsdocs
 

@@ -7,7 +7,7 @@
     "test": "nyc --reporter=html mocha",
     "start": "node server.js",
     "build": "node build.js && tsc --build tsconfig.json",
-    "docs": "jsdoc client_src models -r -d docs;jsdoc src models -r -d server_docs"
+    "docs": "typedoc --json ./docs/output/docs.json && node docs/generateDocs.js"
   },
   "repository": {
     "type": "git",
