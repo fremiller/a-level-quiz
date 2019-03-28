@@ -24,7 +24,7 @@ export class Admin extends Module {
         super("Admin");
         Admin.singleton = this;
         this.log = "";
-        
+        // Override the console.log function to add the string to the admin logs
         console.log = (message)=>{
             Admin.singleton.log += message + "\r\n";
                 clogold(message);

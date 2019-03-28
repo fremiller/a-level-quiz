@@ -14,8 +14,17 @@ import { IUser } from "./models";
  * @extends Module
  */
 export class GameManager extends Module {
+    /**
+     * The only instance of this class
+     */
     static singleton: GameManager;
+    /**
+     * The socket.io server
+     */
     io: SocketIO.Server
+    /**
+     * The games that this instance is responsible for
+     */
     games: Map<String, Game>
     /**
      * @constructor
@@ -23,15 +32,11 @@ export class GameManager extends Module {
      */
     constructor() {
         super("GameManager");
-        /**
-         * The reference to the only instance of the class
-         * @type {GameManager}
-         * @static
-         */
         GameManager.singleton = this;
         this.log("Initializing IO object");
         this.games = new Map<String, Game>();
         this.io = HTTPServer.singleton.io;
+        // Setup the onConnection event
         this.io.on("connection", this.onConnection);
     }
 
@@ -41,46 +46,44 @@ export class GameManager extends Module {
      * @param {Socket} socket 
      */
     async onConnection(socket: SocketIO.Socket) {
-        const gm = GameManager.singleton;
-        gm.log("[GAME] New socket connection")
+        const gameManager = GameManager.singleton;
+        gameManager.log("[GAME] New socket connection")
+        // The user's access code
         let code = socket.request._query.code;
+        // The user's access token
         let token = socket.request._query.token;
+        // Whether to create a game or not
         let createGame = socket.request._query.createGame;
 
         if ((!code || !token) && !createGame) {
-            gm.log("[ERROR][GAME] Invalid Join Parameters")
+            gameManager.log("[ERROR][GAME] Invalid Join Parameters")
             socket.emit("displayError", {
                 "text": "Invalid Parameters"
             });
             return;
         }
-        gm.log("[INFO][GAME] Getting user")
+        // Get the user's information
+        gameManager.log("[INFO][GAME] Getting user")
         let user = await auth.getUserFromToken(token);
-        gm.log("[INFO][GAME] Getting game")
+        gameManager.log("[INFO][GAME] Getting game")
         if (createGame) {
-            gm.createGame(code, user, socket)
+            // Create the game
+            gameManager.createGame(code, user, socket)
         }
         else {
-            let game = gm.getGameByCode(code);
+            // Find the game
+            let game = gameManager.getGameByCode(code);
             if (!game) {
-                gm.log("[ERROR][GAME] Invalid Game Code")
+                gameManager.log("[ERROR][GAME] Invalid Game Code")
                 socket.emit("displayError", {
                     "text": "Invalid game code"
                 });
                 return;
             }
-            console.log(`${user.name} is joining ${code}`)
+            console.log(`${user.name} is joining ${code}`);
+            // Join the game
             game.joinGame(user, socket);
         }
-    }
-    /**
-   * Checks if there is game based on the domain and class ID  
-   * @param {string} domain domain the class is in
-   * @param {string} classid The classID of the class
-   */
-    isGame(classid: string) {
-        let g = this.games[classid];
-        return g ? g.code : undefined;
     }
 
     /**
@@ -103,6 +106,10 @@ export class GameManager extends Module {
         return game;
     }
 
+    /**
+     * Deletes a game based on it's class ID
+     * @param classid The classID to delete
+     */
     deleteGame(classid: string) {
         this.games.delete(classid);
     }

@@ -29,12 +29,14 @@ export async function getUserIDFromToken(token: string) {
  * @param token The client's ID token
  */
 export async function VerifyAdmin(token: string): Promise<boolean> {
+    // Get the token's details
     let ticket = await client.verifyIdToken({
         idToken: token,
         audience: CLIENT_ID
     })
+    // Get the payload from the token
     let payload = ticket.getPayload();
-    let userid = payload['sub'];
+
     if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
         return false;
     }
@@ -48,6 +50,7 @@ var testAccounts = exports.testAccounts = [];
  * @param isTeacher Whether to create a teacher
  */
 export function generateTestAccount(isTeacher: boolean){
+    // Add a test account to the test account list
     testAccounts.push({
         name: "Test "+testAccounts.length,
         googleid: "TEST_"+testAccounts.length,
@@ -84,6 +87,7 @@ export function deleteTestAccount(index: number){
  * @param token The client's token
  */
 export function findTestAccount(token: string): IUser|undefined{
+    // Finds the account using a linear search
     let result = undefined;
     testAccounts.forEach((acc)=>{
         if(acc.googleid == token){
@@ -103,6 +107,7 @@ const Testers = config.testers;
  */
 export async function getUserFromToken(token: string, code?: string, isSignIn:boolean=false):Promise<IUserDocument> {
     // Handles test accounts
+    // Test account tokens start with TEST_ and are the same as their user ID
     if(token.startsWith("TEST_")){
         const TA = findTestAccount(token);
         if(TA){

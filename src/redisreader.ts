@@ -4,7 +4,7 @@ import * as RedisSMQ from "rsmq";
  * Represents a socket.io event
  * Has all the required data for my solution
  */
-interface SocketMessageData{
+export interface SocketMessageData{
     /** Socket.io Event name */
     event: string,
     /** Socket.io socket ID */
@@ -16,7 +16,7 @@ interface SocketMessageData{
 /**
  *  Represents a control event
  */
-interface ControlMessageData{
+export interface ControlMessageData{
     method: "JOIN"|"CREATE",
 }
 
@@ -25,7 +25,7 @@ interface ControlMessageData{
  * Entrypoint for the worker application
  * This tells the worker what to do
  */
-class RedisAdapter{
+export class RedisReader{
     /** RSMQ client */
     rsmq: RedisSMQ
     /** The ID of this adapter, defaults to the dyno ID */
@@ -38,14 +38,22 @@ class RedisAdapter{
      * @param url The redis server's URL
      * @param adapterid The ID of this redis adapter
      */
-    constructor(url=process.env.REDISCLOUD_URL, adapterid=process.env.DYNO){
+    constructor(url=process.env.REDISCLOUD_URL, adapterid="epicqueue"){
         this.rsmq = new RedisSMQ({host: url});
         this.adapterId = adapterid;
+        console.log(this.adapterId)
         this.sockets = new Map<string, Map<string, (data: any)=>void>>();
-        this.rsmq.createQueue({qname:this.adapterId,maxsize:-1,delay:0}, ()=>{
-            this.rsmq.receiveMessage({qname:this.adapterId}, this.onRSMQSocketMessage);
+        this.rsmq.createQueue({qname:this.adapterId}, ()=>{
+            
         })
-        this.rsmq.receiveMessage({qname: 'control'}, this.onRSMQControlMessage)
+        let instance = this;
+        setInterval(()=>{
+            this.rsmq.popMessage({qname: 'control'}, this.onRSMQControlMessage)
+            this.rsmq.popMessage({qname:this.adapterId}, this.onRSMQSocketMessage);
+            instance.rsmq.listQueues((err, queues:string[])=>{
+                console.log(queues)
+            })
+        }, 100)
     }
 
     /**
@@ -54,15 +62,34 @@ class RedisAdapter{
      * @param message The message in the queue
      */
     onRSMQSocketMessage(err: {}, message: RedisSMQ.QueueMessage){
-        if(!message.id){
+        if(!message ||!message.id){
             return;
         }
-        let messageData = JSON.parse(message.message);
+        let messageData: SocketMessageData = JSON.parse(message.message);
         this.sockets.get(messageData.socketid).get(messageData.event)(messageData.data);
+        //this.rsmq.deleteMessageAsync({qname:"control",id:message.id})
     }
 
+    /**
+     * Runs whenever a control message is sent.
+     * @param err RSMQ error
+     * @param message The message content
+     */
     onRSMQControlMessage(err: {}, message: RedisSMQ.QueueMessage){
+        if (!message.id){
+            return;
+        }
 
+        let messageData: ControlMessageData = JSON.parse(message.message);
+        
+        switch(messageData.method){
+            case "CREATE":
+                console.log("create")
+                break;
+            case "JOIN":
+                console.log("join")
+                break;
+        }
     }
 
     /**

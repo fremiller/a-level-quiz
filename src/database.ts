@@ -291,24 +291,24 @@ export class Database extends Module {
      * @param timestamp The timestamp of the game
      */
     async getTeacherGameInfo(classId: string, timestamp: string): Promise<IGameData|any> {
-        console.log(`Class: ${classId} Time: ${timestamp}`)
+        // Find the GameStats object associated with the game
         let game = await models.GameStats.find({
             classId: classId,
             timestamp: timestamp
         }).exec();
-        console.log("QQ" + game)
-
+        // Find all the players which were in the game
         let players = await models.UserGameStats.find({
             classId: classId,
             timestamp: timestamp
         }).exec();
+        // If there are no players - the game doesn't exist
         if (players.length == 0) {
             return {
                 "error": "No game with id"
             }
         }
-
-        let pJ: IUserGameStatsData[] = []
+        // Add the player details to the player
+        let playerJson: IUserGameStatsData[] = []
         for (let i = 0; i < players.length; i++) {
             let p = players[i];
             let new_p: IUserGameStatsData = {
@@ -319,21 +319,22 @@ export class Database extends Module {
                 classId: p.classId,
                 timestamp: p.timestamp
             }
-            pJ.push(new_p);
+            playerJson.push(new_p);
         }
-
+        // Get the question IDs from the game
         let qids = game[0].questions;
+        // Get the questions from the database
         let questions: models.IQuestionDocument[] = [];
         for (let i = 0; i < qids.length; i++) {
             let q = await this.GetQuestionById(qids[i]);
             questions.push(q);
         }
-
+        // Put all known information about the game into a single object
         let gameData: IGameData = {
             classId: classId,
             timestamp: timestamp,
             questions: questions,
-            players: pJ
+            players: playerJson
         }
         return gameData;
     }
@@ -344,6 +345,7 @@ export class Database extends Module {
      */
     GetQuestionById(questionid: string): Promise<models.IQuestionDocument> {
         return new Promise((resolve, reject) => {
+            // Find the question by it's mongoDB id
             models.Question.findById(questionid, function (err, question) {
                 resolve(question);
             })

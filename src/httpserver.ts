@@ -15,6 +15,7 @@ import * as socketio from "socket.io";
 
 import * as nocache from 'nocache';
 import * as http from "http";
+import { Request } from "express-serve-static-core";
 
 export class NotAuthorizedError extends Error {
     constructor() {
@@ -33,39 +34,54 @@ export class ParameterError extends Error {
  * @extends Module
  */
 export class HTTPServer extends Module {
+    /**
+     * The only instance of this class
+     */
     static singleton: HTTPServer;
+    /**
+     * The express server
+     */
     app: express.Express;
+    /**
+     * The HTTP server
+     */
     http: http.Server;
+    /**
+     * The socket.io server
+     */
     io: socketio.Server;
     constructor() {
         super("HTTPServer");
-
-        /**
-         * The only HTTPserver instance
-         * @static
-         * @type {HTTPServer}
-         */
         HTTPServer.singleton = this;
+        // Create the express server
         this.app = express();
+        // Create the HTTP server based on the express server
         this.http = new http.Server(this.app);
+        // Attach the socket.io server to the HTTP server
         this.io = socketio(this.http);
-
+        // Stops browsers from caching files
         this.app.use(nocache());
+        // Sets the public folder as the folder to direct requests to
         this.app.use(express.static('public'));
 
+        // Intercept each request
         this.app.use((req, res, next) => {
             const logfilter = ["/admin/status"]
             try {
                 if (logfilter.indexOf(req.path) == -1) {
+                    // Log the request
                     this.log(req.path)
                 }
+                // Run the request
                 next()
+                // Cancel the request in 2 seconds
                 res.setTimeout(2000, () => {
                     res.status(500)
                     res.send("Timeout. Try again later")
                 })
             }
             catch (e) {
+                // Send an error correctly if one is thrown
                 if (e instanceof NotAuthorizedError || e instanceof ParameterError || e instanceof auth.TestAccountError) {
                     res.send({
                         result: "error",
@@ -89,21 +105,30 @@ export class HTTPServer extends Module {
      */
     setup(): Promise<Object> {
         let httpServerInstance = this;
-        this.app.get("/games/user", async function (req, res) {
-            let usr = await auth.getUserFromToken(req.query.id);
-            let clasWithGame = [];
-            let classes = usr.classes;
+        this.app.get("/games/user", 
+        /**
+         * Gets all the running games that a user has in their class
+         * @param req The express request
+         * @param res The express response
+         */
+        async function (req: Request, res: express.Response) {
+            let user = await auth.getUserFromToken(req.query.id);
+            let runningGames = [];
+            let classes = user.classes;
+            // Uses 'clas' here as class is a keyword
             classes.forEach((clas) => {
-                let gam = GameManager.singleton.getGameByCode(clas.id)
-                if (gam) {
+                // Gets the game and adds it to the list if it exists
+                let game = GameManager.singleton.getGameByCode(clas.id)
+                if (game) {
                     let c = clas;
                     //@ts-ignore
-                    c.gameInfo = gam.getDetails();
-                    clasWithGame.push(c);
+                    c.gameInfo = game.getDetails();
+                    runningGames.push(c);
                 }
             })
+            // Return list of games
             res.json({
-                classesWithGames: clasWithGame
+                classesWithGames: runningGames
             })
         })
 

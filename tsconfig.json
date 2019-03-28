@@ -8,6 +8,7 @@
     },
     "include":[
         "src/*.ts",
-        "server.ts"
+        "server.ts",
+        "worker.ts"
     ]
 }

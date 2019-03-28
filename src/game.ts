@@ -274,7 +274,9 @@ export class Game {
     /** Creates a new game object. */
     constructor(classId: string, options: GameOptions, host: IUser, hostSocket: SocketIO.Socket) {
         console.log("Creating game " + classId)
+        // Set the class id to the given ID
         this.classid = classId;
+        // Set the host to the given host
         this.host = {
             details: host,
             socket: hostSocket,
@@ -282,10 +284,13 @@ export class Game {
             questionAnswers: [],
             displayName: ""
         }
+        // Set the default scenes
         this.currentClientScene = Game.FindSceneById("studentlobby");
         this.currentTeacherScene = Game.FindSceneById("teacherlobby");
+        // Update and send the scenes to the clients
         this.updateState()
         this.sendScene()
+        // Setup the host's socket events
         this.setupSocketEvents(hostSocket, host.googleid, true)
     }
 
@@ -309,8 +314,10 @@ export class Game {
             socket.on("end", () => gameInstance.endGame(gameInstance))
         }
         else {
+            // Question answered
             socket.on("answer", (ans) => gameInstance.submitAnswer(gameInstance, userid, ans))
         }
+        // Runs when a socket disconnects
         socket.on("disconnect", () => {
             if (gameInstance.state == "LOBBY") {
                 this.updateState()
@@ -319,6 +326,10 @@ export class Game {
         })
     }
 
+    /**
+     * Reveals answers to students
+     * @param gameInstance The game instance to run this function on
+     */
     revealAnswersToStudents(gameInstance: Game = this) {
         console.log("Reveal Answers")
         // PRECONDITION: Game state is in answers or scoreboard
@@ -331,6 +342,7 @@ export class Game {
             // Add the correct property to an object, and send socket events all at once
             answerCorrect[ans.userid] = ans.correct;
         })
+        // Update each player client with correct or incorrect answer
         gameInstance.players.forEach((p) => {
             p.socket.emit("sceneUpdate", {
                 scene: answerCorrect[p.details.googleid] ? "correctanswer" : "incorrectanswer",
@@ -397,7 +409,9 @@ export class Game {
      * There is an estimate of this on the client
      */
     calculateBonusPoints(){
+        // Calculate how much time has passed since the game has started
         let timeElapsed = (new Date().getTime() - this.currentQuestionStartTime)/1000;
+        // Points decrease linearly with time
         return Math.round(100 - ((100/this.currentQuestion.timeLimit) * timeElapsed))
     }
 
@@ -406,7 +420,9 @@ export class Game {
      * @param userid The userid to leave
      */
     leaveGame(userid: string) {
+        // Find the player
         let player = this.findPlayerById(userid);
+        // Disconnect the player
         player.socket.disconnect();
     }
 
@@ -442,10 +458,13 @@ export class Game {
                 })
                 return
             } else {
+                // There is already a player in the lobby
                 return
             }
         }
         else {
+            // The player hasn't connected before
+            // Generate the display name based on other's names and surnames
             let displayName = user.name.split(" ")[0] + " "
             this.players.forEach((p) => {
                 while (p.displayName == displayName) {
@@ -466,6 +485,7 @@ export class Game {
             if (this.state != "GAME") {
                 this.updateState();
             }
+            // Setup the player's socket events
             this.setupSocketEvents(socket, user.googleid, false)
         }
     }
@@ -495,26 +515,26 @@ export class Game {
         console.log(`Sending teacher ${this.currentTeacherScene.sceneId}
 Sending players ${this.currentClientScene.sceneId}`)
         let time = new Date().getTime();
-        let TD: any = this.currentTeacherScene.data;
-        if (TD) {
-            TD.time = time;
+        let teacherData: any = this.currentTeacherScene.data;
+        if (teacherData) {
+            teacherData.time = time;
         }
         if (options == "TEACHER" || options == "BOTH") {
             this.host.socket.emit("sceneUpdate", {
                 scene: this.currentTeacherScene.sceneId,
-                data: TD,
+                data: teacherData,
                 state: this.state
             })
         }
-        let SD: any = this.currentClientScene.data;
-        if (SD) {
-            SD.time = time;
+        let studentData: any = this.currentClientScene.data;
+        if (studentData) {
+            studentData.time = time;
         }
         if (options == "STUDENT" || options == "BOTH") {
-            this.players.forEach((p) => {
-                p.socket.emit("sceneUpdate", {
+            this.players.forEach((player) => {
+                player.socket.emit("sceneUpdate", {
                     scene: this.currentClientScene.sceneId,
-                    data: SD,
+                    data: studentData,
                     state: this.state,
                 })
             })
@@ -527,6 +547,8 @@ Sending players ${this.currentClientScene.sceneId}`)
      */
     async endGame(gameInstance: Game = this) {
         console.log("End Game")
+        // Set the teacher and client scenes to a loading scene
+        // while data is being processed
         gameInstance.currentClientScene = {
             sceneId: "loading",
             data: {
@@ -542,13 +564,17 @@ Sending players ${this.currentClientScene.sceneId}`)
             teacher: true
         }
         gameInstance.updateState()
+        // Run the submitStats function
         await gameInstance.submitStats(gameInstance)
+        // Set the teacher and client scenes to the dashboard & summary scene
         gameInstance.currentClientScene = Game.FindSceneById("studentdashboard")
         gameInstance.currentTeacherScene = Game.FindSceneById("teachersummary")
         gameInstance.updateState()
+        // Disconnect all the players
         gameInstance.players.forEach((p) => {
             p.socket.disconnect()
         })
+        // Delete the game
         GameManager.singleton.deleteGame(gameInstance.classid)
     }
 
@@ -558,27 +584,32 @@ Sending players ${this.currentClientScene.sceneId}`)
      */
     async submitStats(gameInstance: Game = this) {
         console.log(`Saving GameStats for ${gameInstance.classid}`)
-        let db = Database.singleton;
-        let timestamp = new Date().getTime().toString()
-        await db.addGameStats({
+        // Get the database instance
+        let database = Database.singleton;
+        // Get the time
+        let timestamp = new Date().getTime().toString();
+        // Add the GameStats object
+        await database.addGameStats({
             classId: gameInstance.classid,
             players: [], // Redundant as we can get this from google classroom
             questions: this.questions.map((question) => { return question.questionId }), // We only need IDs, The results from each question are stored in UserGameStats
             timestamp: timestamp
         })
         console.log(`Done`)
-
+        // Create an array so that the tasks can run at once
         let tasks: Promise<IUserGameStatsDocument>[] = [];
-        tasks.push(db.addUserGameStats({
+        // Add the teacher's UserGameStats
+        tasks.push(database.addUserGameStats({
             classId: gameInstance.classid,
             position: -1,
             questions: [],
             timestamp: timestamp,
             userId: gameInstance.host.details.googleid
         }))
+        // Add the player's UserGameStats
         gameInstance.players.forEach((player, i) => {
             console.log(`[${i + 1}/${gameInstance.players.length}] Saving UserGameStats for ${player.details.name}`)
-            tasks.push(db.addUserGameStats({
+            tasks.push(database.addUserGameStats({
                 classId: gameInstance.classid,
                 position: i,
                 questions: player.questionAnswers.map((answer) => { return answer.answer }),
@@ -587,7 +618,7 @@ Sending players ${this.currentClientScene.sceneId}`)
             }))
             console.log(`[${i + 1}/${gameInstance.players.length}] Done`)
         })
-
+        // Wait for all the tasks to finish
         await Promise.all(tasks)
         console.log("Done")
     }
@@ -598,16 +629,23 @@ Sending players ${this.currentClientScene.sceneId}`)
      */
     async nextQuestion(gameInstance: Game = this) {
         console.log("next question")
+        // Get a question from the database
         let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
+        // Set the currentQuestion object
         this.currentQuestion = question;
+        // Set the question start time
         this.currentQuestionStartTime = new Date().getTime();
+        // Add a new question answer data object
         this.questions.push({
             questionId: this.currentQuestion._id,
             questionNumber: this.questions.length,
             studentAnswers: []
         })
+        // Force the time limit to be 15 seconds for testing
         this.currentQuestion.timeLimit = 15;
-        let endTime = new Date().getTime() + this.currentQuestion.timeLimit * 1000
+        // Calculate the end time
+        let endTime = new Date().getTime() + this.currentQuestion.timeLimit * 1000;
+        // Setup the teacher and client scenes
         let CScene: StudentQuestionData = {
             answers: this.currentQuestion.answers,
             timeLimit: this.currentQuestion.timeLimit,
@@ -630,10 +668,11 @@ Sending players ${this.currentClientScene.sceneId}`)
         this.currentTeacherScene = Game.FindSceneById("teacherquestion")
         this.currentTeacherScene.data = TScene;
         this.updateState()
-        let e = this
+        // Set a timeout to move to the answers
+        let currentGameInstance = this
         let currentQuestionIndex = this.questions.length - 1
         this.questionTimer = setTimeout(() => {
-                e.next(e, {
+                currentGameInstance.next(currentGameInstance, {
                     expectedQuestion: currentQuestionIndex,
                     expectedState: "GAME"
                 })
@@ -645,6 +684,7 @@ Sending players ${this.currentClientScene.sceneId}`)
      * @param options The clients to update
      */
     updateState(options: "TEACHER" | "STUDENT" | "BOTH" | "NONE" = "BOTH") {
+        // If there is an update function, update the scene's data
         if (this.currentClientScene.update) {
             this.currentClientScene.data = this.currentClientScene.update(this, this.currentClientScene.data)
         }
@@ -655,40 +695,27 @@ Sending players ${this.currentClientScene.sceneId}`)
     }
 
     /**
-     * Gets the current scene
-     * @param isTeacher Gets the teacher scene if true
-     */
-    getCurrentScene(isTeacher: boolean): GameScene {
-        if (isTeacher) {
-            return this.currentTeacherScene;
-        }
-        else {
-            return this.currentClientScene;
-        }
-    }
-
-    /**
      * Calculates the scores and loads the scoreboard scene on the teacher
      */
     showScoreboard() {
-        // sort leaderboard
+        // Sort the player list by score
         this.players = this.players.sort((a, b) => {
             return b.score - a.score
-        })
-        // update scene
-        let d: ScoreboardData[] = [];
+        });
+        // Change the player list into a JSON friendly format
+        let scoreboardData: ScoreboardData[] = [];
         this.players.forEach((p, i) => {
             if (i > 4) {
                 return
             }
-            d.push({
+            scoreboardData.push({
                 name: p.displayName,
                 score: p.score
             })
         })
         this.currentTeacherScene = Game.FindSceneById("scoreboard")
         this.currentTeacherScene.data = {
-            leaderboard: d
+            leaderboard: scoreboardData
         }
         this.sendScene("TEACHER")
     }
@@ -715,6 +742,7 @@ Sending players ${this.currentClientScene.sceneId}`)
         else if (gameInstance.state == "GAME") {
             // Reveal answers
             gameInstance.state = "ANSWERS";
+            // Clear the answer interval. The question has just finished
             clearInterval(gameInstance.questionTimer);
             console.log("Revealing answers")
             gameInstance.currentClientScene = Game.FindSceneById("waitingForAnswers")

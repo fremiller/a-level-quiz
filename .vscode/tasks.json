@@ -16,10 +16,21 @@
             ]
         },
         {
-            "command": "typedoc --theme minimal --out tsdocs --mode file",
+            "command": "npm run docs",
             "label": "Build Documentation",
             "problemMatcher": [],
             "type": "shell"
+        },
+        {
+            "command": "redis-server --port 7777",
+            "label": "Start Redis Server",
+            "type": "shell",
+            "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "docs",
+            "problemMatcher": []
         }
     ]
 }
