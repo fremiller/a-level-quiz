@@ -812,6 +812,21 @@ textarea{
     display: table;
 }
 
+h1#bonus {
+    width: 3ch;
+    color: yellow;
+}
+
+h1#bonus:after {
+    content: "BONUS";
+    font-size: 1.5vh;
+    display: block;
+    text-align: center;
+    margin: 0 auto;
+    width: inherit;
+    position: absolute;
+}
+
 /*LOADER*/
 
 .lds-ring {

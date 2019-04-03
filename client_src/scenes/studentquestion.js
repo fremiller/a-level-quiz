@@ -9,6 +9,7 @@ class StudentQuestion extends Scene {
         let answerBoxes = "";
         currentCountdownEnd = question.endTime
         let e = this
+        e.data = question
         this.currentTimer = setInterval(()=>{
           let t = (currentCountdownEnd - new Date().getTime())/1000;
           $("#timer").html(t>0?Math.round(t):"")

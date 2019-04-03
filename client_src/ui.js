@@ -38,6 +38,14 @@ let newSceneStackItem = {};
  */
 async function loadScene(tag, data, html, regenerateHtml = true, goingBack=false) {
   if (currentScene) {
+    if (newSceneStackItem.tag == tag){
+      // The new scene is the same scene as the last
+      // Reinsert the HTML if possible
+      if(currentScene.redraw(data)){
+        // The scene has been updated. return
+        return
+      }
+    }
     if (currentScene.returnable && !goingBack) {
       sceneStack.push(newSceneStackItem)
     }

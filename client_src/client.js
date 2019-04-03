@@ -95,15 +95,6 @@ function creategamesubmit() {
     connectToGame(document.getElementById("class").value, true);
 }
 
-/**
- * Joins a game based on the value of #codeinput
- */
-function joinGame() {
-    console.log("foo")
-    if (document.getElementById("codeinput").value.length == 6) {
-        connectToGame(document.getElementById("codeinput").value);
-    }
-}
 
 function createQuestion() {
     loadScene("createquestion");

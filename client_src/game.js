@@ -22,6 +22,7 @@ function startgame() {
  * @param {Number} code 
  */
 function connectToGame(code, create = false) {
+    loadScene("loading", {text: "Connecting to game"})
     // Connects to the socket.io server
     socket = io(`/?code=${code}&token=${GOOGLE_TOKEN}${create ? "&createGame=true" : ""}`, {
         reconnection: false

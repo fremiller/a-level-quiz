@@ -41,6 +41,10 @@ class Scene {
         return this.currentHtml;
     }
 
+    redraw(data){
+        return false;
+    }
+
     /**
      * Runs when the scene leaves
      * Put any animations here

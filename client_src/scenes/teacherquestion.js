@@ -21,6 +21,7 @@ class TeacherQuestion extends Scene {
     if (data.revealAnswers) {
       this.showCorrectAnswer(data.answerCounts, data.correctAnswer)
     }
+    this.data = data;
     clearInterval(currentTimer);
     currentQuestion = data;
     currentCountdownEnd = data.endTime
@@ -35,7 +36,7 @@ class TeacherQuestion extends Scene {
           last_t = t_round;
           e.displayCountdown(t_round);
         }
-        if (t_round < 0){
+        if (t_round < 0) {
           e.hideCountdown()
         }
         if (t < 0) {
@@ -56,17 +57,22 @@ class TeacherQuestion extends Scene {
         answerBoxes += `<br><br><span class="examAnswer" id="answer-${i}"><span class="bold">${"ABCD"[i]}</span> ${answer}</span>`;
       });
     }
-    
-    if (!data.revealAnswers){
+
+    if (!data.revealAnswers) {
       this.bonus = 110;
     }
     let sceneInstance = this;
-    this.bonusInterval = setInterval(()=>{
+    this.bonusInterval = setInterval(() => {
       sceneInstance.bonus -= 1;
-      $("#bonus").html(Math.round(sceneInstance.bonus))
-    }, (data.timeLimit/100) * 1000)
-  
-    
+      if (sceneInstance.bonus > 0) {
+        $("#bonus").html(Math.round(sceneInstance.bonus))
+      }
+      else {
+        $("#bonus").hide();
+      }
+    }, (data.timeLimit / 100) * 1000)
+
+
     return html`
 <div class="header">
 <p id="countdown">5</p>
@@ -123,6 +129,27 @@ class TeacherQuestion extends Scene {
     })
     clearInterval(this.currentTimer);
   }
+  /**
+   * 
+   * @param {Object} data Question data
+   * @param {String} data.question Question title
+   * @param {number[]} data.answerCounts Amount of answers to each question
+   * @param {number} data.correctAnswer The correct answer to the question
+   * @param {boolean} data.revealAnswers Whether the answer should be revealed
+   * @param {number} data.studentAnswerCount The amount of answers recieved
+   * @param {number} data.timeLimit The amount of time to count down for
+   * @param {number} data.endTime The time when the countdown ends
+   * @param {String[]} data.answers The question's answers
+   */
+  redraw(data){
+    if(data.revealAnswers != this.data.revealAnswers){
+      // If it needs to reveal answers, redraw the scene entirely
+      return false;
+    }
+    $("#numberAnswers").html(data.studentAnswerCount);
+    this.data = data;
+    return true;
+  }
 
   displayCountdown(number) {
     $("#countdown").show();
@@ -138,7 +165,7 @@ class TeacherQuestion extends Scene {
     $("#countdown").hide()
   }
 
-  onLeave(){
+  onLeave() {
     clearInterval(this.currentTimer)
     clearInterval(this.bonusInterval)
     return super.onLeave()
