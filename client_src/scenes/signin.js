@@ -7,7 +7,7 @@ class SignIn extends Scene {
         return html`
 <div class="row">
     <div class="center-box center-block animated slideInUp">
-        <h1>Quiz</h1>
+        <h1>Quizi</h1>
         <p>orleanspark.school emails only</p>
         <div id="google-align">
             <div id="g-signin" class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" style="display: block; margin: 0 auto;"></div>
