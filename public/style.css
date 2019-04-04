@@ -751,6 +751,10 @@ textarea{
     height: auto;
 }
 
+.center-box p{
+    font-family: 'Comfortaa', sans-serif;
+}
+
 @media only screen and (min-width: 768px) {
     #fullscreenBox{
         display: none;
