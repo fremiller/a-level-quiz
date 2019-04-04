@@ -22,7 +22,8 @@ let scenes = {
   finish: Finish,
   privacy: Privacy,
   teachersummary: TeacherSummary,
-  statistics: Statistics
+  statistics: Statistics,
+  welcome: WelcomeScene
 }; // [Scene]
 
 let intervalsToClear = [];
@@ -131,7 +132,7 @@ function dropQuestion() {
 let currentTimer = undefined;
 
 $(function () {
-  loadScene("signin");
+  loadScene("welcome");
   //setInterval(checkFullscreen, 10000);
   window.scrollTo(0, 1);
 });

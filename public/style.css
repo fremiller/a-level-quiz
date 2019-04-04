@@ -40,7 +40,7 @@ body {
 
 
 h1 {
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 5vh;
 }
 
@@ -88,6 +88,7 @@ h1 {
 
 .header h1 {
     width: 100%;
+    padding-top: 1vh;
     padding-left: 1vw;
 }
 
@@ -123,7 +124,7 @@ h1 {
 }
 
 #players p {
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 35px;
     width: 33.333%;
     text-align: center;
@@ -243,7 +244,7 @@ h3{
 
 span#link {
     color: orange;
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
     margin-left: 0.4ch;
 }
 
@@ -254,7 +255,7 @@ span#link {
 }
 
 .slobby h3 {
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 5vh;
 }
 
@@ -359,7 +360,7 @@ select *{
     width: 100%;
     text-align: center;
     font-size: 4vh;
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
 }
 
 .answers {
@@ -719,7 +720,7 @@ textarea{
     display: block;
     color: black;
     width: 100%;
-    font-family: 'Baloo', sans-serif;
+    font-family: 'Comfortaa', sans-serif;
     margin-top: 35vh;
     font-size: 15vh;
     text-align: center;
@@ -745,9 +746,18 @@ textarea{
     flex: 0 1 auto;
 }
 
+#sv{
+    width: 90vw;
+    height: auto;
+}
+
 @media only screen and (min-width: 768px) {
     #fullscreenBox{
         display: none;
+    }
+    #sv{
+        width: auto;
+        height: 20vh;
     }
     /* For desktop: */
     .col-1 {
