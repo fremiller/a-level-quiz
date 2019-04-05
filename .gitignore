@@ -11,6 +11,9 @@ docs.json
 documentation.html
 docs/output
 
+worker.js
+worker.js.map
+
 # Logs
 logs
 *.log
