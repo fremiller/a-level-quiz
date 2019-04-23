@@ -113,6 +113,7 @@ export class HTTPServer extends Module {
          */
         async function (req: Request, res: express.Response) {
             // Get the user info
+            let hrstart = process.hrtime();
             let user = await auth.getUserFromToken(req.query.id);
             let runningGames = [];
             let classes = user.classes;
@@ -127,6 +128,8 @@ export class HTTPServer extends Module {
                     runningGames.push(c);
                 }
             })
+            let hrend = process.hrtime(hrstart)
+            console.log(`Execution Time: ${hrend[0]}s ${hrend[1]/1000000}ms`)
             // Return list of games
             res.json({
                 classesWithGames: runningGames

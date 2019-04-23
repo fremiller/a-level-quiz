@@ -408,11 +408,11 @@ export class Game {
      * Calculates the amount of points to award to the user based on the time taken
      * There is an estimate of this on the client
      */
-    calculateBonusPoints(){
+    calculateBonusPoints() {
         // Calculate how much time has passed since the game has started
-        let timeElapsed = (new Date().getTime() - this.currentQuestionStartTime)/1000;
+        let timeElapsed = (new Date().getTime() - this.currentQuestionStartTime) / 1000;
         // Points decrease linearly with time
-        return Math.round(100 - ((100/this.currentQuestion.timeLimit) * timeElapsed))
+        return Math.round(100 - ((100 / this.currentQuestion.timeLimit) * timeElapsed))
     }
 
     /**
@@ -671,11 +671,14 @@ Sending players ${this.currentClientScene.sceneId}`)
         // Set a timeout to move to the answers
         let currentGameInstance = this
         let currentQuestionIndex = this.questions.length - 1
+        if (this.questionTimer) {
+            clearTimeout(this.questionTimer)
+        }
         this.questionTimer = setTimeout(() => {
-                currentGameInstance.next(currentGameInstance, {
-                    expectedQuestion: currentQuestionIndex,
-                    expectedState: "GAME"
-                })
+            currentGameInstance.next(currentGameInstance, {
+                expectedQuestion: currentQuestionIndex,
+                expectedState: "GAME"
+            })
         }, this.currentQuestion.timeLimit * 1000)
     }
 
@@ -725,8 +728,8 @@ Sending players ${this.currentClientScene.sceneId}`)
      * @param gameInstance The current game instance
      */
     next(gameInstance: Game = this, nextData?: NextData) {
-        if (nextData){
-            if (gameInstance.state != nextData.expectedState || gameInstance.questions.length - 1 != nextData.expectedQuestion){
+        if (nextData) {
+            if (gameInstance.state != nextData.expectedState || gameInstance.questions.length - 1 != nextData.expectedQuestion) {
                 // This next was not intended by the client, or has already happened
                 return
             }
@@ -742,8 +745,8 @@ Sending players ${this.currentClientScene.sceneId}`)
         else if (gameInstance.state == "GAME") {
             // Reveal answers
             gameInstance.state = "ANSWERS";
-            // Clear the answer interval. The question has just finished
-            clearInterval(gameInstance.questionTimer);
+            // Clear the answer timeout. The question has just finished
+            clearTimeout(gameInstance.questionTimer);
             console.log("Revealing answers")
             gameInstance.currentClientScene = Game.FindSceneById("waitingForAnswers")
             gameInstance.updateState();
