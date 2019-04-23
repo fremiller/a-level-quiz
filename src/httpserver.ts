@@ -112,6 +112,7 @@ export class HTTPServer extends Module {
          * @param res The express response
          */
         async function (req: Request, res: express.Response) {
+            // Get the user info
             let user = await auth.getUserFromToken(req.query.id);
             let runningGames = [];
             let classes = user.classes;
@@ -133,17 +134,27 @@ export class HTTPServer extends Module {
         })
 
         this.app.get("/admin/status", async function (req, res) {
+            /**
+             * Gets the status of the system for the admin dashboard
+             */
             if (!await auth.VerifyAdmin(req.query.token)) {
+                // User is not authorised
                 throw new NotAuthorizedError();
             }
+            // Run the getAdminState function
             let AS = Admin.singleton.getAdminState()
             res.json(AS)
         })
 
         this.app.post("/admin/accounts/create", async function (req, res) {
+            /**
+             * Create a test account
+             */
             if (!await auth.VerifyAdmin(req.query.token)) {
+                // The user is not authorized
                 throw new NotAuthorizedError();
             }
+            // Create the test acount
             Admin.singleton.makeTestAccount(req.query.isTeacher == "true");
             res.json({
                 success: true
@@ -151,9 +162,14 @@ export class HTTPServer extends Module {
         })
 
         this.app.post("/admin/accounts/delete", async function (req, res) {
+            /**
+             * Delete a test account
+             */
             if (!await auth.VerifyAdmin(req.query.token)) {
+                // User is not authorized
                 throw new NotAuthorizedError();
             }
+            // Delete the test account
             Admin.singleton.deleteTestAccount(req.query.index);
             res.json({
                 success: true
@@ -161,19 +177,28 @@ export class HTTPServer extends Module {
         })
 
         this.app.post("/users/login", async function (req, res) {
+            /**
+             * Log in the user
+             */
             httpServerInstance.log("[REQUEST] /users/login");
+            // There must be the token parameter
             if (!httpServerInstance.VerifyParams(req, ["token"])) {
                 throw new ParameterError();
             }
             let user = await auth.getUserFromToken(req.query.id, req.query.token, true);
+            // Sends the user's info as a response
             res.json(user);
         });
 
         this.app.get("/topics/list", async function (req, res) {
+            // Add this feature later
             res.json({})
         });
 
         this.app.get("/classes/list", async function (req, res) {
+            /**
+             * Gets all the classes that the user is in.
+             */
             classroom.getClasses(req.query.token, true).then(body => {
                 res.json(body)
             });
@@ -203,29 +228,38 @@ export class HTTPServer extends Module {
         })
 
         this.app.get("/games/me", async function (req, res) {
+            /**
+             * Gets the past games of a user. If the id is given, it gets that user,
+             * otherwise it gets the past games of the user which sent the request
+             */
+            // Get the user which sent the request
             let user = await auth.getUserFromToken(req.query.token);
-            console.log(user.googleid);
+            // If the user is a teacher, and they requested another user's id
             if (user.userType != 1 && user.googleid != req.query.id && req.query.id != undefined) {
+                // Return as they are not authorised.
                 return
             }
+            // Gets the user info of the user if it is not the user which sent the request
             let idToFind = user.googleid;
             let userInfoRaw;
             if(user.googleid != req.query.id && req.query.id != undefined){
                 idToFind = req.query.id;
                 userInfoRaw = await Database.singleton.getUserFromGoogleID(idToFind);
             }
-            
+            // Send the response
             res.json({
                 games: await Database.singleton.getUserPastGames(idToFind),
                 userinfo: {
+                    // The userinforaw is only included if it is available.
                     name: userInfoRaw?userInfoRaw.name:""
                 }
             });
         })
 
-
+        // Returns a promise which resolves when the server is ready
         return new Promise(function (resolve, reject) {
             const port = process.env.PORT || 8000;
+            // Listen on the specified port
             httpServerInstance.http.listen(port, function () {
                 httpServerInstance.log("Server listening on port "+port);
                 resolve();
@@ -239,8 +273,10 @@ export class HTTPServer extends Module {
      * @param {string[]} params The required parameters
      */
     VerifyParams(req: express.Request, params: string[]): boolean {
+        // For each parameter
         for (let i = 0; i < params.length; i++) {
             if (!req.query[params[i]]) {
+                // If the parameter is not in the request, return false
                 return false;
             }
         }

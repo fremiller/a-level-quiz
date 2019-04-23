@@ -3,7 +3,8 @@
  * @property {boolean} download
  * @property {string} downloadURL
  * @property {Object} data
- * @property {"teachergame"|"teacherquestion"} dataType
+ * @property {string} params
+ * @property {"teachergame"|"teacherquestion"|"studentprofile"} dataType
  */
 
  /**
