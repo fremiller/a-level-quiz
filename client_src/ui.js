@@ -54,11 +54,15 @@ async function loadScene(tag, data, html, regenerateHtml = true, goingBack=false
   }
   changeBackgroundColour("body-blue");
   currentScene = new scenes[tag]("#scene");
-  await currentScene.preRender(data);
-  await currentScene.onEnter(data);
+  if(tag != newSceneStackItem.tag){
+    await currentScene.preRender(data);
+  }
   let generatedHtml = regenerateHtml ? currentScene.generateHtml(data) : html;
   $("#scene").html(generatedHtml);
   currentScene.postRender(data);
+  if(tag != newSceneStackItem.tag){
+    await currentScene.onEnter(data);
+  }
   currentSceneName = tag;
   newSceneStackItem = {
     scene: currentScene,

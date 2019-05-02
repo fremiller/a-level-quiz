@@ -221,6 +221,10 @@ export class Database extends Module {
         })
     }
 
+    GetQuestionInOrder(topic: number, index: number){
+        return require("../quizconfig.json").quizzes[topic].questions[index];
+    }
+
     /**
      * Gets all information about a game for students
      * This is the same as for teachers, but it does not give out information about all players
@@ -229,13 +233,12 @@ export class Database extends Module {
      * @param userid The student's userid
      */
     async getStudentGameInfo(classId: string, timestamp: string, userid: string): Promise<IGameData|any>{
-        console.log(`Class: ${classId} Time: ${timestamp}`)
+        console.log(`Class: ${classId} Time: ${timestamp}`);
         // Find the gamestats object
         let game = await models.GameStats.find({
             classId: classId,
             timestamp: timestamp
         }).exec();
-        console.log("QQ" + game)
 
         // Find the usergamestats that were in that game
         // Filtered by userid so that it only shows one user
@@ -248,11 +251,11 @@ export class Database extends Module {
         if (players.length == 0) {
             return {
                 "error": "No game with id"
-            }
+            };
         }
 
         // Put all the players in the game in JSON format
-        let playerJson: IUserGameStatsData[] = []
+        let playerJson: IUserGameStatsData[] = [];
         for (let i = 0; i < players.length; i++) {
             let p = players[i];
             let new_p: IUserGameStatsData = {
@@ -262,7 +265,7 @@ export class Database extends Module {
                 details: await this.getUserFromGoogleID(p.userId),
                 classId: p.classId,
                 timestamp: p.timestamp
-            }
+            };
             playerJson.push(new_p);
         }
 
@@ -279,7 +282,7 @@ export class Database extends Module {
             timestamp: timestamp,
             questions: questions,
             players: playerJson
-        }
+        };
         return gameData;
     }
 
@@ -305,10 +308,10 @@ export class Database extends Module {
         if (players.length == 0) {
             return {
                 "error": "No game with id"
-            }
+            };
         }
         // Add the player details to the player
-        let playerJson: IUserGameStatsData[] = []
+        let playerJson: IUserGameStatsData[] = [];
         for (let i = 0; i < players.length; i++) {
             let p = players[i];
             let new_p: IUserGameStatsData = {
@@ -335,7 +338,7 @@ export class Database extends Module {
             timestamp: timestamp,
             questions: questions,
             players: playerJson
-        }
+        };
         return gameData;
     }
 
@@ -348,7 +351,7 @@ export class Database extends Module {
             // Find the question by it's mongoDB id
             models.Question.findById(questionid, function (err, question) {
                 resolve(question);
-            })
-        })
+            });
+        });
     }
 }

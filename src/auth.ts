@@ -37,7 +37,7 @@ export async function VerifyAdmin(token: string): Promise<boolean> {
     // Get the payload from the token
     let payload = ticket.getPayload();
 
-    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
+    if (config.authorizedDomains.indexOf(payload.hd) == -1 && config.admins.indexOf(payload.email) == -1) {
         return false;
     }
     return config.admins.indexOf(payload.email) != -1;
@@ -128,7 +128,7 @@ export async function getUserFromToken(token: string, code?: string, isSignIn:bo
     let userid = payload['sub'];
 
     // Checks whether the client is allowed to connect
-    if (config.authorizedDomains.indexOf(payload.hd) == -1 && Testers.indexOf(payload.email) == -1) {
+    if (config.authorizedDomains.indexOf(payload.hd) == -1 && config.admins.indexOf(payload.email) == -1) {
         throw new NotAuthorizedError();
     }
 

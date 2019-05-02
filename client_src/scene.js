@@ -21,6 +21,7 @@ class Scene {
                 clearInterval(interval);
             })
         }
+        
     }
 
     /**
@@ -29,7 +30,15 @@ class Scene {
      * @returns {Promise} Promise which resolves once the scene has entered
      */
     onEnter() {
-        return new Promise(function (res) { res() });
+        return new Promise(function(res){
+            // console.log("foo");
+            // $("#scene").addClass("slide-in-elliptic-top-fwd");
+            // setTimeout(()=>{
+            //     $("#scene").removeClass("slide-in-elliptic-top-fwd");
+            //     res()
+            // }, 1000)
+            res()
+        })
     }
 
     /**
@@ -56,7 +65,14 @@ class Scene {
                 clearInterval(interval);
             })
         }
-        return new Promise(function(res) {res()});
+        return new Promise(function(res) {
+            // $("#scene").addClass("slide-out-elliptic-top-bck");
+            // setTimeout(()=>{
+            //     $("#scene").removeClass("slide-out-elliptic-top-bck");
+            //     res()
+            // }, 1000)
+            res();
+        });
     }
 
     /**

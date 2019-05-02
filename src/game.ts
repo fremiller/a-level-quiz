@@ -630,9 +630,22 @@ Sending players ${this.currentClientScene.sceneId}`)
     async nextQuestion(gameInstance: Game = this) {
         console.log("next question")
         // Get a question from the database
-        let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
+        //let question: IQuestionDocument = await Database.singleton.GetRandomQuestion();
+        let question: IQuestion = await Database.singleton.GetQuestionInOrder(0, this.questions.length);
+        if(!question){
+            this.endGame(this);
+            return;
+        }
         // Set the currentQuestion object
-        this.currentQuestion = question;
+        this.currentQuestion = {
+            _id: "0:"+this.questions.length,
+            answers: question.answers,
+            correctAnswer: question.correctAnswer,
+            exam: question.exam,
+            question: question.question,
+            timeLimit: question.timeLimit,
+            type: question.type
+        }
         // Set the question start time
         this.currentQuestionStartTime = new Date().getTime();
         // Add a new question answer data object
@@ -642,7 +655,7 @@ Sending players ${this.currentClientScene.sceneId}`)
             studentAnswers: []
         })
         // Force the time limit to be 15 seconds for testing
-        this.currentQuestion.timeLimit = 15;
+        //this.currentQuestion.timeLimit = 15;
         // Calculate the end time
         let endTime = new Date().getTime() + this.currentQuestion.timeLimit * 1000;
         // Setup the teacher and client scenes
