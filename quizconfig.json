@@ -15,10 +15,10 @@
                     "type": "EXAM",
                     "topic": "",
                     "answers": [
-                        "74 <strong>J</strong>",
-                        "0.013 <strong>J</strong>",
-                        "1400 <strong>J</strong>",
-                        "6000 <strong>J</strong>"
+                        "74 <em>J</em>",
+                        "0.013 <em>J</em>",
+                        "1400 <em>J</em>",
+                        "6000 <em>J</em>"
                     ],
                     "correctAnswer": 3,
                     "timeLimit": 60,
