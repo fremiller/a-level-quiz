@@ -4,7 +4,11 @@ This is my A Level Computer Science Project
 
 It is a quiz for A level physics students to help them revise the multiple choice questions.
 
-See the website [here](https://ffsh.xyz) for the latest version
+See the website [here](https://a-level-quiz.herokuapp.com) for the latest version
+
+There is google classroom integration in the project, which makes it easy for teachers and students to create and join games
+
+At the moment, games can only be played based on the questions in `quizconfig.json`, however, there will be a question creation tool in the future
 
 # Directory Structure
 
