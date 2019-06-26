@@ -24,7 +24,7 @@ At the moment, games can only be played based on the questions in `quizconfig.js
 
 # Building and running
 
-In the root directory, run `npm install --save-dev` then `npx tsc`
+In the root directory, run `npm install` then `npx tsc`
 Mongodb server required on the server
 
 Default port: `8000`
