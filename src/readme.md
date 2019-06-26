@@ -1,3 +1,3 @@
 # /src/
 
-This contains all server course code
+This contains all server source code
