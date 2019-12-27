@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "eslint": "^5.9.0",
-    "handlebars": "^4.1.0",
+    "handlebars": "^4.3.0",
     "jsdoc-one-page": "0.0.5",
     "mocha": "^5.2.0",
     "mock-socket": "^8.0.5",
